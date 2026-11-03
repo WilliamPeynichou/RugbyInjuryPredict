@@ -1,0 +1,14 @@
+raw_label,source,position_code
+Pilier gauche,lnr,PROP
+Pilier droit,lnr,PROP
+Pilier,lnr,PROP
+Talonneur,lnr,HOOKER
+Deuxième ligne,lnr,LOCK
+Troisième ligne aile,lnr,BACK_ROW
+Troisième ligne centre,lnr,BACK_ROW
+Troisième ligne,lnr,BACK_ROW
+Demi de mêlée,lnr,SCRUM_HALF
+Demi d'ouverture,lnr,FLY_HALF
+Centre,lnr,CENTRE
+Ailier,lnr,WING
+Arrière,lnr,FULLBACK

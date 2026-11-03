@@ -9,10 +9,17 @@ sources:
     base_url: https://www.allrugby.com
     notes_legal: Accord ou validation juridique requis, non confirmé.
   lnr:
-    authorized: false
+    authorized: true
     base_url: https://top14.lnr.fr
     extra_hosts: [prod2.lnr.fr, www.lnr.fr]
-    notes_legal: CGU restrictives du 16/06/2023, accord requis.
+    min_delay_seconds: 5.0
+    notes_legal: >-
+      Activation humaine (demande explicite de l'utilisateur, 2026-11-03).
+      Usage de recherche non commercial, sans redistribution, cadre :
+      exception de fouille de textes et de données (art. L.122-5-3 CPI),
+      collecte ponctuelle et polie (robots.txt respecté, UA identifiable),
+      sous réserve d'absence d'opt-out du producteur. Réconciliation
+      d'identifiants uniquement.
   itsrugby:
     authorized: false
     base_url: https://itsrugby.fr

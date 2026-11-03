@@ -28,18 +28,27 @@ def test_repository_registry():
         "wikipedia",
         "news",
     }
-    assert all(not source.authorized for source in registry.sources.values())
-    assert registry.sources["lnr"].min_delay_seconds == registry.defaults.min_delay_seconds
+    # Décision humaine documentée (2026-11-03) : lnr autorisée pour la recherche
+    # non commerciale (fouille de textes et de données, art. L.122-5-3 CPI).
+    authorized = {k for k, v in registry.sources.items() if v.authorized}
+    assert authorized == {"lnr"}
+    assert "fouille de textes" in registry.sources["lnr"].notes_legal
+    assert registry.sources["lnr"].min_delay_seconds > registry.defaults.min_delay_seconds
     expected_espn_delay = 2.0
     assert registry.sources["espn"].min_delay_seconds == expected_espn_delay
     assert registry.sources["lnr"].extra_hosts == ["prod2.lnr.fr", "www.lnr.fr"]
     assert registry.sources["apisports"].requires_api_key
 
 
-@pytest.mark.parametrize("source_id", ["lnr", "unknown", "wikipedia"])
+@pytest.mark.parametrize("source_id", ["allrugby", "unknown", "wikipedia"])
 def test_authorization_denied(source_id):
     with pytest.raises(SourceNotAuthorizedError, match=source_id):
         assert_authorized(source_id)
+
+
+def test_lnr_authorized_by_human_decision():
+    source = assert_authorized("lnr")
+    assert source.authorized and source.respect_robots
 
 
 def test_authorization_accepts_explicit_permission(monkeypatch, tmp_path):

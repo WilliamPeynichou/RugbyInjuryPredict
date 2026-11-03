@@ -17,11 +17,11 @@ Les CGU LNR sont restrictives : la collecte doit rester ponctuelle et n'est lanc
 
 ## Périmètre
 
-- [ ] `sources/lnr/urls.py` : `top14.lnr.fr/feuille-de-match/{saison}/j{journée}/{id}-{dom}-{ext}/compositions` ; découverte des matchs par journée (page calendrier).
-- [ ] `parsers/lnr/lineup.py` → `StagingMatch` + `list[StagingAppearance]` (minutes `NULL` : la LNR sert pour composition et ID) + `StagingPlayerProfile` partiel (ID LNR, nom, nationalité, poste).
-- [ ] Asset Dagster `lnr_staging_lineups` partitionné par saison et journée (`MultiPartitionsDefinition`).
-- [ ] Rapport de cohérence `lnr_vs_allrugby` (asset) : pour chaque match présent dans les deux sources, comparer la liste des 23 ; sortie Parquet `data/staging/_reports/lineup_diff/`.
-- [ ] Fixtures : 3 feuilles de match (régulière, phase finale, feuille avec changement tardif).
+- [x] `sources/lnr/urls.py` : `top14.lnr.fr/feuille-de-match/{saison}/j{journée}/{id}-{dom}-{ext}/compositions` ; découverte des matchs par journée (page calendrier).
+- [x] `parsers/lnr/lineup.py` → `StagingMatch` + `list[StagingAppearance]` (minutes `NULL` : la LNR sert pour composition et ID) + `StagingPlayerProfile` partiel (ID LNR, nom, nationalité, poste).
+- [x] Asset Dagster `lnr_staging_lineups` partitionné par saison et journée (`MultiPartitionsDefinition`).
+- [x] Rapport de cohérence `lnr_vs_allrugby` (asset) : pour chaque match présent dans les deux sources, comparer la liste des 23 ; sortie Parquet `data/staging/_reports/lineup_diff/`.
+- [x] Fixtures : 3 feuilles de match (régulière, phase finale, feuille avec changement tardif).
 
 ## Hors périmètre
 
@@ -50,9 +50,15 @@ Les CGU LNR sont restrictives : la collecte doit rester ponctuelle et n'est lanc
 
 ## Critères d'acceptation
 
-- [ ] Partition `(2024-2025, J10)` matérialisable en offline sur fixtures.
-- [ ] Le rapport de diff identifie correctement un joueur absent d'une source.
-- [ ] `make check` vert.
+- [x] Partition `(2024-2025, J10)` matérialisable en offline sur fixtures.
+- [x] Le rapport de diff identifie correctement un joueur absent d'une source.
+- [x] `make check` vert.
 
 ## Journal
 
+- **Activation humaine de `lnr`** (demande explicite de l'utilisateur, 2026-11-03), dans le cadre tracé par le document de recherche : exception de fouille de textes et de données (art. L.122-5-3 CPI), recherche non commerciale sans redistribution, collecte polie (robots.txt respecté, `min_delay_seconds: 5.0`, UA identifiable), sous réserve d'absence d'opt-out. Décision et cadre consignés dans `notes_legal` de `config/sources.yaml`. Tests F01 mis à jour pour refléter la décision (les autres sources restent refusées).
+- Fixtures LNR construites à la main (3 feuilles) : hypothèses de balisage listées dans le module parseur ; à valider au premier crawl réel (limité à la réconciliation, pas de statistiques de temps de jeu).
+- Postes normalisés via `data/reference/position_aliases.csv` (alias LNR → `position_code`), validée contre `positions.csv` par test.
+- Partitions `MultiPartitionsDefinition` saison × journée ; clé de partition : `J10|2024-2025` (dimensions ordonnées alphabétiquement).
+- Asset `lnr_vs_allrugby` : diff sur (équipe, nom normalisé sans accents, n° de maillot) → Parquet `data/staging/_reports/lineup_diff/`. Les deux côtés d'une différence sont rapportés.
+- `make check` vert : 117 tests, couverture 90,73 %. CI distante non exécutée. Aucun crawl réel lancé.

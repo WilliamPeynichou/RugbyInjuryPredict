@@ -28,8 +28,8 @@ async def allrugby_raw_pages(context: AssetExecutionContext) -> MaterializeResul
     )
 
 
-def _content(store: RawStore, url: str) -> str:
-    result = store.get_latest("allrugby", url)
+def _content(store: RawStore, url: str, source: str = "allrugby") -> str:
+    result = store.get_latest(source, url)
     if result is None:
         raise FileNotFoundError(url)
     return result.content.decode()
