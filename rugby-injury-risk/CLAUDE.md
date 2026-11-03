@@ -13,6 +13,8 @@ Le livrable principal est une **courbe de risque calibrée h(N) par poste** (ris
 
 Lire dans l'ordre avant de coder : `README.md` → `docs/00-vision.md` → `docs/03-architecture.md` → `docs/04-data-model.md` → `features/ROADMAP.md`.
 
+En cas d'erreur, de doute ou de blocage, consulter d'abord le document de recherche situé à la racine Git (`Prédire le risque de blessure par poste et enchaînement de matchs en Top 14 _ données, science et architecture.md`, nom de fichier Unicode décomposé), puis ses sources et les alternatives proposées. Vérifier les affirmations avant usage ; les règles de conformité et le schéma contractuel de `docs/` restent prioritaires. Poser une question seulement si le point reste bloquant.
+
 ## 2. Workflow obligatoire : une feature à la fois
 
 1. Ouvrir `features/ROADMAP.md`. Choisir la **première feature au statut `todo` dont toutes les dépendances sont `done`**.

@@ -56,11 +56,17 @@ def test_windows_cover_seasons():
     assert reference.in_test_window(date(2024, 2, 10))
     assert not reference.in_test_window(date(2020, 7, 1))
     assert reference.in_test_window(date(2020, 10, 24))
+    assert reference.in_test_window(date(2020, 12, 6))
+    assert reference.in_test_window(date(2026, 7, 4))
+    assert reference.in_test_window(date(2026, 11, 29))
+    assert not reference.in_test_window(date(2026, 8, 1))
 
 
 def test_regime():
     assert reference.protection_regime(date(2026, 7, 1)) == "protected_33"
-    assert reference.protection_regime(date(2026, 6, 30)) == "elite_40"
+    assert reference.protection_regime(date(2026, 6, 30)) == "expanded_squads"
+    assert reference.protection_regime(date(2014, 6, 1)) == "elite_30"
+    assert reference.protection_regime(date(2015, 6, 1)) == "unknown"
     assert reference.protection_regime(date(2013, 1, 1)) == "unknown"
 
 

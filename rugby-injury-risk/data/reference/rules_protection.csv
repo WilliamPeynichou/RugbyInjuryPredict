@@ -1,5 +1,7 @@
 regime,start_date,end_date,list_size,max_matches,min_minutes,offseason_weeks,rest_rule,max_tests,source
-elite_30,2014-07-01,2017-06-30,30,30,20,NULL,NULL,NULL,docs/01-data-sources.md#5
-elite_45,2017-07-01,2018-06-30,45,NULL,NULL,NULL,NULL,NULL,docs/01-data-sources.md#5
-elite_40,2018-07-01,2026-06-30,40,NULL,NULL,10,NULL,NULL,docs/01-data-sources.md#5
+elite_30,2014-06-01,2015-05-31,30,30,20,NULL,NULL,NULL,https://fr.wikipedia.org/wiki/Liste_%C3%89lite_des_joueurs_prot%C3%A9g%C3%A9s_par_la_convention_FFR/LNR
+elite_30_2016,2016-07-10,2017-06-08,30,NULL,NULL,8,NULL,NULL,https://fr.wikipedia.org/wiki/Liste_%C3%89lite_des_joueurs_prot%C3%A9g%C3%A9s_par_la_convention_FFR/LNR
+elite_45,2017-06-09,2018-05-29,45,NULL,NULL,10,NULL,NULL,https://fr.wikipedia.org/wiki/Liste_%C3%89lite_des_joueurs_prot%C3%A9g%C3%A9s_par_la_convention_FFR/LNR
+elite_40,2018-05-30,2019-12-31,40,NULL,NULL,10,NULL,NULL,https://fr.wikipedia.org/wiki/Liste_%C3%89lite_des_joueurs_prot%C3%A9g%C3%A9s_par_la_convention_FFR/LNR
+expanded_squads,2020-01-01,2026-06-30,NULL,NULL,NULL,NULL,NULL,NULL,https://fr.wikipedia.org/wiki/Liste_%C3%89lite_des_joueurs_prot%C3%A9g%C3%A9s_par_la_convention_FFR/LNR
 protected_33,2026-07-01,2027-06-30,33,NULL,NULL,NULL,1/4 or 2/8,9,docs/01-data-sources.md#5

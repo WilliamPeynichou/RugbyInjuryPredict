@@ -70,5 +70,9 @@ Schémas Pandera : dates cohérentes (`start_date ≤ end_date`), pas de chevauc
 - Calendriers été/automne incomplets : F02 ne peut pas être déclarée terminée. Document APPE primaire non retrouvé ; cinq synthétiques repris uniquement de la fiche avec provenance explicite à confirmer.
 - 24 stades préremplis, toutes coordonnées NULL ; délocalisations non exhaustives. Dates de transition 2014/2017/2018 des conventions représentées au 1er juillet par convention, à confirmer avant usage analytique.
 - Validation locale : `make check` vert, 70 tests et couverture globale 98,97 %. CI distante non exécutée.
+- Reprise après consultation du document de recherche : lien APPE exact retrouvé, cinq surfaces confirmées sur la page officielle publiée le 02/07/2026 ; provenance CSV remplacée par son URL.
+- Autumn Nations Cup 2020 et deux phases du Nations Championship 2026 ajoutées après vérification documentaire. Le reste des fenêtres été/automne demeure incomplet : F02 reste `in_progress`.
+- Correction des extrapolations du régime de protection : plafond 2014 borné à juin 2014–mai 2015, dispositifs 2016 et groupes élargis dès 2020 distingués. Les dates d'annonce et la précision annuelle sont documentées, sans les présenter comme dates d'effet juridique.
+- Instruction de consultation prioritaire du document de recherche ajoutée à CLAUDE.md. Aucun changement des autorisations de collecte.
 - Chargeurs Polars avec validation Pandera, cache et clones ; tests hors réseau. Les dates ISO nécessitent un parsing explicite avant validation Pandera.
 

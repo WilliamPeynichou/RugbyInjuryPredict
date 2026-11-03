@@ -68,7 +68,7 @@ def _schema(name: str) -> pa.DataFrameSchema:
             "regime": pa.Column(pl.String, unique=True),
             "start_date": pa.Column(pl.Date),
             "end_date": pa.Column(pl.Date),
-            "list_size": pa.Column(pl.Int64),
+            "list_size": pa.Column(pl.Int64, nullable=True),
             **{
                 column: pa.Column(pl.Int64, nullable=True)
                 for column in ("max_matches", "min_minutes", "offseason_weeks", "max_tests")
