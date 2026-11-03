@@ -53,6 +53,17 @@ def test_windows_cover_seasons():
         assert not windows.filter(
             (pl.col("start_date") <= season.end_date) & (pl.col("end_date") >= season.start_date)
         ).is_empty()
+    # Ete 2020 : aucune fenetre (COVID, tests annules). Autres trous documentes dans le README.
+    for year, month, day in (
+        (2014, 5, 30),
+        (2015, 5, 23),
+        (2017, 5, 27),
+        (2018, 5, 27),
+        (2021, 6, 2),
+        (2022, 6, 4),
+        (2025, 6, 20),
+    ):
+        assert reference.in_test_window(date(year, month, day))
     assert reference.in_test_window(date(2024, 2, 10))
     assert not reference.in_test_window(date(2020, 7, 1))
     assert reference.in_test_window(date(2020, 10, 24))

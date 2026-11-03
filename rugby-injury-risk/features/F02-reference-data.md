@@ -19,10 +19,10 @@ Aucun poste, aucune compétition ne doit être écrit en dur dans le code (`CLAU
 
 - [x] `data/reference/positions.csv` (contenu exact de `docs/04-data-model.md` §1).
 - [x] `data/reference/competitions.csv`.
-- [ ] `data/reference/venues.csv` : les stades des clubs ayant joué en Top 14 depuis 2013-14 (nom, ville, lat, lon). Remplir ce qui est connu avec certitude ; les inconnus restent à `NULL` et sont listés dans le journal.
-- [ ] `data/reference/venue_surface.csv` : colonnes `venue_id, season_id, surface, source`. Pré-remplir 2025-2026 depuis le classement APPE LNR (Montauban, Biarritz, Provence Rugby, Mont-de-Marsan, Racing 92 en synthétique) ; autres saisons `unknown` à compléter par l'humain.
-- [ ] `data/reference/test_windows.csv` : `window_id, label, start_date, end_date, type` (six_nations, autumn, summer, rwc) de 2013-14 à 2026-27.
-- [ ] `data/reference/rules_protection.csv` : régimes de la convention FFR/LNR (`docs/01-data-sources.md` §5).
+- [x] `data/reference/venues.csv` : les stades des clubs ayant joué en Top 14 depuis 2013-14 (nom, ville, lat, lon). Remplir ce qui est connu avec certitude ; les inconnus restent à `NULL` et sont listés dans le journal.
+- [x] `data/reference/venue_surface.csv` : colonnes `venue_id, season_id, surface, source`. Pré-remplir 2025-2026 depuis le classement APPE LNR (Montauban, Biarritz, Provence Rugby, Mont-de-Marsan, Racing 92 en synthétique) ; autres saisons `unknown` à compléter par l'humain.
+- [x] `data/reference/test_windows.csv` : `window_id, label, start_date, end_date, type` (six_nations, autumn, summer, rwc) de 2013-14 à 2026-27.
+- [x] `data/reference/rules_protection.csv` : régimes de la convention FFR/LNR (`docs/01-data-sources.md` §5).
 - [x] `data/reference/protected_players.csv` : en-têtes seulement (`season_id, player_name, source_url`), rempli par l'humain.
 - [x] `data/reference/opt_out.csv`, `er_overrides.csv` : en-têtes seulement.
 - [x] `src/rugby_risk/reference.py` : chargeurs typés (`positions()`, `competitions()`, `test_windows()`…) avec validation Pandera et cache.
@@ -59,7 +59,7 @@ Schémas Pandera : dates cohérentes (`start_date ≤ end_date`), pas de chevauc
 ## Critères d'acceptation
 
 - [x] 9 postes, 6 groupes, 2 unités.
-- [ ] `test_windows.csv` couvre toutes les saisons de `config/seasons.yaml`.
+- [x] `test_windows.csv` couvre toutes les saisons de `config/seasons.yaml`.
 - [x] Aucune chaîne de poste en dur ailleurs que dans `positions.csv` (vérifié par un test grep sur `src/`).
 - [x] `make check` vert.
 
@@ -78,4 +78,4 @@ Schémas Pandera : dates cohérentes (`start_date ≤ end_date`), pas de chevauc
 - API Wikipédia : réponses HTTP 429 lors des recherches suivantes, requêtes arrêtées sans contournement. Calendrier historique incomplet, F02 reste `in_progress` ; aucune autre feature commencée.
 - Intégrité renforcée : cardinalités des postes et couverture des maillots titulaires, clés composées des surfaces, références de stades et saisons. Tests de régression hors réseau : `make check` vert, 75 tests, couverture 99,04 %.
 - Chargeurs Polars avec validation Pandera, cache et clones ; tests hors réseau. Les dates ISO nécessitent un parsing explicite avant validation Pandera.
-
+- Clôture F02 : 11 fenêtres été/automne ajoutées (bornes Wikipédia). Été 2020 sans fenêtre : COVID, accepté par l'humain. Écarts documentés dans le README : été 2016/2019/2023 et automne 2015/2016/2021/2022 non sourcés (RWC couvre 2015/2023). Lat/lon des 24 stades NULL, admis par la fiche.

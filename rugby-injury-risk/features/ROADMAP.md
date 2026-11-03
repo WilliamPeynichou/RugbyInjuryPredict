@@ -10,7 +10,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 |---|---|---|---|---|
 | F00 | [Bootstrap du dépôt](F00-bootstrap.md) | — | M | done |
 | F01 | [Registre des sources et configuration](F01-config-sources.md) | F00 | S | done |
-| F02 | [Données de référence](F02-reference-data.md) | F00 | M | in_progress |
+| F02 | [Données de référence](F02-reference-data.md) | F00 | M | done |
 
 ## Phase 1 — Collecte et entrepôt Top 14
 

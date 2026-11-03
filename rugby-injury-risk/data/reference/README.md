@@ -9,7 +9,7 @@ Mise à jour : 2026-11-03. Saisie : agent de développement ; validation métier
 | competitions.csv | docs/04-data-model.md §1 | Vocabulaire contractuel |
 | venues.csv | Saisie manuelle des stades principaux | Coordonnées toutes NULL ; délocalisations non exhaustives |
 | venue_surface.csv | LNR, classement APPE publié le 02/07/2026 | Cinq synthétiques 2025-2026 confirmés par la page officielle ; autres combinaisons absentes = unknown |
-| test_windows.csv | Wikipédia, éditions Six Nations 2014–2027 et RWC 2015/2019/2023 | Partiel : fenêtres été/automne manquantes |
+| test_windows.csv | Wikipédia, éditions Six Nations 2014–2027 et RWC 2015/2019/2023 | Partiel : été 2014/15/17/18/21/22/24/25, automne 2013/14/17/18/20/24/25 ajoutés ; voir limites |
 | rules_protection.csv | Source 42 du document de recherche ; docs/01-data-sources.md §5 pour 2026 | Plafond 2014-2015 borné ; annonces 2016/2017/2018 et groupes élargis dès 2020 ; voir conventions de dates ci-dessous |
 | protected_players.csv | Humain | En-têtes seuls |
 | opt_out.csv | Demandes d'opposition humaines | En-têtes seuls |
@@ -48,3 +48,8 @@ Données dérivées de Wikipédia : attribution aux contributeurs des pages cit�
 - Les cinq terrains de la fiche incluent des clubs de Pro D2 : ils sont conservés pour traçabilité, pas assimilés à des participations Top 14.
 
 Pas de scraping de matchs effectué. BDD non créée (F04). Registre des autorisations inchangé.
+
+## Fenêtres été/automne : limites
+- Été 2020 : aucune fenêtre, tests annulés (COVID). Exception acceptée.
+- Non sourcés, donc absents : été 2016, 2019 (partiel), 2023 ; automne 2015, 2016, 2021, 2022 (RWC couvre 2015 et 2023).
+- Source : Wikipédia (API `tocdata`), bornes = premier/dernier match.
