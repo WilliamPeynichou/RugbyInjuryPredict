@@ -17,12 +17,12 @@ Toutes les ingestions (F05–F08, F14) passent par ce client. Les tests ne touch
 
 ## Périmètre
 
-- [ ] `PoliteClient` (async context manager) : garde-fou `assert_authorized` avant chaque requête, limiteur par hôte, robots.txt (cache 24 h, refus si disallow), retries exponentiels (429/5xx uniquement, respect de `Retry-After`), timeout 30 s, User-Agent construit depuis les settings.
-- [ ] Cache conditionnel : stocke ETag / Last-Modified par URL canonique, envoie `If-None-Match` / `If-Modified-Since`, sur 304 renvoie le contenu du lac.
-- [ ] `RawStore` : écriture `data/raw/<source>/<yyyy>/<mm>/<sha256>.<ext>.zst` + append dans `data/raw/_manifest.parquet`. Écriture atomique (fichier temporaire puis rename). Jamais de réécriture d'un hash existant.
-- [ ] `canonicalize_url(url)` : tri des paramètres, suppression des fragments et des paramètres de tracking (`utm_*`).
-- [ ] Mode `offline` (settings) : le client ne lit que le lac, utile pour re-parser.
-- [ ] CLI `uv run rugby-risk raw ls --source allrugby` (liste du manifeste).
+- [x] `PoliteClient` (async context manager) : garde-fou `assert_authorized` avant chaque requête, limiteur par hôte, robots.txt (cache 24 h, refus si disallow), retries exponentiels (429/5xx uniquement, respect de `Retry-After`), timeout 30 s, User-Agent construit depuis les settings.
+- [x] Cache conditionnel : stocke ETag / Last-Modified par URL canonique, envoie `If-None-Match` / `If-Modified-Since`, sur 304 renvoie le contenu du lac.
+- [x] `RawStore` : écriture `data/raw/<source>/<yyyy>/<mm>/<sha256>.<ext>.zst` + append dans `data/raw/_manifest.parquet`. Écriture atomique (fichier temporaire puis rename). Jamais de réécriture d'un hash existant.
+- [x] `canonicalize_url(url)` : tri des paramètres, suppression des fragments et des paramètres de tracking (`utm_*`).
+- [x] Mode `offline` (settings) : le client ne lit que le lac, utile pour re-parser.
+- [x] CLI `uv run rugby-risk raw ls --source allrugby` (liste du manifeste).
 
 ## Hors périmètre
 
@@ -77,10 +77,15 @@ Manifeste : `source, url_canonical, fetched_at, status, sha256, content_type, si
 
 ## Critères d'acceptation
 
-- [ ] Impossible d'émettre une requête vers une source `authorized: false` (test).
-- [ ] Le lac est en append-only (test qui tente une réécriture → exception).
-- [ ] Couverture ≥ 90 % sur `http/`.
-- [ ] `make check` vert.
+- [x] Impossible d'émettre une requête vers une source `authorized: false` (test).
+- [x] Le lac est en append-only (test qui tente une réécriture → exception).
+- [x] Couverture ≥ 90 % sur `http/`.
+- [x] `make check` vert.
 
 ## Journal
 
+- Client en place (`http/{client,store,robots,ratelimit,urls}.py`, `cli.py`). CLI en argparse : pas de dépendance Typer pour une seule commande. Dépendance ajoutée : `zstandard` (Python 3.12 n'a pas de zstd en stdlib).
+- Garde-fou : `assert_authorized` à l'entrée du contexte et à chaque `get` ; hôte hors `base_url`/`extra_hosts` refusé. Mode `offline` (settings) lit uniquement le lac.
+- Écarts : `get` accepte `headers` (clé API envoyée, jamais archivée) ; seules les réponses 2xx sont archivées ; 4xx hors 429 lève `HTTPStatusError` ; réponse 304 sans contenu en lac → requête normale.
+- Choix API gratuite pour le calendrier Top 14 : **API-Sports (api-rugby)**, déjà au registre (`apisports`), offre freemium selon le document de recherche (calendrier, résultats, ~20 ans ; pas de compositions). Quotas et saisons couvertes du plan gratuit **non vérifiés** (à lire sur api-sports.io avant F08). `authorized` reste `false` : activation = décision humaine, clé `apisports` à fournir hors dépôt.
+- `make check` vert : 100 tests, couverture 99 %, `http/` ≥ 97 %. CI distante non exécutée.

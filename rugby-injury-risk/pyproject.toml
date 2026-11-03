@@ -17,10 +17,14 @@ dependencies = [
     "dbt-duckdb>=1.11.1",
     "numpy>=2.5.4",
     "pyarrow>=26.0.1",
+    "zstandard>=0.25.0",
 ]
 
 [dependency-groups]
 dev = ["ruff", "mypy", "pytest", "pytest-cov", "pytest-asyncio", "respx", "pre-commit", "types-PyYAML"]
+
+[project.scripts]
+rugby-risk = "rugby_risk.cli:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -36,12 +40,16 @@ target-version = "py312"
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "N", "PL"]
 
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["PLR2004"]
+
 [tool.mypy]
 python_version = "3.12"
 strict = true
 
 [tool.pytest.ini_options]
 addopts = '-m "not network and not slow"'
+asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "function"
 testpaths = ["tests"]
 markers = ["unit: unit tests", "integration: integration tests", "slow: slow tests", "network: tests requiring network"]

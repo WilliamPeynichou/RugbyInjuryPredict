@@ -18,6 +18,7 @@ class Settings(BaseSettings):
     supabase_url: str = ""
     supabase_service_key: SecretStr = SecretStr("")
     mlflow_tracking_uri: str = "./mlruns"
+    offline: bool = False
 
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
