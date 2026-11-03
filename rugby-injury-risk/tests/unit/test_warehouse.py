@@ -30,6 +30,7 @@ def _match(**over):
         "season_id": "2024-2025",
         "round": None,
         "kickoff_ts": datetime(2025, 1, 1, tzinfo=UTC),
+        "kickoff_time_imputed": False,
         "venue_name": None,
         "home_team_name": "A",
         "away_team_name": "B",

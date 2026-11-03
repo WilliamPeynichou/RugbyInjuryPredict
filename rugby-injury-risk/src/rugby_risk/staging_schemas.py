@@ -11,6 +11,7 @@ class StagingMatch(pa.DataFrameModel):
     season_id: pl.String
     round: pl.String = pa.Field(nullable=True)
     kickoff_ts: pl.Datetime(time_zone="UTC")  # type: ignore[valid-type]
+    kickoff_time_imputed: pl.Boolean
     venue_name: pl.String = pa.Field(nullable=True)
     home_team_name: pl.String
     away_team_name: pl.String

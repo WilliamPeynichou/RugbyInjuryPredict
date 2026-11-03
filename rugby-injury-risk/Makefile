@@ -5,14 +5,14 @@ setup:
 check:
 	uv run ruff check .
 	uv run ruff format --check .
-	uv run mypy --strict src/
+	uv run mypy --strict src/ orchestration/
 	uv run pytest --cov=rugby_risk --cov-report=term-missing --cov-fail-under=80
 test:
 	uv run pytest -q
 test-slow:
 	uv run pytest -q -m slow
 dagster:
-	@echo "Disponible après F05"
+	uv run dagster asset materialize --select allrugby_staging_matches,allrugby_staging_appearances,allrugby_staging_profiles --partition 2023-2024 --working-directory . --module-name orchestration.definitions
 seeds:
 	uv run python scripts/export_seeds.py
 dbt: seeds

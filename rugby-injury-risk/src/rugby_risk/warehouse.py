@@ -13,13 +13,19 @@ def connect(path: Path | None = None) -> duckdb.DuckDBPyConnection:
     return duckdb.connect(str(target))
 
 
+def staging_frame(entity: str, data: list[dict[str, object]]) -> pl.DataFrame:
+    """DataFrame conforme au schéma staging, vide ou non (cast Polars 2: classes de dtype)."""
+    schema = pl.Schema({k: v.type for k, v in SCHEMAS[entity].to_schema().dtypes.items()})
+    return pl.DataFrame(data, schema=schema)
+
+
 def write_staging(
     df: pl.DataFrame, entity: str, source: str, season: str, root: Path | None = None
 ) -> Path:
     """Validate, then write <root>/<entity>/source=<s>/season=<s>/part.parquet (idempotent)."""
     if entity not in SCHEMAS:
         raise ValueError(f"Unknown staging entity: {entity}")
-    SCHEMAS[entity].validate(df)
+    SCHEMAS[entity].to_schema().validate(df)
     base = root or get_settings().data_dir / "staging"
     out = base / entity / f"source={source}" / f"season={season}" / "part.parquet"
     out.parent.mkdir(parents=True, exist_ok=True)

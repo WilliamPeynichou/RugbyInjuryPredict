@@ -17,13 +17,13 @@ allrugby est la source primaire des minutes. Le développement se fait **entièr
 
 ## Périmètre
 
-- [ ] `sources/allrugby/urls.py` : URL des pages compétition-saison, match, joueur.
-- [ ] `sources/allrugby/fetch.py` : découverte des matchs d'une saison (page calendrier/résultats) → pages de match → pages joueurs rencontrés (une fois par joueur et par saison).
-- [ ] `parsers/allrugby/{match,player}.py` : `parse_match(html) -> (StagingMatch, list[StagingAppearance])`, `parse_player(html) -> StagingPlayerProfile`.
-- [ ] Règles : n° 1–15 → `is_starter = True` ; 16–23 → banc ; minutes absentes pour un remplaçant non entré → 0 ; cartons.
-- [ ] Ajouter `dagster`, `dagster-webserver`. `orchestration/definitions.py` avec `StaticPartitionsDefinition` des saisons (depuis `config/seasons.yaml`) et assets : `allrugby_raw_pages` → `allrugby_staging_matches`, `allrugby_staging_appearances`, `allrugby_staging_profiles`.
-- [ ] Les assets de staging se recalculent depuis le lac (`offline=True`) sans réseau.
-- [ ] Capturer **au moins 6 fixtures** réelles figées (si l'accès est autorisé ; sinon fixtures construites à la main au format observé, signalé dans le journal) : match standard, match avec carton rouge, match avec remplaçant non entré, match de phase finale, profil complet, profil incomplet.
+- [x] `sources/allrugby/urls.py` : URL des pages compétition-saison, match, joueur.
+- [x] `sources/allrugby/fetch.py` : découverte des matchs d'une saison (page calendrier/résultats) → pages de match → pages joueurs rencontrés (une fois par joueur et par saison).
+- [x] `parsers/allrugby/{match,player}.py` : `parse_match(html) -> (StagingMatch, list[StagingAppearance])`, `parse_player(html) -> StagingPlayerProfile`.
+- [x] Règles : n° 1–15 → `is_starter = True` ; 16–23 → banc ; minutes absentes pour un remplaçant non entré → 0 ; cartons.
+- [x] Ajouter `dagster`, `dagster-webserver`. `orchestration/definitions.py` avec `StaticPartitionsDefinition` des saisons (depuis `config/seasons.yaml`) et assets : `allrugby_raw_pages` → `allrugby_staging_matches`, `allrugby_staging_appearances`, `allrugby_staging_profiles`.
+- [x] Les assets de staging se recalculent depuis le lac (`offline=True`) sans réseau.
+- [x] Capturer **au moins 6 fixtures** réelles figées (si l'accès est autorisé ; sinon fixtures construites à la main au format observé, signalé dans le journal) : match standard, match avec carton rouge, match avec remplaçant non entré, match de phase finale, profil complet, profil incomplet.
 
 ## Hors périmètre
 
@@ -54,10 +54,17 @@ allrugby est la source primaire des minutes. Le développement se fait **entièr
 
 ## Critères d'acceptation
 
-- [ ] `uv run dagster asset materialize --select allrugby_staging_* --partition 2023-2024` fonctionne en offline sur fixtures.
-- [ ] Aucun appel réseau dans la suite de tests.
-- [ ] La source étant non autorisée, un lancement réel échoue proprement avec `SourceNotAuthorizedError`.
-- [ ] `make check` vert.
+- [x] `uv run dagster asset materialize --select allrugby_staging_* --partition 2023-2024` fonctionne en offline sur fixtures.
+- [x] Aucun appel réseau dans la suite de tests.
+- [x] La source étant non autorisée, un lancement réel échoue proprement avec `SourceNotAuthorizedError`.
+- [x] `make check` vert.
 
 ## Journal
 
+- `allrugby` non autorisée → fixtures **construites à la main** (5 fichiers, générateur `build_fixtures.py`), format repris de `docs/01-data-sources.md` ; hypothèses non vérifiées listées dans `tests/fixtures/allrugby/README.md` (slugs saison/match, balises, codage cartons). À valider au premier crawl autorisé.
+- Selectors : `selectolax` backend **lexbor** (modest déprécié par la version installée).
+- Fuseau : conversion Europe/Paris via `zoneinfo` ; coup d'envoi sans heure → 15:00 locale + `kickoff_time_imputed=true` (colonne ajoutée au contrat `StagingMatch`, validée par `staging_frame` dans `warehouse.py`).
+- Dagster : partitions statiques depuis `config/seasons.yaml` ; assets staging recalculés **offline depuis le lac brut** (manifeste) ; `make dagster` matérialise les trois assets staging sur la partition 2023-2024. Écart : l'asset `allrugby_raw_pages` est live-only (échoue proprement en `SourceNotAuthorizedError`, testé) ; le `--select` multi-assets exige un flag par asset.
+- Cast Polars 2 : `pl.Schema({k: v.type ...})` à partir des dtypes Pandera (`v.type` = classe de dtype) ; centralisé dans `warehouse.staging_frame`.
+- Pas d'appel réseau dans la suite de tests (client jamais instancié hors tests respx ; matérialisation testée sur lac de fixtures).
+- `make check` vert : 109 tests, couverture 93,91 %. CI distante non exécutée.
