@@ -1,0 +1,33 @@
+[project]
+name = "rugby-injury-risk"
+version = "0.1.0"
+description = "Analyse agrégée du risque de blessure dans le rugby"
+requires-python = ">=3.12,<3.13"
+dependencies = ["httpx", "selectolax", "pydantic>=2", "pydantic-settings", "structlog", "polars", "duckdb", "pyyaml", "pandera"]
+
+[dependency-groups]
+dev = ["ruff", "mypy", "pytest", "pytest-cov", "pytest-asyncio", "respx", "pre-commit", "types-PyYAML"]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/rugby_risk"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "B", "UP", "SIM", "RUF", "N", "PL"]
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+
+[tool.pytest.ini_options]
+addopts = '-m "not network and not slow"'
+asyncio_default_fixture_loop_scope = "function"
+testpaths = ["tests"]
+markers = ["unit: unit tests", "integration: integration tests", "slow: slow tests", "network: tests requiring network"]
