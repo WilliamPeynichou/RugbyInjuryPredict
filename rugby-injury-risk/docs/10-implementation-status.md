@@ -110,7 +110,7 @@ Les détails sont dans les Journaux des fiches.
 
 | # | Souci | Impact | Action prévue |
 |---|---|---|---|
-| T1 | **La CI distante n'a jamais tourné** : aucun push avant celui-ci. Deux critères de F00 restent décochés (CI distante, machine distincte). | Pas de preuve hors de cette machine. | Vérifier le premier run GitHub Actions après le push. |
+| T1 | **Résolu 2026-11-03** : premier push, deux runs GitHub Actions réussis (~1m30 chacun) — le critère CI distante de F00 est clos. Reste le critère « machine distincte » de F00. | — | Tester `make setup` sur une autre machine, puis cocher le critère F00. |
 | T2 | **La cible `make dagster` est probablement inopérante.** Elle passe plusieurs assets séparés par des virgules dans un seul `--select`, ce qui ne sélectionne rien et renvoie quand même rc 0. | La commande semble réussir sans rien matérialiser. | Utiliser un `--select` par asset (ou la syntaxe de sélection Dagster), puis vérifier. |
 | T3 | Les tests d'intégration Dagster laissent des dossiers `.tmp_dagster_home_*` non ignorés par git. | Risque de les ajouter par erreur dans un commit. | Les ajouter à `.gitignore`, ou les nettoyer dans les tests. |
 | T4 | `make check` dure environ 2 min 15. Dans l'outil shell de l'agent, une session de plus de 2 min est tuée (SIGHUP, `Error 129`) en plein pytest. | Faux échec. | Lancer `make check` détaché, par exemple via un sous-processus avec `start_new_session`, et lire `/tmp/mk.log`. |
@@ -151,7 +151,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
 Prochaine étape immédiate : **F08**, développée sur fixtures si la clé API-Sports n'est pas
-fournie. Avant F09, traiter T1 à T3 (CI, `make dagster`, `.gitignore`).
+fournie. Avant F09, traiter T2 et T3 (`make dagster`, `.gitignore`).
 
 ## 5. Règles à appliquer (toutes features)
 
