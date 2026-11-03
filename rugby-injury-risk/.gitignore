@@ -19,3 +19,10 @@ data/review/
 mlruns/
 web/node_modules/
 web/.next/
+
+dbt/seeds/ref_*.csv
+data/dbt_target/
+data/dbt_logs/
+dbt/.user.yml
+dbt/logs/
+dbt/target/

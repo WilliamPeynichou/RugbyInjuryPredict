@@ -13,8 +13,10 @@ test-slow:
 	uv run pytest -q -m slow
 dagster:
 	@echo "Disponible après F05"
-seeds dbt:
-	@echo "Disponible après F04"
+seeds:
+	uv run python scripts/export_seeds.py
+dbt: seeds
+	uv run dbt build --project-dir dbt --profiles-dir dbt --log-path data/dbt_logs --target-path ../data/dbt_target
 mlflow:
 	@echo "Disponible après F18"
 api openapi:

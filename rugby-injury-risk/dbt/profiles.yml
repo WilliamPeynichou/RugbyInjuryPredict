@@ -1,0 +1,9 @@
+rugby_risk:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('WAREHOUSE_PATH', 'data/warehouse.duckdb') }}"
+      extensions: [parquet]
+      plugins:
+        - module: rugby_risk.dbt_plugin

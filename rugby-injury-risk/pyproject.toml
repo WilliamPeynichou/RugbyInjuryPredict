@@ -3,7 +3,21 @@ name = "rugby-injury-risk"
 version = "0.1.0"
 description = "Analyse agrégée du risque de blessure dans le rugby"
 requires-python = ">=3.12,<3.13"
-dependencies = ["httpx", "selectolax", "pydantic>=2", "pydantic-settings", "structlog", "polars", "duckdb", "pyyaml", "pandera"]
+dependencies = [
+    "httpx",
+    "selectolax",
+    "pydantic>=2",
+    "pydantic-settings",
+    "structlog",
+    "polars",
+    "duckdb",
+    "pyyaml",
+    "pandera",
+    "dbt-core>=1.12.6",
+    "dbt-duckdb>=1.11.1",
+    "numpy>=2.5.4",
+    "pyarrow>=26.0.1",
+]
 
 [dependency-groups]
 dev = ["ruff", "mypy", "pytest", "pytest-cov", "pytest-asyncio", "respx", "pre-commit", "types-PyYAML"]

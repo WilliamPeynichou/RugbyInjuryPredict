@@ -17,7 +17,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
 | F03 | [Client HTTP poli et lac brut](F03-http-raw-store.md) | F01 | M | todo |
-| F04 | [Entrepôt DuckDB et projet dbt](F04-warehouse-dbt.md) | F02 | M | todo |
+| F04 | [Entrepôt DuckDB et projet dbt](F04-warehouse-dbt.md) | F02 | M | done |
 | F05 | [Ingestion allrugby (minutes et profils)](F05-ingest-allrugby.md) | F03, F04 | L | todo |
 | F06 | [Ingestion LNR (feuilles de match)](F06-ingest-lnr.md) | F03, F04 | M | todo |
 

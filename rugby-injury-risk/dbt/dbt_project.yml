@@ -1,0 +1,13 @@
+name: rugby_risk
+version: "0.1.0"
+profile: rugby_risk
+model-paths: [models]
+seed-paths: [seeds]
+test-paths: [tests]
+macro-paths: [macros]
+models:
+  rugby_risk:
+    staging: {+materialized: view}
+    intermediate: {+materialized: view}
+    marts: {+materialized: table}
+    ml: {+materialized: table}

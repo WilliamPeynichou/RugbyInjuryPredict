@@ -1,0 +1,9 @@
+version: 2
+seeds:
+  - name: ref_positions
+    columns: [{name: position_code, data_tests: [unique, not_null]}]
+  - name: ref_venues
+    config: {column_types: {lat: double, lon: double}}
+  - name: ref_rules_protection
+    config:
+      column_types: {list_size: integer, max_matches: integer, min_minutes: integer, offseason_weeks: integer, rest_rule: varchar, max_tests: integer}

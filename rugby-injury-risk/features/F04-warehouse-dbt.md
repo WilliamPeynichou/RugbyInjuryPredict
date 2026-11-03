@@ -17,15 +17,15 @@ Les ingestions (F05+) écrivent du Parquet de staging ; dbt le transforme en mar
 
 ## Périmètre
 
-- [ ] Ajouter `dbt-core`, `dbt-duckdb`.
-- [ ] `dbt/` : `dbt_project.yml`, `profiles.yml` (DuckDB `data/warehouse.duckdb`, extension `parquet`), dossiers `models/{staging,intermediate,marts,ml}`, `seeds/`, `tests/`, `macros/`.
-- [ ] Seeds depuis `data/reference/` (lien ou copie générée par `make seeds`) → `ref_positions`, `ref_competitions`, `ref_venues`, `ref_venue_surface`, `ref_test_windows`, `ref_rules_protection`.
-- [ ] Marts de dimensions statiques : `dim_competition`, `dim_season` (depuis `config/seasons.yaml` exporté en seed), `dim_venue`, `venue_surface`.
-- [ ] Déclaration des `sources` externes Parquet (glob `data/staging/<entity>/**/*.parquet`) pour `match`, `appearance`, `player_profile`, avec un exemple vide pour que `dbt build` passe.
-- [ ] `src/rugby_risk/warehouse.py` : `connect()` (DuckDB), `write_staging(df, entity, source, season)` (écriture Parquet partitionnée, schéma validé par Pandera), `upsert(table, df, keys)`.
-- [ ] `src/rugby_risk/privacy.py` : `player_key(player_id: int) -> str` = HMAC-SHA256 avec `PSEUDONYM_SALT`, 16 hex ; refuse un sel vide hors env `test`.
-- [ ] Macro dbt `player_key(col)` qui appelle la même logique (UDF Python enregistrée dans DuckDB via un hook `on-run-start`, ou table de correspondance générée par Python — choisir et justifier dans le journal).
-- [ ] Cible `make dbt` opérationnelle.
+- [x] Ajouter `dbt-core`, `dbt-duckdb`.
+- [x] `dbt/` : `dbt_project.yml`, `profiles.yml` (DuckDB `data/warehouse.duckdb`, extension `parquet`), dossiers `models/{staging,intermediate,marts,ml}`, `seeds/`, `tests/`, `macros/`.
+- [x] Seeds depuis `data/reference/` (lien ou copie générée par `make seeds`) → `ref_positions`, `ref_competitions`, `ref_venues`, `ref_venue_surface`, `ref_test_windows`, `ref_rules_protection`.
+- [x] Marts de dimensions statiques : `dim_competition`, `dim_season` (depuis `config/seasons.yaml` exporté en seed), `dim_venue`, `venue_surface`.
+- [x] Déclaration des `sources` externes Parquet (glob `data/staging/<entity>/**/*.parquet`) pour `match`, `appearance`, `player_profile`, avec un exemple vide pour que `dbt build` passe.
+- [x] `src/rugby_risk/warehouse.py` : `connect()` (DuckDB), `write_staging(df, entity, source, season)` (écriture Parquet partitionnée, schéma validé par Pandera), `upsert(table, df, keys)`.
+- [x] `src/rugby_risk/privacy.py` : `player_key(player_id: int) -> str` = HMAC-SHA256 avec `PSEUDONYM_SALT`, 16 hex ; refuse un sel vide hors env `test`.
+- [x] Macro dbt `player_key(col)` qui appelle la même logique (UDF Python enregistrée dans DuckDB via un hook `on-run-start`, ou table de correspondance générée par Python — choisir et justifier dans le journal).
+- [x] Cible `make dbt` opérationnelle.
 
 ## Hors périmètre
 
@@ -68,9 +68,14 @@ class StagingPlayerProfile(pa.DataFrameModel):
 
 ## Critères d'acceptation
 
-- [ ] `make dbt` vert sur dépôt vierge.
-- [ ] La fonction de pseudonymisation Python et la version dbt produisent la même clé (test).
-- [ ] `make check` vert.
+- [x] `make dbt` vert sur dépôt vierge.
+- [x] La fonction de pseudonymisation Python et la version dbt produisent la même clé (test).
+- [x] `make check` vert.
 
 ## Journal
 
+- Pseudonymisation dbt : UDF Python `player_key` enregistrée par un plugin dbt-duckdb (`rugby_risk.dbt_plugin`, `configure_connection`) plutôt qu'une table de correspondance : même fonction Python, aucune divergence possible, pas de table d'ID à maintenir. Test d'égalité dans `tests/unit/test_warehouse.py`.
+- Écart : les `sources` YAML Parquet ne sont pas déclarées ; la macro `read_staging` lit `data/staging/<entity>/**/*.parquet` et renvoie une relation vide typée si aucun fichier n'existe (un glob vide fait échouer DuckDB).
+- Seeds : `make seeds` copie `data/reference/*.csv` en `dbt/seeds/ref_*.csv` (NULL → cellule vide, fichiers gitignorés) et exporte `ref_seasons`.
+- Dépendances ajoutées : dbt-core, dbt-duckdb, numpy (requis par `create_function` DuckDB 2.0), pyarrow (`to_arrow` dans `upsert`).
+- `make dbt` vert (26 éléments), `make check` vert : 85 tests, couverture 99,31 %. CI distante non exécutée.
