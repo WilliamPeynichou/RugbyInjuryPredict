@@ -1,6 +1,6 @@
 # 10 — Journal d'implémentation (état des lieux)
 
-État au 2026-11-03. Statut détaillé et à jour des features : `features/ROADMAP.md`
+État au 2026-11-03 (F00–F07). Statut détaillé et à jour des features : `features/ROADMAP.md`
 (statuts) et le **Journal** de chaque fiche `features/Fxx-*.md` (décisions, écarts).
 
 ## Vue d'ensemble
@@ -9,9 +9,10 @@
 |---|---|---|
 | 0 — Socle | F00 bootstrap, F01 registre sources, F02 données de référence | ✅ fait |
 | 1 — Collecte/entrepôt | F03 HTTP + lac brut, F04 DuckDB/dbt, F05 ingestion allrugby, F06 ingestion LNR | ✅ fait |
-| 2–3 | F07 → F29 | ⬜ à faire |
+| 2 — Internationaux/coupes/entités | F07 internationaux ✅ fait ; F08, F09 | 🟡 en cours |
+| 3+ | F10 → F29 | ⬜ à faire |
 
-`make check` vert : ruff, format, mypy strict, pytest (117 tests, couverture ~91 %).
+`make check` vert : ruff, format, mypy strict, pytest (131 tests, couverture ~92 %).
 Branches : une `feat/Fxx-*` par feature, commits Conventional Commits.
 
 ## Ce qui existe, en une ligne chacun
@@ -59,12 +60,19 @@ Branches : une `feat/Fxx-*` par feature, commits Conventional Commits.
   LNR, postes normalisés via `position_aliases.csv`, minutes `NULL`), partitions
   `(saison, journée)`, asset de rapport `lnr_vs_allrugby` →
   `data/staging/_reports/lineup_diff/`. 3 fixtures manuelles.
+- **F07 — Internationaux** : parseurs World Rugby (summary + timeline → minutes
+  reconstruites : `Sub On/Off`, `IR`/`HIAO` en bascule, rouge = sortie) et ESPN
+  (compositions, minutes `NULL`), mapping `competition_aliases.csv` + repli par
+  mois, exclusion féminin/7/jeunes, assets `intl_staging_worldrugby`,
+  `intl_staging_espn` (offline, par saison) et rapport `intl_minutes_check` →
+  `data/staging/_reports/intl_minutes/`. Sources live codées mais non autorisées ;
+  fixtures JSON anonymisées générées par script.
 
 ## Autorisations de collecte (état réel)
 
 | Source | `authorized` | Note |
 |---|---|---|
-| lnr | ✅ true | Décision humaine 2026-11-03, cadre documenté dans `notes_legal`. Aucun crawl réel lancé. |
+| lnr | ✅ true | Décision humaine 2026-11-03, cadre documenté dans `notes_legal`. Aucun crawl réel lancé. Consigne : si la LNR bloque (refus, robots, 403/429 persistants), on garde ce qui est déjà collecté à date, sans contournement. |
 | allrugby, itsrugby, espn, worldrugby, apisports, sportradar, wikipedia, news | ❌ false | F03 lève `SourceNotAuthorizedError` avant tout appel réseau (testé). |
 
 API retenue pour le calendrier (F08) : **API-Sports** (freemium selon le document
@@ -91,6 +99,8 @@ de recherche ; quotas non vérifiés ; clé à fournir hors dépôt).
    `kickoff_time_imputed` (colonne ajoutée au contrat `StagingMatch`).
 10. **Fixture-first** : allrugby et LNR développés sur fixtures figées ; le
     balisage réel reste à valider au premier crawl autorisé.
+11. **ESPN sans minutes** (F07) : le recoupement inter-sources compare la taille
+    des feuilles ; l'écart de minutes (> 5 %) est contrôlé contre 15 × 80.
 
 ## Commandes
 
@@ -103,7 +113,6 @@ rugby-risk raw ls --source lnr   # liste le lac brut
 
 ## Prochaines étapes (ordre ROADMAP)
 
-1. **F07** — internationaux (ESPN / World Rugby).
-2. **F08** — coupes d'Europe + calendrier (API-Sports, nécessite clé + décision
+1. **F08** — coupes d'Europe + calendrier (API-Sports, nécessite clé + décision
    d'activation).
-3. **F09** — résolution d'entités (ancre LNR), puis F10 marts de participation.
+2. **F09** — résolution d'entités (ancre LNR), puis F10 marts de participation.

@@ -1,0 +1,52 @@
+{
+ "timeline": [
+  {
+   "type": "Sub Off",
+   "teamIndex": 0,
+   "playerId": "fra-1",
+   "time": {
+    "secs": 3000
+   }
+  },
+  {
+   "type": "Sub On",
+   "teamIndex": 0,
+   "playerId": "fra-17",
+   "time": {
+    "secs": 3000
+   }
+  },
+  {
+   "type": "IR",
+   "teamIndex": 0,
+   "playerId": "fra-4",
+   "time": {
+    "secs": 1200
+   }
+  },
+  {
+   "type": "IR",
+   "teamIndex": 0,
+   "playerId": "fra-19",
+   "time": {
+    "secs": 1200
+   }
+  },
+  {
+   "type": "Yellow Card",
+   "teamIndex": 0,
+   "playerId": "fra-6",
+   "time": {
+    "secs": 1980
+   }
+  },
+  {
+   "type": "Try",
+   "teamIndex": 0,
+   "playerId": "fra-11",
+   "time": {
+    "secs": 2400
+   }
+  }
+ ]
+}

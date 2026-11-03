@@ -1,0 +1,459 @@
+{
+ "match": {
+  "matchId": "wr-rwc-01",
+  "matchAltId": "alt-wr-rwc-01",
+  "competition": "Rugby World Cup 2023",
+  "status": "C",
+  "time": {
+   "millis": 1694200500000,
+   "label": "2023-09-08"
+  },
+  "venue": {
+   "name": "Stade Fictif",
+   "city": "Ville",
+   "country": "France"
+  },
+  "teams": [
+   {
+    "id": "1",
+    "name": "France"
+   },
+   {
+    "id": "2",
+    "name": "New Zealand"
+   }
+  ],
+  "scores": [
+   27,
+   13
+  ]
+ },
+ "teams": [
+  {
+   "teamList": {
+    "list": [
+     {
+      "number": "1",
+      "player": {
+       "id": "fra-1",
+       "name": {
+        "display": "Joueur France 1"
+       }
+      }
+     },
+     {
+      "number": "2",
+      "player": {
+       "id": "fra-2",
+       "name": {
+        "display": "Joueur France 2"
+       }
+      }
+     },
+     {
+      "number": "3",
+      "player": {
+       "id": "fra-3",
+       "name": {
+        "display": "Joueur France 3"
+       }
+      }
+     },
+     {
+      "number": "4",
+      "player": {
+       "id": "fra-4",
+       "name": {
+        "display": "Joueur France 4"
+       }
+      }
+     },
+     {
+      "number": "5",
+      "player": {
+       "id": "fra-5",
+       "name": {
+        "display": "Joueur France 5"
+       }
+      }
+     },
+     {
+      "number": "6",
+      "player": {
+       "id": "fra-6",
+       "name": {
+        "display": "Joueur France 6"
+       }
+      }
+     },
+     {
+      "number": "7",
+      "player": {
+       "id": "fra-7",
+       "name": {
+        "display": "Joueur France 7"
+       }
+      }
+     },
+     {
+      "number": "8",
+      "player": {
+       "id": "fra-8",
+       "name": {
+        "display": "Joueur France 8"
+       }
+      }
+     },
+     {
+      "number": "9",
+      "player": {
+       "id": "fra-9",
+       "name": {
+        "display": "Joueur France 9"
+       }
+      }
+     },
+     {
+      "number": "10",
+      "player": {
+       "id": "fra-10",
+       "name": {
+        "display": "Joueur France 10"
+       }
+      }
+     },
+     {
+      "number": "11",
+      "player": {
+       "id": "fra-11",
+       "name": {
+        "display": "Joueur France 11"
+       }
+      }
+     },
+     {
+      "number": "12",
+      "player": {
+       "id": "fra-12",
+       "name": {
+        "display": "Joueur France 12"
+       }
+      }
+     },
+     {
+      "number": "13",
+      "player": {
+       "id": "fra-13",
+       "name": {
+        "display": "Joueur France 13"
+       }
+      }
+     },
+     {
+      "number": "14",
+      "player": {
+       "id": "fra-14",
+       "name": {
+        "display": "Joueur France 14"
+       }
+      }
+     },
+     {
+      "number": "15",
+      "player": {
+       "id": "fra-15",
+       "name": {
+        "display": "Joueur France 15"
+       }
+      }
+     },
+     {
+      "number": "16",
+      "player": {
+       "id": "fra-16",
+       "name": {
+        "display": "Joueur France 16"
+       }
+      }
+     },
+     {
+      "number": "17",
+      "player": {
+       "id": "fra-17",
+       "name": {
+        "display": "Joueur France 17"
+       }
+      }
+     },
+     {
+      "number": "18",
+      "player": {
+       "id": "fra-18",
+       "name": {
+        "display": "Joueur France 18"
+       }
+      }
+     },
+     {
+      "number": "19",
+      "player": {
+       "id": "fra-19",
+       "name": {
+        "display": "Joueur France 19"
+       }
+      }
+     },
+     {
+      "number": "20",
+      "player": {
+       "id": "fra-20",
+       "name": {
+        "display": "Joueur France 20"
+       }
+      }
+     },
+     {
+      "number": "21",
+      "player": {
+       "id": "fra-21",
+       "name": {
+        "display": "Joueur France 21"
+       }
+      }
+     },
+     {
+      "number": "22",
+      "player": {
+       "id": "fra-22",
+       "name": {
+        "display": "Joueur France 22"
+       }
+      }
+     },
+     {
+      "number": "23",
+      "player": {
+       "id": "fra-23",
+       "name": {
+        "display": "Joueur France 23"
+       }
+      }
+     }
+    ]
+   }
+  },
+  {
+   "teamList": {
+    "list": [
+     {
+      "number": "1",
+      "player": {
+       "id": "new-1",
+       "name": {
+        "display": "Joueur New Zealand 1"
+       }
+      }
+     },
+     {
+      "number": "2",
+      "player": {
+       "id": "new-2",
+       "name": {
+        "display": "Joueur New Zealand 2"
+       }
+      }
+     },
+     {
+      "number": "3",
+      "player": {
+       "id": "new-3",
+       "name": {
+        "display": "Joueur New Zealand 3"
+       }
+      }
+     },
+     {
+      "number": "4",
+      "player": {
+       "id": "new-4",
+       "name": {
+        "display": "Joueur New Zealand 4"
+       }
+      }
+     },
+     {
+      "number": "5",
+      "player": {
+       "id": "new-5",
+       "name": {
+        "display": "Joueur New Zealand 5"
+       }
+      }
+     },
+     {
+      "number": "6",
+      "player": {
+       "id": "new-6",
+       "name": {
+        "display": "Joueur New Zealand 6"
+       }
+      }
+     },
+     {
+      "number": "7",
+      "player": {
+       "id": "new-7",
+       "name": {
+        "display": "Joueur New Zealand 7"
+       }
+      }
+     },
+     {
+      "number": "8",
+      "player": {
+       "id": "new-8",
+       "name": {
+        "display": "Joueur New Zealand 8"
+       }
+      }
+     },
+     {
+      "number": "9",
+      "player": {
+       "id": "new-9",
+       "name": {
+        "display": "Joueur New Zealand 9"
+       }
+      }
+     },
+     {
+      "number": "10",
+      "player": {
+       "id": "new-10",
+       "name": {
+        "display": "Joueur New Zealand 10"
+       }
+      }
+     },
+     {
+      "number": "11",
+      "player": {
+       "id": "new-11",
+       "name": {
+        "display": "Joueur New Zealand 11"
+       }
+      }
+     },
+     {
+      "number": "12",
+      "player": {
+       "id": "new-12",
+       "name": {
+        "display": "Joueur New Zealand 12"
+       }
+      }
+     },
+     {
+      "number": "13",
+      "player": {
+       "id": "new-13",
+       "name": {
+        "display": "Joueur New Zealand 13"
+       }
+      }
+     },
+     {
+      "number": "14",
+      "player": {
+       "id": "new-14",
+       "name": {
+        "display": "Joueur New Zealand 14"
+       }
+      }
+     },
+     {
+      "number": "15",
+      "player": {
+       "id": "new-15",
+       "name": {
+        "display": "Joueur New Zealand 15"
+       }
+      }
+     },
+     {
+      "number": "16",
+      "player": {
+       "id": "new-16",
+       "name": {
+        "display": "Joueur New Zealand 16"
+       }
+      }
+     },
+     {
+      "number": "17",
+      "player": {
+       "id": "new-17",
+       "name": {
+        "display": "Joueur New Zealand 17"
+       }
+      }
+     },
+     {
+      "number": "18",
+      "player": {
+       "id": "new-18",
+       "name": {
+        "display": "Joueur New Zealand 18"
+       }
+      }
+     },
+     {
+      "number": "19",
+      "player": {
+       "id": "new-19",
+       "name": {
+        "display": "Joueur New Zealand 19"
+       }
+      }
+     },
+     {
+      "number": "20",
+      "player": {
+       "id": "new-20",
+       "name": {
+        "display": "Joueur New Zealand 20"
+       }
+      }
+     },
+     {
+      "number": "21",
+      "player": {
+       "id": "new-21",
+       "name": {
+        "display": "Joueur New Zealand 21"
+       }
+      }
+     },
+     {
+      "number": "22",
+      "player": {
+       "id": "new-22",
+       "name": {
+        "display": "Joueur New Zealand 22"
+       }
+      }
+     },
+     {
+      "number": "23",
+      "player": {
+       "id": "new-23",
+       "name": {
+        "display": "Joueur New Zealand 23"
+       }
+      }
+     }
+    ]
+   }
+  }
+ ]
+}

@@ -1,0 +1,412 @@
+{
+ "header": {
+  "id": "900001",
+  "league": {
+   "name": "Rugby World Cup"
+  },
+  "competitions": [
+   {
+    "date": "2023-09-08T19:15Z",
+    "competitors": [
+     {
+      "homeAway": "home",
+      "team": {
+       "displayName": "France"
+      },
+      "score": "27"
+     },
+     {
+      "homeAway": "away",
+      "team": {
+       "displayName": "New Zealand"
+      },
+      "score": "13"
+     }
+    ]
+   }
+  ]
+ },
+ "gameInfo": {
+  "venue": {
+   "fullName": "Stade Fictif"
+  }
+ },
+ "rosters": [
+  {
+   "homeAway": "home",
+   "team": {
+    "displayName": "France"
+   },
+   "roster": [
+    {
+     "jersey": "1",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-1",
+      "displayName": "Joueur France 1"
+     }
+    },
+    {
+     "jersey": "2",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-2",
+      "displayName": "Joueur France 2"
+     }
+    },
+    {
+     "jersey": "3",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-3",
+      "displayName": "Joueur France 3"
+     }
+    },
+    {
+     "jersey": "4",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-4",
+      "displayName": "Joueur France 4"
+     }
+    },
+    {
+     "jersey": "5",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-5",
+      "displayName": "Joueur France 5"
+     }
+    },
+    {
+     "jersey": "6",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-6",
+      "displayName": "Joueur France 6"
+     }
+    },
+    {
+     "jersey": "7",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-7",
+      "displayName": "Joueur France 7"
+     }
+    },
+    {
+     "jersey": "8",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-8",
+      "displayName": "Joueur France 8"
+     }
+    },
+    {
+     "jersey": "9",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-9",
+      "displayName": "Joueur France 9"
+     }
+    },
+    {
+     "jersey": "10",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-10",
+      "displayName": "Joueur France 10"
+     }
+    },
+    {
+     "jersey": "11",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-11",
+      "displayName": "Joueur France 11"
+     }
+    },
+    {
+     "jersey": "12",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-12",
+      "displayName": "Joueur France 12"
+     }
+    },
+    {
+     "jersey": "13",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-13",
+      "displayName": "Joueur France 13"
+     }
+    },
+    {
+     "jersey": "14",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-14",
+      "displayName": "Joueur France 14"
+     }
+    },
+    {
+     "jersey": "15",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-15",
+      "displayName": "Joueur France 15"
+     }
+    },
+    {
+     "jersey": "16",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-16",
+      "displayName": "Joueur France 16"
+     }
+    },
+    {
+     "jersey": "17",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-17",
+      "displayName": "Joueur France 17"
+     }
+    },
+    {
+     "jersey": "18",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-18",
+      "displayName": "Joueur France 18"
+     }
+    },
+    {
+     "jersey": "19",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-19",
+      "displayName": "Joueur France 19"
+     }
+    },
+    {
+     "jersey": "20",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-20",
+      "displayName": "Joueur France 20"
+     }
+    },
+    {
+     "jersey": "21",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-21",
+      "displayName": "Joueur France 21"
+     }
+    },
+    {
+     "jersey": "22",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-22",
+      "displayName": "Joueur France 22"
+     }
+    },
+    {
+     "jersey": "23",
+     "starter": false,
+     "athlete": {
+      "id": "e-fra-23",
+      "displayName": "Joueur France 23"
+     }
+    }
+   ]
+  },
+  {
+   "homeAway": "away",
+   "team": {
+    "displayName": "New Zealand"
+   },
+   "roster": [
+    {
+     "jersey": "1",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-1",
+      "displayName": "Joueur New Zealand 1"
+     }
+    },
+    {
+     "jersey": "2",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-2",
+      "displayName": "Joueur New Zealand 2"
+     }
+    },
+    {
+     "jersey": "3",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-3",
+      "displayName": "Joueur New Zealand 3"
+     }
+    },
+    {
+     "jersey": "4",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-4",
+      "displayName": "Joueur New Zealand 4"
+     }
+    },
+    {
+     "jersey": "5",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-5",
+      "displayName": "Joueur New Zealand 5"
+     }
+    },
+    {
+     "jersey": "6",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-6",
+      "displayName": "Joueur New Zealand 6"
+     }
+    },
+    {
+     "jersey": "7",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-7",
+      "displayName": "Joueur New Zealand 7"
+     }
+    },
+    {
+     "jersey": "8",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-8",
+      "displayName": "Joueur New Zealand 8"
+     }
+    },
+    {
+     "jersey": "9",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-9",
+      "displayName": "Joueur New Zealand 9"
+     }
+    },
+    {
+     "jersey": "10",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-10",
+      "displayName": "Joueur New Zealand 10"
+     }
+    },
+    {
+     "jersey": "11",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-11",
+      "displayName": "Joueur New Zealand 11"
+     }
+    },
+    {
+     "jersey": "12",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-12",
+      "displayName": "Joueur New Zealand 12"
+     }
+    },
+    {
+     "jersey": "13",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-13",
+      "displayName": "Joueur New Zealand 13"
+     }
+    },
+    {
+     "jersey": "14",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-14",
+      "displayName": "Joueur New Zealand 14"
+     }
+    },
+    {
+     "jersey": "15",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-15",
+      "displayName": "Joueur New Zealand 15"
+     }
+    },
+    {
+     "jersey": "16",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-16",
+      "displayName": "Joueur New Zealand 16"
+     }
+    },
+    {
+     "jersey": "17",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-17",
+      "displayName": "Joueur New Zealand 17"
+     }
+    },
+    {
+     "jersey": "18",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-18",
+      "displayName": "Joueur New Zealand 18"
+     }
+    },
+    {
+     "jersey": "19",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-19",
+      "displayName": "Joueur New Zealand 19"
+     }
+    },
+    {
+     "jersey": "20",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-20",
+      "displayName": "Joueur New Zealand 20"
+     }
+    },
+    {
+     "jersey": "21",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-21",
+      "displayName": "Joueur New Zealand 21"
+     }
+    },
+    {
+     "jersey": "22",
+     "starter": false,
+     "athlete": {
+      "id": "e-new-22",
+      "displayName": "Joueur New Zealand 22"
+     }
+    }
+   ]
+  }
+ ]
+}

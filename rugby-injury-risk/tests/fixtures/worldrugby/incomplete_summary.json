@@ -1,0 +1,43 @@
+{
+ "match": {
+  "matchId": "wr-inc-01",
+  "matchAltId": "alt-wr-inc-01",
+  "competition": "Six Nations 2024",
+  "status": "C",
+  "time": {
+   "millis": 1707577200000,
+   "label": "2024-02-10"
+  },
+  "venue": {
+   "name": "Stade Fictif",
+   "city": "Ville",
+   "country": "Ireland"
+  },
+  "teams": [
+   {
+    "id": "1",
+    "name": "Ireland"
+   },
+   {
+    "id": "2",
+    "name": "France"
+   }
+  ],
+  "scores": [
+   0,
+   0
+  ]
+ },
+ "teams": [
+  {
+   "teamList": {
+    "list": []
+   }
+  },
+  {
+   "teamList": {
+    "list": []
+   }
+  }
+ ]
+}

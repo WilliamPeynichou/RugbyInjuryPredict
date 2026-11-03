@@ -1,0 +1,35 @@
+{
+ "header": {
+  "id": "900002",
+  "league": {
+   "name": "Rugby World Cup"
+  },
+  "competitions": [
+   {
+    "date": "2023-09-09T19:15Z",
+    "competitors": [
+     {
+      "homeAway": "home",
+      "team": {
+       "displayName": "Ireland"
+      },
+      "score": "27"
+     },
+     {
+      "homeAway": "away",
+      "team": {
+       "displayName": "France"
+      },
+      "score": "13"
+     }
+    ]
+   }
+  ]
+ },
+ "gameInfo": {
+  "venue": {
+   "fullName": "Stade Fictif"
+  }
+ },
+ "rosters": []
+}

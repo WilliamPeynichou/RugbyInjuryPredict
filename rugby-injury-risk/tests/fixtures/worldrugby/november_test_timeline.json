@@ -1,0 +1,12 @@
+{
+ "timeline": [
+  {
+   "type": "Red Card",
+   "teamIndex": 1,
+   "playerId": "new-5",
+   "time": {
+    "secs": 3600
+   }
+  }
+ ]
+}

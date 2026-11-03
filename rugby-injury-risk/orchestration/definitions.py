@@ -6,6 +6,11 @@ from orchestration.assets.allrugby import (
     allrugby_staging_matches,
     allrugby_staging_profiles,
 )
+from orchestration.assets.internationals import (
+    intl_minutes_check,
+    intl_staging_espn,
+    intl_staging_worldrugby,
+)
 from orchestration.assets.lnr import lnr_staging_lineups, lnr_vs_allrugby
 
 defs = Definitions(
@@ -16,5 +21,8 @@ defs = Definitions(
         allrugby_staging_profiles,
         lnr_staging_lineups,
         lnr_vs_allrugby,
+        intl_staging_worldrugby,
+        intl_staging_espn,
+        intl_minutes_check,
     ]
 )
