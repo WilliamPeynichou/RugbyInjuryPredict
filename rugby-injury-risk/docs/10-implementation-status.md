@@ -1,118 +1,253 @@
 # 10 — Journal d'implémentation (état des lieux)
 
-État au 2026-11-03 (F00–F07). Statut détaillé et à jour des features : `features/ROADMAP.md`
-(statuts) et le **Journal** de chaque fiche `features/Fxx-*.md` (décisions, écarts).
+État au 2026-11-03, features F00 à F07 livrées.
 
-## Vue d'ensemble
+Ce document est la vue d'ensemble pour reprendre le développement :
+1. ce qui est fait ;
+2. les soucis recensés ;
+3. ce qui reste à faire ;
+4. les règles à appliquer.
+
+Les sources de vérité détaillées restent :
+- `features/ROADMAP.md` pour les statuts ;
+- le **Journal** de chaque fiche `features/Fxx-*.md` pour les décisions et les écarts ;
+- `docs/00` à `docs/09` pour les règles.
+
+## 1. Vue d'ensemble
 
 | Phase | Features | Statut |
 |---|---|---|
-| 0 — Socle | F00 bootstrap, F01 registre sources, F02 données de référence | ✅ fait |
-| 1 — Collecte/entrepôt | F03 HTTP + lac brut, F04 DuckDB/dbt, F05 ingestion allrugby, F06 ingestion LNR | ✅ fait |
-| 2 — Internationaux/coupes/entités | F07 internationaux ✅ fait ; F08, F09 | 🟡 en cours |
-| 3+ | F10 → F29 | ⬜ à faire |
+| 0 — Socle | F00 bootstrap, F01 registre des sources, F02 données de référence | ✅ fait |
+| 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
+| 2 — Internationaux, coupes, entités | F07 ✅ ; F08, F09, F10, F11 | 🟡 en cours |
+| 3 — Labellisation des blessures | F12 → F16 | ⬜ à faire |
+| 4 — Table d'apprentissage et baselines | F17 → F20 | ⬜ à faire |
+| 5 — Modèle de production | F21, F22 | ⬜ à faire |
+| 6 — Challenger et gravité | F23, F24 | ⬜ à faire |
+| 7 — Produit | F25 → F27 | ⬜ à faire |
+| 8 — Exploitation | F28, F29 | ⬜ à faire |
 
-`make check` vert : ruff, format, mypy strict, pytest (131 tests, couverture ~92 %).
-Branches : une `feat/Fxx-*` par feature, commits Conventional Commits.
+Le dernier `make check` local est vert : ruff, format, mypy strict et pytest (131 tests,
+couverture 91,84 %).
 
-## Ce qui existe, en une ligne chacun
+Git :
+- une branche `feat/Fxx-*` par feature, avec des commits Conventional Commits ;
+- les branches sont **empilées** : chacune part de la précédente, et
+  `feat/F07-ingest-internationals` contient tout l'historique ;
+- rien n'est encore fusionné dans une branche `main`.
 
-- **F00 — Bootstrap** : dépôt `uv` (Python 3.12), `make check` (ruff + format +
-  mypy strict + pytest, cov ≥ 80 %), hook pre-commit (secrets, gros fichiers),
-  `tests/unit/test_gitignore.py` et `test_sensitive_files.py` qui verrouillent
-  `.gitignore` et l'interdiction de committer `.env`, `data/raw`, `data/staging`,
-  `*.duckdb`, `mlruns/`.
-- **F01 — Registre sources** : `config/sources.yaml` (9 sources, `authorized`
-  strict, garde-fou `assert_authorized`), `config/seasons.yaml` (2013-14 →
-  2026-27, validées : bornes 1er juillet–30 juin, non-chevauchement, flag COVID).
-- **F02 — Données de référence** : `data/reference/` (9 postes / 6 groupes /
-  2 unités, compétitions, 24 stades, surfaces 2025-26 confirmées par la page
-  LNR APPE, fenêtres de tests 2013–2027, historique des régimes de protection
-  FFR/LNR). Chargeurs Polars + Pandera, cache, clones. Été 2020 sans fenêtre
-  (COVID, accepté humainement). Trous non sourcés documentés dans le README de
-  `data/reference/`.
-- **F03 — Client HTTP poli + lac brut** : `PoliteClient` (refus des sources non
-  autorisées et des hôtes non déclarés, rate-limit par hôte, robots.txt cache
-  24 h, retries 429/5xx avec `Retry-After`, timeout 30 s, UA identifiable),
-  cache conditionnel ETag/Last-Modified, mode `offline`, `RawStore` append-only
-  (zstd, écriture atomique, manifeste Parquet, jamais de réécriture d'un hash),
-  canonicalisation d'URL, CLI `rugby-risk raw ls`. Tests sans réseau (respx).
-- **F04 — Entrepôt DuckDB + dbt** : projet `dbt/` (seeds `ref_*` générés par
-  `make seeds`, dimensions `dim_competition/season/venue/venue_surface`,
-  staging `stg_match/appearance/player_profile` lisant le Parquet ou relation
-  vide typée), `warehouse.py` (`connect`, `write_staging` partitionné
-  `source=/season=` avec validation Pandera, `upsert` idempotent),
-  `staging_schemas.py` (contrats F05–F08), `privacy.py` (HMAC-SHA256,
-  sel vide refusé hors `test`) enregistré comme UDF DuckDB via un plugin
-  dbt-duckdb — Python et dbt produisent la même clé (testée). `make dbt` vert.
-- **F05 — Ingestion allrugby** : URLs, découverte saison→matchs→joueurs (live),
-  parseurs match (titulaires 1–15, banc, minutes, cartons, quarantaine si
-  feuille invalide) et joueur (profil complet ou partiel), coup d'envoi
-  Europe/Paris via `zoneinfo` avec heure imputée 15:00 + flag
-  `kickoff_time_imputed`. Dagster : partitions par saison, assets staging
-  recalculables **offline depuis le lac brut** ; `make dagster` les matérialise.
-  Fixtures construites à la main (source non autorisée) — hypothèses de
-  balisage listées dans `tests/fixtures/allrugby/README.md`.
-- **F06 — Ingestion LNR** : `lnr` **activée par décision humaine** (2026-11-03)
-  dans le cadre fouille de textes et de données (art. L.122-5-3 CPI), recherche
-  non commerciale, sans redistribution, collecte polie (`min_delay: 5 s`,
-  robots respecté), consigné dans `notes_legal`. Parseur de compositions (ID
-  LNR, postes normalisés via `position_aliases.csv`, minutes `NULL`), partitions
-  `(saison, journée)`, asset de rapport `lnr_vs_allrugby` →
-  `data/staging/_reports/lineup_diff/`. 3 fixtures manuelles.
-- **F07 — Internationaux** : parseurs World Rugby (summary + timeline → minutes
-  reconstruites : `Sub On/Off`, `IR`/`HIAO` en bascule, rouge = sortie) et ESPN
-  (compositions, minutes `NULL`), mapping `competition_aliases.csv` + repli par
-  mois, exclusion féminin/7/jeunes, assets `intl_staging_worldrugby`,
-  `intl_staging_espn` (offline, par saison) et rapport `intl_minutes_check` →
-  `data/staging/_reports/intl_minutes/`. Sources live codées mais non autorisées ;
-  fixtures JSON anonymisées générées par script.
+## 2. Ce qui est fait
 
-## Autorisations de collecte (état réel)
+| Feature | Commit | Livré |
+|---|---|---|
+| F00 | `d3d29b8` | Dépôt `uv` (Python 3.12). `make check` exige une couverture ≥ 80 %. Hook pre-commit (secrets, gros fichiers). Workflow CI `.github/workflows/rugby-injury-risk.yml`. Les tests verrouillent `.gitignore` et refusent `.env`, `data/raw`, `data/staging`, `*.duckdb` et `mlruns/`. |
+| F01 | `9d36a88` | `config/sources.yaml` déclare 9 sources ; le garde-fou `assert_authorized` est relu à chaque appel, sans cache. `config/seasons.yaml` couvre 2013-14 → 2026-27 (1er juillet–30 juin, sans chevauchement, saisons COVID marquées). |
+| F02 | `9793b01` | `data/reference/` : 9 postes, 6 groupes, 2 unités, compétitions, 24 stades, surfaces 2025-26 (page LNR APPE), fenêtres de tests 2013–2027, régimes de protection FFR/LNR. Chargeurs Polars et Pandera. |
+| F03 | `ba513e8` | Client HTTP `PoliteClient` : refus des sources non autorisées et des hôtes non déclarés, débit limité par hôte, robots.txt en cache 24 h, nouvelles tentatives sur 429/5xx avec `Retry-After`, en-têtes ETag/Last-Modified, mode `offline`. Lac brut `RawStore` en ajout seul (zstd, écriture atomique, manifeste Parquet). CLI `rugby-risk raw ls`. |
+| F04 | `17f5f9d` | Projet `dbt/` (dimensions de référence, staging lisant le Parquet). `warehouse.py` : `connect`, `write_staging`, `upsert` idempotent, `staging_frame`. Contrats `staging_schemas.py`. `privacy.py` (HMAC-SHA256), exposé à dbt comme fonction `player_key`. |
+| F05 | `bf1544d` | allrugby : URLs, découverte des pages en ligne, parseurs match (minutes, cartons, mise en quarantaine) et joueur. Coup d'envoi Europe/Paris, heure imputée à 15:00. Assets Dagster partitionnés par saison, recalculés hors ligne depuis le lac brut. |
+| F06 | `830d4ad` | LNR activée par décision humaine. Parseur de compositions (identifiants LNR, postes normalisés via `position_aliases.csv`, minutes `NULL`). Partitions saison × journée. Rapport `lnr_vs_allrugby` → `data/staging/_reports/lineup_diff/`. |
+| F07 | `1c476eb` | World Rugby : minutes reconstruites (`Sub On/Off`, `IR`/`HIAO` en bascule, rouge = sortie définitive). ESPN : compositions, minutes `NULL`. Correspondance des compétitions via `competition_aliases.csv`, avec repli selon le mois. Féminin, rugby à 7 et jeunes exclus. Assets `intl_staging_worldrugby` et `intl_staging_espn`, rapport `intl_minutes_check`. |
+| Docs | `0ee73f2` | Première version de ce document. |
+
+### Autorisations de collecte (état réel)
 
 | Source | `authorized` | Note |
 |---|---|---|
-| lnr | ✅ true | Décision humaine 2026-11-03, cadre documenté dans `notes_legal`. Aucun crawl réel lancé. Consigne : si la LNR bloque (refus, robots, 403/429 persistants), on garde ce qui est déjà collecté à date, sans contournement. |
-| allrugby, itsrugby, espn, worldrugby, apisports, sportradar, wikipedia, news | ❌ false | F03 lève `SourceNotAuthorizedError` avant tout appel réseau (testé). |
+| lnr | ✅ true | Décision humaine du 2026-11-03, dans le cadre de la fouille de textes et de données (art. L.122-5-3 CPI) : recherche non commerciale, sans redistribution, `min_delay_seconds: 5.0`, robots.txt respecté. **Consigne humaine** : si la LNR bloque (refus, robots, 403/429 persistants), on garde ce qui est déjà collecté, sans contournement. Aucun crawl réel lancé. |
+| allrugby, itsrugby, espn, worldrugby, apisports, sportradar, wikipedia, news | ❌ false | F03 lève `SourceNotAuthorizedError` avant tout appel réseau (testé). Le code de collecte en ligne existe pour allrugby, espn et worldrugby. |
 
-API retenue pour le calendrier (F08) : **API-Sports** (freemium selon le document
-de recherche ; quotas non vérifiés ; clé à fournir hors dépôt).
+API retenue pour le calendrier (F08) : **API-Sports**. Elle est freemium selon le document de
+recherche. Les quotas ne sont pas vérifiés. La clé doit être fournie hors dépôt, via `.env`.
 
-## Décisions et écarts structurants (détails dans les Journaux de fiches)
+### Décisions et écarts structurants
 
-1. **Pseudonymisation dbt = même fonction Python** (plugin dbt-duckdb), pas de
-   table de correspondance : impossible de diverger.
-2. **Pas de `sources.yml` dbt** pour le Parquet : un glob vide fait échouer
-   DuckDB ; la macro `read_staging` renvoie une relation vide typée.
-3. **Seeds dbt ignorés par git** : `make seeds` les régénère depuis
-   `data/reference/` (NULL → cellule vide).
-4. **selectolax en backend lexbor** (modest déprécié par la version installée).
-5. **mypy strict assoupli sur `orchestration/`** (`[[tool.mypy.overrides]]`) ;
-   `src/` reste strict.
-6. **Cast Polars 2** : dtypes Pandera convertis via `v.type` dans
-   `warehouse.staging_frame` (centralisé, gère les frames vides).
-7. **Assets de staging Dagster = offline** : recalculés depuis le lac brut
-   (manifeste), jamais de réseau ; seul l'asset `*_raw_pages` est live.
-8. **Clé de partition multi** : dimensions ordonnées alphabétiquement
-   (`J10|2024-2025`).
-9. **Heure imputée** : coup d'envoi sans heure → 15:00 Europe/Paris +
-   `kickoff_time_imputed` (colonne ajoutée au contrat `StagingMatch`).
-10. **Fixture-first** : allrugby et LNR développés sur fixtures figées ; le
-    balisage réel reste à valider au premier crawl autorisé.
-11. **ESPN sans minutes** (F07) : le recoupement inter-sources compare la taille
-    des feuilles ; l'écart de minutes (> 5 %) est contrôlé contre 15 × 80.
+Les détails sont dans les Journaux des fiches.
 
-## Commandes
+1. **Pseudonymisation dbt = même fonction Python** (plugin dbt-duckdb). Il n'y a pas de table
+   de correspondance, donc les deux côtés ne peuvent pas diverger.
+2. **Pas de `sources.yml` dbt pour le Parquet.** Un glob vide fait échouer DuckDB ; la macro
+   `read_staging` renvoie donc une relation vide typée.
+3. **Seeds dbt ignorés par git.** `make seeds` les régénère depuis `data/reference/`
+   (`NULL` devient une cellule vide).
+4. **selectolax avec le moteur lexbor** : le moteur modest est déprécié.
+5. **mypy strict assoupli sur `orchestration/`** ; `src/` reste strict.
+6. **Polars 2** : les types Pandera sont convertis via `v.type` dans
+   `warehouse.staging_frame`.
+7. **Assets de staging hors ligne.** Ils sont recalculés depuis le lac brut ; seuls les assets
+   `*_raw_*` font des appels réseau.
+8. **Clé de partition multi-dimension** : dimensions triées par ordre alphabétique, par exemple
+   `J10|2024-2025`.
+9. **Heure imputée.** Un coup d'envoi sans heure est fixé à 15:00 Europe/Paris, avec
+   `kickoff_time_imputed = true`.
+10. **Développement sur fixtures d'abord.** allrugby, LNR, World Rugby et ESPN ont été
+    développés sur des fixtures figées ou générées, sans appel réel.
+11. **ESPN ne donne pas les minutes** (F07). Le recoupement entre sources compare donc la
+    taille des feuilles de match. L'écart de minutes (> 5 %) est contrôlé par rapport à
+    15 × 80.
+12. **La saison d'un match international est déduite de sa date**, à partir de
+    `config/seasons.yaml`. Le lac n'étant pas partitionné, chaque asset filtre sur sa
+    partition.
+
+## 3. Soucis recensés (ouverts)
+
+### Données et sources
+
+| # | Souci | Impact | Action prévue |
+|---|---|---|---|
+| S1 | Le balisage HTML d'allrugby et de la LNR n'a jamais été confronté aux vraies pages. Les fixtures sont écrites à la main et les URL de saison et de match allrugby sont des hypothèses. | Les parseurs peuvent échouer au premier crawl. | Premier crawl limité à une partition. Comparer avec `tests/fixtures/*/README.md`, ajuster les parseurs et incrémenter `PARSER_VERSION`. |
+| S2 | Les formes JSON de World Rugby et d'ESPN viennent de dépôts tiers (`bpcsaund/rugby-analytics`, `transientlunatic/Rugby-Data`), pas des API elles-mêmes. | Même risque que S1. | À vérifier au premier appel autorisé. |
+| S3 | Les identifiants de ligues ESPN hors Top 14 (`180659`, `164205`, `289234`) ne sont pas vérifiés. | Mauvaise collecte possible. | À vérifier au premier appel autorisé. |
+| S4 | La LNR ne donne pas les minutes. ESPN ne donne ni minutes ni cartons. | Les minutes viennent seulement d'allrugby (club) et de World Rugby (internationaux). | F09/F10 : priorité des sources par champ. |
+| S5 | Le Rugby Championship n'a pas de code dans `competitions.csv`. | Il est classé selon le mois (`SUMMER_TESTS`, `AUTUMN_TESTS`, `OTHER_TEST`). | Ajouter un code seulement si `docs/04` évolue (décision humaine). |
+| S6 | Fenêtres de tests non sourcées : été 2016, 2019 et 2023, automne 2015, 2016, 2021 et 2022. L'été 2020 n'a pas de fenêtre (COVID, accepté). | `in_test_window` est incomplet sur ces périodes. | Compléter quand la recherche documentaire sera possible ; Wikipédia a renvoyé des 429. |
+| S7 | Les 24 stades ont latitude et longitude à `NULL`, et les délocalisations ne sont pas exhaustives. | Pas de feature de déplacement ou de distance. | À compléter avant F17 si `docs/05` l'exige. |
+| S8 | Les dates de transition des conventions FFR/LNR (2014, 2017, 2018) sont fixées au 1er juillet par convention. | Approximation du régime de protection. | À confirmer avant l'usage analytique (F11, F13). |
+| S9 | Les quotas et la couverture du plan gratuit d'API-Sports ne sont pas vérifiés. | Bloquant pour le run réel de F08. | Lire api-sports.io, puis décision humaine et clé `.env`. |
+| S10 | L'activation de la LNR repose sur l'exception de fouille de textes et de données, sans réponse de la LNR (contact@lnr.fr). | Risque juridique si la LNR fait opposition. | Respecter un opt-out ; en cas de blocage, appliquer la consigne humaine. |
+
+### Technique et outillage
+
+| # | Souci | Impact | Action prévue |
+|---|---|---|---|
+| T1 | **La CI distante n'a jamais tourné** : aucun push avant celui-ci. Deux critères de F00 restent décochés (CI distante, machine distincte). | Pas de preuve hors de cette machine. | Vérifier le premier run GitHub Actions après le push. |
+| T2 | **La cible `make dagster` est probablement inopérante.** Elle passe plusieurs assets séparés par des virgules dans un seul `--select`, ce qui ne sélectionne rien et renvoie quand même rc 0. | La commande semble réussir sans rien matérialiser. | Utiliser un `--select` par asset (ou la syntaxe de sélection Dagster), puis vérifier. |
+| T3 | Les tests d'intégration Dagster laissent des dossiers `.tmp_dagster_home_*` non ignorés par git. | Risque de les ajouter par erreur dans un commit. | Les ajouter à `.gitignore`, ou les nettoyer dans les tests. |
+| T4 | `make check` dure environ 2 min 15. Dans l'outil shell de l'agent, une session de plus de 2 min est tuée (SIGHUP, `Error 129`) en plein pytest. | Faux échec. | Lancer `make check` détaché, par exemple via un sous-processus avec `start_new_session`, et lire `/tmp/mk.log`. |
+| T5 | `allrugby_staging_matches` et `allrugby_staging_appearances` refont la même analyse des pages. | Double coût CPU (négligeable sur fixtures). | Fusionner en un multi-asset si le volume réel le justifie. |
+| T6 | Les assets internationaux parcourent tout le manifeste pour chaque saison. | Coût linéaire en taille du lac. | Filtrer par date dans le manifeste si le volume réel le justifie. |
+| T7 | La ROADMAP n'avait pas été mise à jour pour F03, F05 et F06. | Corrigé dans F07. | Mettre à jour la ROADMAP dans le commit de chaque feature. |
+| T8 | Les branches sont empilées et il n'y a pas de `main`. | Revue difficile. | Créer `main` depuis F00 et fusionner dans l'ordre, ou ouvrir des PR empilées (décision humaine). |
+
+## 4. Ce qui reste à faire
+
+Ordre imposé par `features/ROADMAP.md` : la première feature `todo` dont toutes les
+dépendances sont `done`. La colonne « Prérequis humain » indique ce qui bloque le **run réel**.
+Le développement et les tests sur fixtures restent toujours possibles.
+
+| ID | Feature | Dépend de | Prérequis humain | Points d'attention |
+|---|---|---|---|---|
+| **F08** | Coupes d'Europe et calendrier | F03, F04 | Clé API-Sports et `apisports: authorized` | Champions Cup et Challenge Cup pour les clubs du Top 14 ; calendrier fiable (coups d'envoi, stades). Réutiliser `sources/espn/fetch.py`. |
+| F09 | Résolution d'entités joueurs | F05, F06, F07 | Revue de `er_overrides.csv` | Splink (backend DuckDB), ancre LNR, < 1 % de doublons. Produit `dim_player` et `player_source_xref`. |
+| F10 | Marts de participation et éligibilité | F08, F09 | — | `fact_eligibility` (joueur × match de son équipe, joué ou non). |
+| F11 | Analyse descriptive des séquences | F10 | — | Publiable sans aucune donnée de blessure. |
+| F12 | Signal « sortie précoce » | F10 | — | Score de suspicion à partir des minutes. |
+| F13 | Signal « absence » | F10 | — | Motifs : sélection, suspension, repos protégé, rotation. |
+| F14 | Collecte presse | F03, F04 | Choix des flux autorisés | `news` reste `false` sans décision humaine. |
+| F15 | Extraction LLM des blessures | F14, F09 | Clé LLM dans `.env`, budget validé | Sortie Pydantic, modèle choisi par `LLM_MODEL`. |
+| F16 | Fusion, annotation, contrôle qualité | F12, F13, F15 | 300 à 500 épisodes annotés à la main ; avis d'un juriste sur l'art. 9 | Comparer l'incidence obtenue aux priors (PRISP). |
+| F17 | Table `ml_player_match` et test anti-fuite | F16 | — | Features calculées à `as_of_ts` ; `player_key` pseudonymisé. |
+| F18 | Cadre d'évaluation et MLflow | F17 | — | Découpage par saison, log-loss et Brier, bootstrap par joueur. |
+| F19 | Baseline Poisson par poste | F18 | — | Référence M0 et priors. |
+| F20 | Hazard en temps discret | F19 | — | Lien cloglog avec offset, splines, premières courbes h(N). |
+| F21 | Sélection et pondération IPW | F20 | — | Correction du biais du « survivant en bonne santé ». |
+| F22 | Modèle hiérarchique bayésien | F21 | Revue du rapport de modèle | PyMC/bambi, intervalles crédibles. |
+| F23 | Challenger LightGBM et SHAP | F20 | — | Gain de log-loss en validation temporelle. |
+| F24 | Modèle de gravité | F18 | — | Jours d'absence (`days_missed`), burden par poste. |
+| F25 | Prédictions batch et export Supabase | F22 | Promotion manuelle du modèle | Garde-fou d'agrégation : jamais de valeur nominative. |
+| F26 | API FastAPI | F25 | — | Lecture seule, agrégats uniquement. |
+| F27 | Front Next.js | F26 | Compte Vercel et projet Supabase | Pédagogie, limites, scénarios. |
+| F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
+| F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
+
+Prochaine étape immédiate : **F08**, développée sur fixtures si la clé API-Sports n'est pas
+fournie. Avant F09, traiter T1 à T3 (CI, `make dagster`, `.gitignore`).
+
+## 5. Règles à appliquer (toutes features)
+
+### Workflow obligatoire (`CLAUDE.md` §2)
+
+1. Prendre la première feature `todo` de la ROADMAP dont toutes les dépendances sont `done`.
+2. Lire toute la fiche et les docs qu'elle référence.
+3. Passer son statut à `in_progress`.
+4. Créer la branche `feat/Fxx-slug`.
+5. Implémenter **seulement le périmètre** de la fiche, en respectant « Hors périmètre ».
+6. Écrire les tests de la fiche avec le code. **Jamais de réseau dans les tests** : fixtures
+   de `tests/fixtures/` uniquement.
+7. Obtenir un `make check` vert.
+8. Cocher les critères `- [x]`. Un critère non tenu est expliqué dans le **Journal** de la
+   fiche.
+9. Passer le statut à `done` dans la ROADMAP, dans le même commit Conventional Commits
+   (`feat(Fxx): ...`), avec un `git add` ciblé.
+10. Résumer en 5 lignes maximum ce qui est fait et ce qui reste ouvert.
+
+En cas d'ambiguïté : **`docs/` fait foi pour les règles** (conformité, schéma), **la fiche
+fait foi pour le périmètre**.
+
+### Règles d'or (non négociables, `CLAUDE.md` §3)
+
+1. **Pas de fuite temporelle** : chaque feature est calculée avec des données strictement
+   antérieures au coup d'envoi (`as_of_ts`).
+2. **Validation temporelle uniquement** : découpage par saison, jamais de k-fold aléatoire.
+3. **RGPD art. 9** : une blessure liée à un joueur identifié est une donnée de santé. Les
+   tables d'apprentissage utilisent `player_key` pseudonymisé ; l'API et le front n'exposent
+   que des agrégats par poste ou groupe de postes.
+4. **Respect des sources** : aucun appel réseau si `authorized: false` ; robots.txt, débit
+   limité, User-Agent identifiable.
+5. **Idempotence** : rejouer une partition ne crée aucun doublon (upsert sur clés
+   naturelles).
+6. **Lac brut immuable** : stocker avant d'analyser ; on ré-analyse sans re-collecter.
+7. **Pas de ratio ACWR** comme feature centrale : charges aiguë et chronique séparées.
+8. **La calibration passe avant la discrimination** : sélection des modèles sur la log-loss
+   et le Brier, pas sur l'AUC.
+9. **Pas de secrets dans le code** : `.env` (non commité) et `settings.py`.
+
+### Interdits (`CLAUDE.md` §8)
+
+- Lancer un scraping massif « pour tester ». Les runs réels passent par Dagster, sur une
+  partition explicite.
+- Publier ou journaliser des données de blessure nominatives.
+- Modifier `docs/07-legal-rgpd.md`, ou `authorized` dans `config/sources.yaml`, sans
+  demande explicite de l'humain.
+- Ajouter une dépendance lourde absente de la stack sans la justifier dans le Journal.
+
+### Conventions (`CLAUDE.md` §7, `docs/08-conventions.md`)
+
+- Identifiants en anglais. Les commentaires et docstrings suivent la langue de chaque
+  fichier.
+- Fonctions pures pour l'analyse des pages et le calcul des features. Les effets de bord
+  restent dans `http/` et dans les assets Dagster.
+- Un parseur = un module = un fichier de tests, avec au moins 2 fixtures dont un cas limite.
+  `PARSER_VERSION` est incrémenté à chaque changement de format.
+- Dates en UTC timezone-aware dans le stockage ; Europe/Paris seulement à l'affichage.
+- Postes : uniquement le vocabulaire de `data/reference/positions.csv`, via
+  `position_aliases.csv` ou `reference.position_from_shirt`. Jamais de poste écrit en dur.
+- Logs structurés, pas de `print`.
+
+### Règles de collaboration (décisions humaines de cette session)
+
+- Une feature à la fois, terminée (tests, Journal, ROADMAP, commit) avant de passer à la
+  suivante.
+- Plus petit changement complet. Chaque livraison se termine par ce qui n'a pas été vérifié
+  et les risques.
+- En cas d'erreur ou de doute : consulter d'abord le document de recherche à la racine Git
+  (*Prédire le risque de blessure par poste et enchaînement de matchs en Top 14…*). Ce
+  fichier **n'est jamais commité**.
+- Sources bloquées : on garde les données obtenues à date, sans contournement (consigne LNR).
+- Saison 2019-2020 incomplète : normal (COVID), pas une anomalie de collecte.
+
+### Pièges connus
+
+- Avant `uv` ou `make` : `export PATH="$HOME/.local/bin:$PATH"`.
+- La racine Git est le dossier parent : `git add` doit cibler des chemins depuis
+  `rugby-injury-risk/`.
+- macOS : `sed -i ''`.
+- `dagster asset materialize` : un asset par `--select`. Une partition multi-dimension
+  s'écrit `J10|2024-2025`.
+- Les tests d'intégration Dagster lancent un sous-processus avec
+  `PYTHONPATH=repo:repo/src`, `DATA_DIR=tmp` et `cwd=repo`.
+- `selectolax` : utiliser `LexborHTMLParser`.
+- Le hook pre-commit prend environ 20 s ; `make check` environ 2 min 15 (voir T4).
+
+## 6. Commandes
 
 ```bash
-make check    # ruff + format + mypy + pytest (gate de qualité)
-make dbt      # seeds + dbt build (DuckDB data/warehouse.duckdb)
-make dagster  # matérialise les assets staging allrugby (partition 2023-2024)
+make check    # ruff + format + mypy + pytest (contrôle qualité obligatoire)
+make seeds    # data/reference → dbt/seeds (fichiers ignorés par git)
+make dbt      # seeds + dbt build (DuckDB)
+make dagster  # ⚠ voir T2
+uv run dagster asset materialize --select intl_staging_worldrugby --partition 2023-2024 \
+  --module-name orchestration.definitions
 rugby-risk raw ls --source lnr   # liste le lac brut
+python tests/fixtures/worldrugby/build_fixtures.py   # régénère les fixtures internationales
 ```
-
-## Prochaines étapes (ordre ROADMAP)
-
-1. **F08** — coupes d'Europe + calendrier (API-Sports, nécessite clé + décision
-   d'activation).
-2. **F09** — résolution d'entités (ancre LNR), puis F10 marts de participation.
