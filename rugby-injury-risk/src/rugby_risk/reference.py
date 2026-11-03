@@ -7,6 +7,8 @@ from pathlib import Path
 import pandera.polars as pa
 import polars as pl
 
+from rugby_risk.config.seasons import load_seasons
+
 REFERENCE_DIR = Path("data/reference")
 
 
@@ -96,6 +98,28 @@ def _load(name: str) -> pl.DataFrame:
         frame, "type" if name == "test_windows" else None
     ):
         raise ValueError(f"Invalid or overlapping intervals in {name}")
+    if name == "positions":
+        if (frame.height, frame["position_group"].n_unique(), frame["unit"].n_unique()) != (
+            9,
+            6,
+            2,
+        ):
+            raise ValueError("Expected 9 positions, 6 groups and 2 units")
+        shirts = [
+            int(number)
+            for numbers in frame["shirt_numbers"]
+            for number in numbers.split(";")
+            if int(number) in range(1, 16)
+        ]
+        if sorted(shirts) != list(range(1, 16)):
+            raise ValueError("Starting shirt numbers must cover 1..15 exactly once")
+    if name == "venue_surface":
+        if frame.select("venue_id", "season_id").is_duplicated().any():
+            raise ValueError("Duplicate venue-season surface")
+        if not set(frame["venue_id"]).issubset(venues()["venue_id"]):
+            raise ValueError("Unknown venue in surfaces")
+        if not set(frame["season_id"]).issubset(s.season_id for s in load_seasons()):
+            raise ValueError("Unknown season in surfaces")
     return frame
 
 

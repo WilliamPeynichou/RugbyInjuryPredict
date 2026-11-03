@@ -74,5 +74,8 @@ Schémas Pandera : dates cohérentes (`start_date ≤ end_date`), pas de chevauc
 - Autumn Nations Cup 2020 et deux phases du Nations Championship 2026 ajoutées après vérification documentaire. Le reste des fenêtres été/automne demeure incomplet : F02 reste `in_progress`.
 - Correction des extrapolations du régime de protection : plafond 2014 borné à juin 2014–mai 2015, dispositifs 2016 et groupes élargis dès 2020 distingués. Les dates d'annonce et la précision annuelle sont documentées, sans les présenter comme dates d'effet juridique.
 - Instruction de consultation prioritaire du document de recherche ajoutée à CLAUDE.md. Aucun changement des autorisations de collecte.
+- Dernière reprise : périodes été 2024 (22/06–27/07), automne 2024 (26/10–30/11) et automne 2025 (18/10–29/11) vérifiées via sections MediaWiki et ajoutées. Elles incluent les jours intermédiaires, sans inférer les sélections individuelles.
+- API Wikipédia : réponses HTTP 429 lors des recherches suivantes, requêtes arrêtées sans contournement. Calendrier historique incomplet, F02 reste `in_progress` ; aucune autre feature commencée.
+- Intégrité renforcée : cardinalités des postes et couverture des maillots titulaires, clés composées des surfaces, références de stades et saisons. Tests de régression hors réseau : `make check` vert, 75 tests, couverture 99,04 %.
 - Chargeurs Polars avec validation Pandera, cache et clones ; tests hors réseau. Les dates ISO nécessitent un parsing explicite avant validation Pandera.
 

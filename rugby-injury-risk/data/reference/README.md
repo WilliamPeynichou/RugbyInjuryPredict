@@ -30,10 +30,17 @@ Sources consultées le 2026-11-03 :
 - https://en.wikipedia.org/wiki/2026_Nations_Championship — 04/07–18/07 et 06/11–29/11/2026, phase de novembre programmée.
 - https://fr.wikipedia.org/wiki/Liste_%C3%89lite_des_joueurs_prot%C3%A9g%C3%A9s_par_la_convention_FFR/LNR — historique des protections.
 
+- https://en.wikipedia.org/wiki/2024_mid-year_rugby_union_tests — période 22/06–27/07/2024, bornes vérifiées dans les sections du calendrier via API MediaWiki.
+- https://en.wikipedia.org/wiki/2024_end-of-year_rugby_union_internationals — période 26/10–30/11/2024.
+- https://en.wikipedia.org/wiki/2025_end-of-year_rugby_union_internationals — période 18/10–29/11/2025.
+
+Ces périodes globales incluent les jours sans match entre les rencontres ; elles ne constituent pas des preuves de sélection ou de mise à disposition d'un joueur.
+
 Données dérivées de Wikipédia : attribution aux contributeurs des pages citées, CC BY-SA ; revue de licence avant redistribution.
 
 ## Limites bloquantes avant usage analytique
 
+- Vérification documentaire suspendue après réponse HTTP 429 de l'API Wikipédia ; aucune tentative de contournement. À reprendre à débit séquentiel espacé, après le délai du fournisseur. Fenêtres historiques été/automne encore manquantes, notamment 2013–2023 : ne pas substituer une fenêtre générique de juin/juillet ou novembre.
 - Compléter été/automne, notamment exceptions COVID et Nations Championship. `in_test_window=False` signifie absence dans ce référentiel **partiel**, pas preuve d'absence de sélection.
 - Surfaces APPE 2025-2026 confirmées : https://www.lnr.fr/actualite/le-classement-20252026-des-terrains-des-clubs-professionnels ; ne pas extrapoler aux autres saisons.
 - Les régimes 2016/2017/2018 commencent aux dates d'annonce des listes (10/07/2016, 09/06/2017, 30/05/2018), pas à une date d'effet juridique vérifiée. Le changement décrit « à partir de 2020 » est représenté au 01/01/2020, précision annuelle seulement. `list_size=NULL` pour les groupes élargis : ne pas prolonger fictivement la liste de 40 jusqu'en 2026. Les intervalles se terminent la veille du changement suivant par convention de représentation. Les périodes sans source, notamment juin 2015–juillet 2016, renvoient `unknown`. Ces régimes restent à valider avant usage analytique.

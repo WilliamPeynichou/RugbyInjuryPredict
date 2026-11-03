@@ -87,3 +87,49 @@ def test_cache_not_mutable():
     frame = reference.positions()
     frame.drop_in_place("unit")
     assert "unit" in reference.positions().columns
+
+
+@pytest.fixture
+def isolated_references(monkeypatch, tmp_path):
+    monkeypatch.setattr(reference, "REFERENCE_DIR", tmp_path)
+    reference._load.cache_clear()
+    yield tmp_path
+    reference._load.cache_clear()
+
+
+@pytest.mark.parametrize(
+    ("rows", "error"),
+    [
+        ("11,2025-2026,synthetic,x\n11,2025-2026,synthetic,x\n", "Duplicate"),
+        ("999,2025-2026,synthetic,x\n", "Unknown venue"),
+        ("11,2099-2100,synthetic,x\n", "Unknown season"),
+    ],
+)
+def test_surface_integrity(isolated_references, rows, error):
+    (isolated_references / "venues.csv").write_text(
+        "venue_id,name,city,country,lat,lon\n11,Example,Example,France,NULL,NULL\n"
+    )
+    (isolated_references / "venue_surface.csv").write_text(
+        "venue_id,season_id,surface,source\n" + rows
+    )
+    with pytest.raises(ValueError, match=error):
+        reference.venue_surface()
+
+
+def test_loader_rejects_overlapping_windows(isolated_references):
+    (isolated_references / "test_windows.csv").write_text(
+        "window_id,label,start_date,end_date,type\n"
+        "a,A,2024-02-01,2024-02-15,six_nations\n"
+        "b,B,2024-02-10,2024-02-20,six_nations\n"
+    )
+    with pytest.raises(ValueError, match="overlapping"):
+        reference.test_windows()
+
+
+def test_loader_rejects_incomplete_positions(isolated_references):
+    (isolated_references / "positions.csv").write_text(
+        "position_code,position_label_fr,position_group,unit,shirt_numbers\n"
+        "EXAMPLE,Example,group,unit,1\n"
+    )
+    with pytest.raises(ValueError, match="Expected 9"):
+        reference.positions()
