@@ -1,0 +1,11 @@
+competition_code,name,level
+TOP14,Top 14,club_domestic
+PROD2,Pro D2,club_domestic
+CHAMPIONS_CUP,Champions Cup,club_europe
+CHALLENGE_CUP,Challenge Cup,club_europe
+SIX_NATIONS,Six Nations,international
+AUTUMN_TESTS,Autumn tests,international
+SUMMER_TESTS,Summer tests,international
+NATIONS_CHAMPIONSHIP,Nations Championship,international
+RWC,Rugby World Cup,international
+OTHER_TEST,Other test,international

@@ -1,0 +1,19 @@
+window_id,label,start_date,end_date,type
+six_nations_2014,Six Nations 2014,2014-02-01,2014-03-15,six_nations
+six_nations_2015,Six Nations 2015,2015-02-06,2015-03-21,six_nations
+six_nations_2016,Six Nations 2016,2016-02-06,2016-03-19,six_nations
+six_nations_2017,Six Nations 2017,2017-02-04,2017-03-18,six_nations
+six_nations_2018,Six Nations 2018,2018-02-03,2018-03-17,six_nations
+six_nations_2019,Six Nations 2019,2019-02-01,2019-03-16,six_nations
+six_nations_2020_initial,Six Nations 2020 avant interruption,2020-02-01,2020-03-08,six_nations
+six_nations_2020_resume,Six Nations 2020 reprise,2020-10-24,2020-10-31,six_nations
+six_nations_2021,Six Nations 2021,2021-02-06,2021-03-26,six_nations
+six_nations_2022,Six Nations 2022,2022-02-05,2022-03-19,six_nations
+six_nations_2023,Six Nations 2023,2023-02-04,2023-03-18,six_nations
+six_nations_2024,Six Nations 2024,2024-02-02,2024-03-16,six_nations
+six_nations_2025,Six Nations 2025,2025-01-31,2025-03-15,six_nations
+six_nations_2026,Six Nations 2026,2026-02-05,2026-03-14,six_nations
+six_nations_2027,Six Nations 2027 programme,2027-02-05,2027-03-13,six_nations
+rwc_2015,Coupe du monde 2015,2015-09-18,2015-10-31,rwc
+rwc_2019,Coupe du monde 2019,2019-09-20,2019-11-02,rwc
+rwc_2023,Coupe du monde 2023,2023-09-08,2023-10-28,rwc

@@ -1,0 +1,25 @@
+venue_id,name,city,country,lat,lon
+1,Stade Ernest-Wallon,Toulouse,France,NULL,NULL
+2,Stade Marcel-Michelin,Clermont-Ferrand,France,NULL,NULL
+3,Stade Mayol,Toulon,France,NULL,NULL
+4,Stade Jean-Bouin,Paris,France,NULL,NULL
+5,Stade Pierre-Fabre,Castres,France,NULL,NULL
+6,Stade Aimé-Giral,Perpignan,France,NULL,NULL
+7,Stade Chaban-Delmas,Bordeaux,France,NULL,NULL
+8,Stade Marcel-Deflandre,La Rochelle,France,NULL,NULL
+9,Stade du Hameau,Pau,France,NULL,NULL
+10,Stade Jean-Dauger,Bayonne,France,NULL,NULL
+11,Stade Aguiléra,Biarritz,France,NULL,NULL
+12,Stade Amédée-Domenech,Brive-la-Gaillarde,France,NULL,NULL
+13,Stade Charles-Mathon,Oyonnax,France,NULL,NULL
+14,Stade Armandie,Agen,France,NULL,NULL
+15,Stade des Alpes,Grenoble,France,NULL,NULL
+16,Stade Lesdiguières,Grenoble,France,NULL,NULL
+17,Stade Maurice-David,Aix-en-Provence,France,NULL,NULL
+18,Stade André-et-Guy-Boniface,Mont-de-Marsan,France,NULL,NULL
+19,Stade de Sapiac,Montauban,France,NULL,NULL
+20,Paris La Défense Arena,Nanterre,France,NULL,NULL
+21,Stade Yves-du-Manoir,Colombes,France,NULL,NULL
+22,Stade de Gerland,Lyon,France,NULL,NULL
+23,Matmut Stadium de Vénissieux,Vénissieux,France,NULL,NULL
+24,Stade Yves-du-Manoir,Montpellier,France,NULL,NULL
