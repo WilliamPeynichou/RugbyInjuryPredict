@@ -17,10 +17,10 @@ Règle d'or n°4 : aucune collecte réseau sur une source non autorisée. Ce reg
 
 ## Périmètre
 
-- [ ] `config/sources.yaml` avec les entrées : `allrugby`, `lnr`, `itsrugby`, `espn`, `worldrugby`, `apisports`, `sportradar`, `wikipedia`, `news`.
-- [ ] `config/seasons.yaml` : saisons couvertes (`2013-2014` → saison en cours), dates de début/fin, flag COVID.
-- [ ] `src/rugby_risk/config/sources.py` : modèles `SourceConfig`, `SourcesRegistry`, fonction `load_sources()`, `assert_authorized(source_id)`.
-- [ ] `src/rugby_risk/config/seasons.py` : `load_seasons()`, `season_for_date(d)`.
+- [x] `config/sources.yaml` avec les entrées : `allrugby`, `lnr`, `itsrugby`, `espn`, `worldrugby`, `apisports`, `sportradar`, `wikipedia`, `news`.
+- [x] `config/seasons.yaml` : saisons couvertes (`2013-2014` → saison en cours), dates de début/fin, flag COVID.
+- [x] `src/rugby_risk/config/sources.py` : modèles `SourceConfig`, `SourcesRegistry`, fonction `load_sources()`, `assert_authorized(source_id)`.
+- [x] `src/rugby_risk/config/seasons.py` : `load_seasons()`, `season_for_date(d)`.
 
 ## Hors périmètre
 
@@ -99,9 +99,15 @@ Validation : `min_delay_seconds ≥ 1.0` imposé (impossible de configurer un sc
 
 ## Critères d'acceptation
 
-- [ ] Toutes les sources sauf `wikipedia` sont `authorized: false` dans le fichier commité.
-- [ ] `assert_authorized("lnr")` lève l'exception.
-- [ ] `make check` vert.
+- [x] Toutes les sources sauf `wikipedia` sont `authorized: false` dans le fichier commité.
+- [x] `assert_authorized("lnr")` lève l'exception.
+- [x] `make check` vert.
 
 ## Journal
+
+- Neuf sources enregistrées, toutes désactivées. Contrairement à l'exemple YAML, Wikipédia reste `authorized: false` : les règles de conformité et la section Hors périmètre interdisent à l'agent d'accorder une autorisation. Activation réservée à un humain après validation.
+- `news` n'a pas de `base_url` dans la spécification : ce champ est optionnel pour cette source uniquement. Une source activée exige une URL de base ou des flux.
+- Saisons administratives inclusives du 1er juillet au 30 juin, de 2013-2014 à 2026-2027 (date système : 2026-11-03). Elles ne représentent pas les dates réelles des matchs ; dates hors couverture : `None`. Saisons 2019-2020 et 2020-2021 marquées perturbées par le COVID.
+- Aucun cache des autorisations : chaque garde-fou relit le registre pour prendre en compte une révocation.
+- `make check` réussi : 55 tests, couverture globale 100 %, lint et mypy strict verts. Aucun appel réseau dans les tests ; CI distante non exécutée.
 

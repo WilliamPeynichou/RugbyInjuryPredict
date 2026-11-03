@@ -1,0 +1,16 @@
+# Intervalles administratifs inclusifs (1er juillet–30 juin), pas dates des matchs.
+seasons:
+  - {season_id: 2013-2014, start_date: 2013-07-01, end_date: 2014-06-30}
+  - {season_id: 2014-2015, start_date: 2014-07-01, end_date: 2015-06-30}
+  - {season_id: 2015-2016, start_date: 2015-07-01, end_date: 2016-06-30}
+  - {season_id: 2016-2017, start_date: 2016-07-01, end_date: 2017-06-30}
+  - {season_id: 2017-2018, start_date: 2017-07-01, end_date: 2018-06-30}
+  - {season_id: 2018-2019, start_date: 2018-07-01, end_date: 2019-06-30}
+  - {season_id: 2019-2020, start_date: 2019-07-01, end_date: 2020-06-30, is_covid_disrupted: true}
+  - {season_id: 2020-2021, start_date: 2020-07-01, end_date: 2021-06-30, is_covid_disrupted: true}
+  - {season_id: 2021-2022, start_date: 2021-07-01, end_date: 2022-06-30}
+  - {season_id: 2022-2023, start_date: 2022-07-01, end_date: 2023-06-30}
+  - {season_id: 2023-2024, start_date: 2023-07-01, end_date: 2024-06-30}
+  - {season_id: 2024-2025, start_date: 2024-07-01, end_date: 2025-06-30}
+  - {season_id: 2025-2026, start_date: 2025-07-01, end_date: 2026-06-30}
+  - {season_id: 2026-2027, start_date: 2026-07-01, end_date: 2027-06-30}

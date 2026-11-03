@@ -1,0 +1,44 @@
+version: 1
+defaults:
+  min_delay_seconds: 3.0
+  respect_robots: true
+  max_retries: 3
+sources:
+  allrugby:
+    authorized: false
+    base_url: https://www.allrugby.com
+    notes_legal: Accord ou validation juridique requis, non confirmé.
+  lnr:
+    authorized: false
+    base_url: https://top14.lnr.fr
+    extra_hosts: [prod2.lnr.fr, www.lnr.fr]
+    notes_legal: CGU restrictives du 16/06/2023, accord requis.
+  itsrugby:
+    authorized: false
+    base_url: https://itsrugby.fr
+    notes_legal: Extraction substantielle interdite sans accord.
+  espn:
+    authorized: false
+    base_url: https://site.api.espn.com
+    min_delay_seconds: 2.0
+    notes_legal: API non documentée, validation requise.
+  worldrugby:
+    authorized: false
+    base_url: https://api.wr-rims-prod.pulselive.com
+    notes_legal: API non documentée, validation requise.
+  apisports:
+    authorized: false
+    base_url: https://v1.rugby.api-sports.io
+    requires_api_key: true
+  sportradar:
+    authorized: false
+    base_url: https://api.sportradar.com
+    requires_api_key: true
+  wikipedia:
+    authorized: false
+    base_url: https://fr.wikipedia.org
+    notes_legal: CC BY-SA ; activation réservée à une validation humaine.
+  news:
+    authorized: false
+    feeds: []
+    notes_legal: Flux à renseigner et autoriser par un humain en F14.
