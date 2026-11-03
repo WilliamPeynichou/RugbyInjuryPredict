@@ -32,6 +32,7 @@ Projet de data science qui estime la probabilité de blessure au prochain match 
 | `docs/07-legal-rgpd.md` | Cadre juridique, garde-fous, AIPD |
 | `docs/08-conventions.md` | Conventions de code, tests, git |
 | `docs/09-glossary.md` | Glossaire rugby + data |
+| `docs/10-implementation-status.md` | État d'implémentation : ce qui est fait, décisions, écarts, commandes |
 | `features/ROADMAP.md` | Liste ordonnée des features, dépendances, statuts |
 | `features/Fxx-*.md` | Une fiche par feature, exécutable par Claude Code |
 
