@@ -15,6 +15,7 @@ NAMES = [
     "test_windows",
     "rules_protection",
     "team_aliases",
+    "protected_players",
 ]
 
 SEEDS.mkdir(parents=True, exist_ok=True)

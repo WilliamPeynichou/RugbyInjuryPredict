@@ -10,3 +10,9 @@ exit_signal:
   block_change_factor: 0.3
   absent_next_bonus: 0.2
   suspected_threshold: 0.7
+absence_signal:
+  min_matches_injury_candidate: 2
+  suspension_max_matches: 6
+  protected_rest_max_matches: 1
+  exit_link_threshold: 0.5
+  intl_history_days: 365

@@ -1,6 +1,6 @@
 # 10 — Journal d'implémentation (état des lieux)
 
-État au 2026-11-05, features F00 à F12 livrées.
+État au 2026-11-05, features F00 à F13 livrées.
 
 Ce document est la vue d'ensemble pour reprendre le développement :
 1. ce qui est fait ;
@@ -20,7 +20,7 @@ Les sources de vérité détaillées restent :
 | 0 — Socle | F00 bootstrap, F01 registre des sources, F02 données de référence | ✅ fait |
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
 | 2 — Internationaux, coupes, entités | F07 → F11 | ✅ fait |
-| 3 — Labellisation des blessures | F12 ✅ ; F13 → F16 | 🟡 en cours |
+| 3 — Labellisation des blessures | F12, F13 ✅ ; F14 → F16 | 🟡 en cours |
 | 4 — Table d'apprentissage et baselines | F17 → F20 | ⬜ à faire |
 | 5 — Modèle de production | F21, F22 | ⬜ à faire |
 | 6 — Challenger et gravité | F23, F24 | ⬜ à faire |
@@ -33,7 +33,7 @@ couverture 88,05 %).
 Git :
 - une branche `feat/Fxx-*` par feature, avec des commits Conventional Commits ;
 - les branches sont **empilées** : chacune part de la précédente, et
-  `feat/F12-signal-exits` contient tout l'historique ;
+  `feat/F13-signal-absences` contient tout l'historique ;
 - rien n'est encore fusionné dans une branche `main`.
 
 ## 2. Ce qui est fait
@@ -52,7 +52,8 @@ Git :
 | F09 | `81f409f` | Résolution d'entités joueurs : ancre lnr↔allrugby (même match, club, maillot), Splink 5 (DuckDB, m/u fixés, auto ≥ 0,95, revue ≥ 0,6), union-find avec gardes, overrides humains (`er_overrides.csv`), IDs stables. Tables `player_source_xref`, `er_dim_player`, 3 asset checks, CLI `rugby-risk er review/decide`. |
 | F10 | `3d89672` | Marts dbt `dim_team`, `fact_match`, `fact_appearance`, `fact_squad_membership`, `fact_eligibility`, `match_minutes_check`, `dim_season.quality_flag`. Ids stables (md5 de la clé naturelle). Asset `participation_marts` (dbtRunner, sans dagster-dbt) + check `top14_minutes_quality` (`ERROR` < 98 %). Rapport `reports/coverage.md`. |
 | F11 | `2470a0c` | Macro dbt `consecutive_run_id` (seule implémentation des séquences, réutilisée en F17). Modèle `analysis_player_sequences` (séquences par joueur et saison, raison de fin). `analysis/sequences.py` (médiane, P90, max, charge, rotations courtes, k ≥ 10) et figures matplotlib. CLI `rugby-risk report sequences` → `reports/descriptive_sequences.md`. |
-| F12 | (ce commit) | Seuils dans `config/injury_rules.yaml` (Pydantic → vars dbt). Modèle `int_injury_signal__exit` (force ∈ [0,1], bloc × 0,3, absent-au-match-suivant + 0,2 ; info postérieure, cible uniquement). `off_reason_derived` (sources non écrasées). Rapport `reports/exit_calibration.md`. |
+| F12 | (voir `feat/F12-signal-exits`) | Seuils dans `config/injury_rules.yaml` (Pydantic → vars dbt). Modèle `int_injury_signal__exit` (force ∈ [0,1], bloc × 0,3, absent-au-match-suivant + 0,2 ; info postérieure, cible uniquement). `off_reason_derived` (sources non écrasées). Rapport `reports/exit_calibration.md`. |
+| F13 | (ce commit) | `int_absence_runs` (6 règles ordonnées, censure fin de saison), `int_eligibility__with_reason` (enrichissement sans écrasement), `fact_unavailability` (hors injury_candidate), `int_absence_report`. Seuils dans `config/injury_rules.yaml` (section `absence_signal`). Rapport `reports/absence_reasons.md`. |
 | Docs | `0ee73f2` | Première version de ce document. |
 
 ### Autorisations de collecte (état réel)
@@ -105,6 +106,7 @@ Les détails sont dans les Journaux des fiches.
     dossier `source=` écrase la colonne `source`). Minutes inconnues = `NULL` (pas 0) ;
     `played` = `true` pour un titulaire sans minutes, `NULL` pour un remplaçant sans minutes
     (écart documenté dans `docs/04`). Pas de `dagster-dbt` : un asset appelle `dbtRunner`.
+18. **Signaux F12/F13** : seuils dans `config/injury_rules.yaml` (vars dbt) ; les `sources` (fact_appearance, fact_eligibility) ne sont jamais écrasés — les enrichissements (`off_reason_derived`, `absence_reason`) vivent dans des modèles intermédiaires.
 17. **Séquences F11** : coupées en fin de saison ; remplaçant sans minutes = non joué (casse
     la séquence). Dépendance `matplotlib` ajoutée (API `Figure`, sans pyplot).
 
@@ -136,6 +138,7 @@ Les détails sont dans les Journaux des fiches.
 | T5 | `allrugby_staging_matches` et `allrugby_staging_appearances` refont la même analyse des pages. | Double coût CPU (négligeable sur fixtures). | Fusionner en un multi-asset si le volume réel le justifie. |
 | T6 | Les assets internationaux parcourent tout le manifeste pour chaque saison. | Coût linéaire en taille du lac. | Filtrer par date dans le manifeste si le volume réel le justifie. |
 | T7 | La ROADMAP n'avait pas été mise à jour pour F03, F05 et F06. | Corrigé dans F07. | Mettre à jour la ROADMAP dans le commit de chaque feature. |
+| T9 | La fiche F14 est `done` en ROADMAP mais cases/Journal vides (code de collecte presse hérité F03, jamais relu feature par feature). | État réel flou. | Reprendre la fiche F14 (cocher, journal) ou la rouvrir, décision humaine. |
 | T8 | Les branches sont empilées et il n'y a pas de `main`. | Revue difficile. | Créer `main` depuis F00 et fusionner dans l'ordre, ou ouvrir des PR empilées (décision humaine). |
 
 ## 4. Ce qui reste à faire
@@ -146,8 +149,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 
 | ID | Feature | Dépend de | Prérequis humain | Points d'attention |
 |---|---|---|---|---|
-| **F13** | Signal « absence » | F10 | — | Motifs : sélection, suspension, repos protégé, rotation. |
-| F14 | Collecte presse | F03, F04 | Choix des flux autorisés | `news` reste `false` sans décision humaine. |
+| **F14** | Collecte presse | F03, F04 | Choix des flux autorisés | `news` reste `false` sans décision humaine. |
 | F15 | Extraction LLM des blessures | F14, F09 | Clé LLM dans `.env`, budget validé | Sortie Pydantic, modèle choisi par `LLM_MODEL`. |
 | F16 | Fusion, annotation, contrôle qualité | F12, F13, F15 | 300 à 500 épisodes annotés à la main ; avis d'un juriste sur l'art. 9 | Comparer l'incidence obtenue aux priors (PRISP). |
 | F17 | Table `ml_player_match` et test anti-fuite | F16 | — | Features calculées à `as_of_ts` ; `player_key` pseudonymisé. |
@@ -164,7 +166,9 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F13**.
+Prochaine étape immédiate : **F15** (extraction LLM). Écart connu : la fiche F14 est marquée
+`done` dans la ROADMAP (code de collecte presse hérité de F03) mais ses cases et son Journal
+ne sont pas remplis — à reprendre au passage.
 Run réel F09 : audit humain de 100 joueurs (critère F09) ; les parseurs
 internationaux doivent lire les profils (birth_date), sinon forte file de revue.
 

@@ -17,16 +17,16 @@ Absence ≠ blessure. Ce signal sert à (1) borner la durée des épisodes de bl
 
 ## Périmètre
 
-- [ ] Modèle dbt `int_absence_runs` : séquences consécutives de matchs d'équipe sans `on_sheet`, avec début, fin, longueur, match de retour.
-- [ ] Classification par règles ordonnées (première règle vraie gagne) :
+- [x] Modèle dbt `int_absence_runs` : séquences consécutives de matchs d'équipe sans `on_sheet`, avec début, fin, longueur, match de retour.
+- [x] Classification par règles ordonnées (première règle vraie gagne) :
   1. `international_duty` : le joueur figure sur une feuille internationale dans la fenêtre, ou la date est dans une fenêtre de test et le joueur a ≥ 1 sélection sur les 12 derniers mois ;
   2. `suspension` : carton rouge au dernier match joué, absence de 1 à 6 matchs (données disciplinaires détaillées hors périmètre, règle heuristique documentée) ;
   3. `protected_rest` : joueur dans `protected_players.csv` de la saison, absence d'un seul match ;
   4. `injury_candidate` : absence ≥ 2 matchs d'équipe consécutifs hors fenêtre internationale, **ou** précédée d'un signal de sortie F12 ≥ 0,5 ;
   5. `rotation` : absence d'un seul match sans autre indice ;
   6. `unknown`.
-- [ ] Mise à jour de `fact_eligibility.absence_reason` (via un modèle aval, pas d'écriture dans les sources) et alimentation de `fact_unavailability` pour les raisons non-blessure.
-- [ ] Rapport : répartition des motifs par saison et poste.
+- [x] Mise à jour de `fact_eligibility.absence_reason` (via un modèle aval, pas d'écriture dans les sources) et alimentation de `fact_unavailability` pour les raisons non-blessure.
+- [x] Rapport : répartition des motifs par saison et poste.
 
 ## Hors périmètre
 
@@ -52,9 +52,30 @@ Fin de saison : une absence qui court jusqu'à la fin de saison est marquée `ce
 
 ## Critères d'acceptation
 
-- [ ] Les 6 cas synthétiques sont correctement classés.
-- [ ] Aucune absence d'international pendant une fenêtre de test n'est classée `injury_candidate` sans signal de sortie.
-- [ ] `make check` vert.
+- [x] Les 6 cas synthétiques sont correctement classés.
+- [x] Aucune absence d'international pendant une fenêtre de test n'est classée `injury_candidate` sans signal de sortie.
+- [x] `make check` vert.
 
 ## Journal
+
+- 2026-11-05 — Livré sur branche `feat/F13-signal-absences`.
+  - « International » = feuille d'une équipe nationale (`dim_team.is_national`) pendant la
+    fenêtre de la période d'absence, ou fenêtre atteinte et ≥ 1 sélection dans les
+    `intl_history_days` (365) précédents (`absence_signal` dans `config/injury_rules.yaml`).
+  - **Correspondance `protected_players` par nom** (`lower` + retrait espaces/tirets) : le CSV
+    de référence est nominatif, sans identifiant joueur. Limitation acceptée (listes
+    protégées = dizaines de joueurs saison, saisie manuelle) ; à fiabiliser si besoin.
+  - Suspension : carte rouge au **dernier match joué avant l'absence** (correction en cours
+    de test : la jointure initiale visait le dernier match *absent*). Heuristique 1–6 matchs
+    documentée ; scraping de la commission de discipline noté hors périmètre (non jugé
+    prioritaire : les décisions détaillées arrivent souvent après plusieurs matchs et la
+    règle heuristique couvre le cas dominant).
+  - `fact_eligibility.absence_reason` n'est pas écrit : l'enrichissement vit dans
+    `int_eligibility__with_reason` (même convention que F12, sources non écrasées).
+  - `injury_candidate` **n'entre pas** dans `fact_unavailability` (ce n'est pas une
+    indisponibilité confirmée) ; la censure de fin de saison y est portée
+    (`censored_end_of_season`).
+  - Seed `ref_protected_players` : types de colonnes déclarés dans `dbt/seeds/schema.yml`
+    (CSV vide → entier inféré sinon).
+  - Rapport `reports/absence_reasons.md` via `uv run rugby-risk report absences` (k ≥ 10).
 

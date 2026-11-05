@@ -6,6 +6,7 @@ from pathlib import Path
 from rugby_risk.analysis.sequences import write_report as write_sequences_report
 from rugby_risk.entity_resolution.review import decide, read_review_queue
 from rugby_risk.http.store import RawStore
+from rugby_risk.injuries.absence_report import write_report as write_absences_report
 from rugby_risk.injuries.exit_report import write_report
 from rugby_risk.warehouse import connect
 
@@ -26,11 +27,14 @@ def main(argv: Sequence[str] | None = None) -> int:
     report_sub = report.add_subparsers(dest="cmd", required=True)
     report_sub.add_parser("sequences", help="reports/descriptive_sequences.md (F11)")
     report_sub.add_parser("exits", help="reports/exit_calibration.md (F12)")
+    report_sub.add_parser("absences", help="reports/absence_reasons.md (F13)")
     args = parser.parse_args(argv)
     if args.group == "report":
         with closing(connect()) as con:
             if args.cmd == "exits":
                 out, writer = Path("reports/exit_calibration.md"), write_report
+            elif args.cmd == "absences":
+                out, writer = Path("reports/absence_reasons.md"), write_absences_report
             else:
                 out, writer = Path("reports/descriptive_sequences.md"), write_sequences_report
             path = writer(con, out)

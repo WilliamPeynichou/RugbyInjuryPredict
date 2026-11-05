@@ -1,0 +1,6 @@
+version: 2
+models:
+  - name: int_eligibility__with_reason
+    columns:
+      - {name: match_id, data_tests: [not_null]}
+      - {name: player_id, data_tests: [not_null]}

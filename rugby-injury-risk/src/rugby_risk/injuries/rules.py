@@ -22,10 +22,21 @@ class ExitSignalRules(BaseModel):
     suspected_threshold: float = Field(ge=0, le=1)
 
 
+class AbsenceSignalRules(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    min_matches_injury_candidate: int = Field(ge=1)
+    suspension_max_matches: int = Field(ge=1)
+    protected_rest_max_matches: int = Field(ge=1)
+    exit_link_threshold: float = Field(ge=0, le=1)
+    intl_history_days: int = Field(ge=0)
+
+
 class InjuryRules(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     exit_signal: ExitSignalRules
+    absence_signal: AbsenceSignalRules
 
 
 def load_rules(path: Path = Path("config/injury_rules.yaml")) -> InjuryRules:
