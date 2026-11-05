@@ -17,12 +17,12 @@ Les doublons Top 14 / coupe d'Europe et les semaines sans repos viennent souvent
 
 ## Périmètre
 
-- [ ] Extension du parseur allrugby (F05) aux pages Champions Cup / Challenge Cup **ou** utilisation d'ESPN (selon la couverture constatée sur fixtures, décision dans le journal).
-- [ ] Calendrier unifié `staging/fixture_calendar` : `competition_code, season_id, round, kickoff_ts, venue_name, home_team_name, away_team_name, source`, alimenté par toutes les sources ; API-Sports en secours si la clé est fournie.
-- [ ] Normalisation des noms d'équipes via `data/reference/team_aliases.csv` (créé ici : `raw_name, source, team_canonical, is_national`).
-- [ ] Normalisation des stades via `venue_aliases.csv` vers `venues.csv`.
-- [ ] Assets Dagster `europe_staging_*`, `calendar_staging`.
-- [ ] Fixtures : un match de poule Champions Cup, un quart de finale Challenge Cup, une page calendrier.
+- [x] Extension du parseur allrugby (F05) aux pages Champions Cup / Challenge Cup **ou** utilisation d'ESPN (selon la couverture constatée sur fixtures, décision dans le journal).
+- [x] Calendrier unifié `staging/fixture_calendar` : `competition_code, season_id, round, kickoff_ts, venue_name, home_team_name, away_team_name, source`, alimenté par toutes les sources ; API-Sports en secours si la clé est fournie (clé absente : rang de priorité réservé, client non écrit).
+- [x] Normalisation des noms d'équipes via `data/reference/team_aliases.csv` (créé ici : `raw_name, source, team_canonical, is_national`).
+- [x] Normalisation des stades via `venue_aliases.csv` vers `venues.csv`.
+- [x] Assets Dagster `europe_staging_*`, `calendar_staging`.
+- [x] Fixtures : un match de poule Champions Cup, un quart de finale Challenge Cup, une page calendrier.
 
 ## Hors périmètre
 
@@ -49,9 +49,21 @@ Règle de priorité des sources pour `kickoff_ts` : LNR > allrugby > ESPN > API-
 
 ## Critères d'acceptation
 
-- [ ] Tous les noms d'équipes des fixtures sont résolus via les alias.
-- [ ] Calendrier sans doublon de match (clé naturelle `docs/04-data-model.md` §6).
-- [ ] `make check` vert.
+- [x] Tous les noms d'équipes des fixtures sont résolus via les alias.
+- [x] Calendrier sans doublon de match (clé naturelle `docs/04-data-model.md` §6).
+- [x] `make check` vert.
 
 ## Journal
+
+- **Décision coupes d'Europe : ESPN** (pas allrugby). Le parseur `summary` existe (F07) et couvre les deux coupes avec compositions ; le parseur allrugby est verrouillé sur le Top 14. `parsers/espn/europe.py::parse_europe` = `parse_summary` + filtre : compétition `CHAMPIONS_CUP`/`CHALLENGE_CUP` et au moins un club français (depuis 2014, les clubs français engagés viennent du Top 14). Hors filtre → ignoré (pas de quarantaine) ; JSON invalide → quarantaine.
+- Ids ligues ESPN `271937` (Champions Cup) et `272073` (Challenge Cup) non vérifiés : `espn` reste `authorized: false`. Alias `competition_aliases.csv` : `Champions Cup`, `Challenge Cup`, `Top 14`.
+- Phase (`round`) : `competitions[0].notes[0].headline` (phases finales) sinon `week.number` → `R<n>`. Champs repris de payloads publics, non vérifiés (shortcut commenté).
+- `intl_staging_espn` ne garde plus que les compétitions de niveau `international` ; les coupes vont dans `europe_staging_espn`, écrit sous `staging/match/source=espn_europe/` (colonne `source` = `espn`) pour ne pas écraser le `part.parquet` des internationaux.
+- Page calendrier = `scoreboard` ESPN (`parsers/espn/scoreboard.py`) : tous les matchs d'une ligue, joués ou non, scores `NULL`.
+- `team_aliases.csv` : colonne `country` ajoutée (nécessaire au filtre « club du Top 14 »). Recherche `(source, raw_name)` puis `(*, raw_name)`. Chaque équipe canonique a son alias `*` ; identité (pays, sélection) unique par équipe, contrôlée au chargement. Noms ESPN des clubs (`Toulouse`, `Clermont Auvergne`…) : supposés, à confirmer au premier appel.
+- `venue_aliases.csv` : `raw_name, venue_id` (id plutôt que nom : `venues.csv` a deux « Stade Yves-du-Manoir »). Stade 25 `Matmut Atlantique` ajouté (finales à Bordeaux). Nom inconnu → `venue_id` NULL.
+- `calendar_staging` : lit `staging/match/source=*/season=<s>` + les pages `scoreboard` du lac, normalise équipes et stades, une ligne par clé naturelle (`competition_code, season_id, home, away, date(kickoff_ts)` UTC). Priorité `kickoff_ts` : LNR > allrugby > World Rugby > ESPN > API-Sports (World Rugby inséré : source officielle des tests). **Une heure imputée (allrugby 15:00) perd toujours contre une heure observée.** Autres colonnes : première valeur non nulle dans l'ordre de priorité. Conflits (> 2 h entre heures observées) → `data/staging/_reports/calendar_conflicts/season=*.parquet`. Équipes sans alias : warning + métadonnée `unresolved_teams`.
+- API-Sports non écrit : aucune clé fournie (souci S9). Le rang `apisports` est réservé dans la priorité.
+
+- `make check` vert : 144 tests, couverture 92,23 %. Aucun appel réel aux API.
 

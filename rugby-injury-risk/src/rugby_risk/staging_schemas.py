@@ -45,8 +45,24 @@ class StagingPlayerProfile(pa.DataFrameModel):
     positions_raw: pl.String = pa.Field(nullable=True)
 
 
+class StagingFixture(pa.DataFrameModel):
+    """Unified calendar: one row per match (natural key docs/04 §6), canonical team names."""
+
+    competition_code: pl.String
+    season_id: pl.String
+    round: pl.String = pa.Field(nullable=True)
+    kickoff_ts: pl.Datetime(time_zone="UTC")  # type: ignore[valid-type]
+    kickoff_time_imputed: pl.Boolean
+    venue_name: pl.String = pa.Field(nullable=True)
+    venue_id: pl.Int64 = pa.Field(nullable=True)
+    home_team_name: pl.String
+    away_team_name: pl.String
+    source: pl.String
+
+
 SCHEMAS = {
     "match": StagingMatch,
     "appearance": StagingAppearance,
     "player_profile": StagingPlayerProfile,
+    "fixture_calendar": StagingFixture,
 }

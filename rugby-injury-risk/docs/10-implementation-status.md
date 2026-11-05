@@ -1,6 +1,6 @@
 # 10 — Journal d'implémentation (état des lieux)
 
-État au 2026-11-03, features F00 à F07 livrées.
+État au 2026-11-03, features F00 à F08 livrées.
 
 Ce document est la vue d'ensemble pour reprendre le développement :
 1. ce qui est fait ;
@@ -19,7 +19,7 @@ Les sources de vérité détaillées restent :
 |---|---|---|
 | 0 — Socle | F00 bootstrap, F01 registre des sources, F02 données de référence | ✅ fait |
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
-| 2 — Internationaux, coupes, entités | F07 ✅ ; F08, F09, F10, F11 | 🟡 en cours |
+| 2 — Internationaux, coupes, entités | F07, F08 ✅ ; F09, F10, F11 | 🟡 en cours |
 | 3 — Labellisation des blessures | F12 → F16 | ⬜ à faire |
 | 4 — Table d'apprentissage et baselines | F17 → F20 | ⬜ à faire |
 | 5 — Modèle de production | F21, F22 | ⬜ à faire |
@@ -27,13 +27,13 @@ Les sources de vérité détaillées restent :
 | 7 — Produit | F25 → F27 | ⬜ à faire |
 | 8 — Exploitation | F28, F29 | ⬜ à faire |
 
-Le dernier `make check` local est vert : ruff, format, mypy strict et pytest (131 tests,
-couverture 91,84 %).
+Le dernier `make check` local est vert : ruff, format, mypy strict et pytest (144 tests,
+couverture 92,23 %).
 
 Git :
 - une branche `feat/Fxx-*` par feature, avec des commits Conventional Commits ;
 - les branches sont **empilées** : chacune part de la précédente, et
-  `feat/F07-ingest-internationals` contient tout l'historique ;
+  `feat/F08-ingest-europe-calendar` contient tout l'historique ;
 - rien n'est encore fusionné dans une branche `main`.
 
 ## 2. Ce qui est fait
@@ -48,6 +48,7 @@ Git :
 | F05 | `bf1544d` | allrugby : URLs, découverte des pages en ligne, parseurs match (minutes, cartons, mise en quarantaine) et joueur. Coup d'envoi Europe/Paris, heure imputée à 15:00. Assets Dagster partitionnés par saison, recalculés hors ligne depuis le lac brut. |
 | F06 | `830d4ad` | LNR activée par décision humaine. Parseur de compositions (identifiants LNR, postes normalisés via `position_aliases.csv`, minutes `NULL`). Partitions saison × journée. Rapport `lnr_vs_allrugby` → `data/staging/_reports/lineup_diff/`. |
 | F07 | `1c476eb` | World Rugby : minutes reconstruites (`Sub On/Off`, `IR`/`HIAO` en bascule, rouge = sortie définitive). ESPN : compositions, minutes `NULL`. Correspondance des compétitions via `competition_aliases.csv`, avec repli selon le mois. Féminin, rugby à 7 et jeunes exclus. Assets `intl_staging_worldrugby` et `intl_staging_espn`, rapport `intl_minutes_check`. |
+| F08 | `F08_SHA` | Coupes d'Europe via ESPN (`parse_europe` : Champions/Challenge Cup avec au moins un club français) → `staging/match/source=espn_europe`. Page calendrier = `scoreboard` ESPN. `team_aliases.csv` (+ `country`) et `venue_aliases.csv` (→ `venue_id`). Calendrier unifié `staging/fixture_calendar` (une ligne par clé naturelle, priorité LNR > allrugby > World Rugby > ESPN > API-Sports, heure imputée toujours battue), rapport `_reports/calendar_conflicts` (> 2 h). |
 | Docs | `0ee73f2` | Première version de ce document. |
 
 ### Autorisations de collecte (état réel)
@@ -88,6 +89,11 @@ Les détails sont dans les Journaux des fiches.
 12. **La saison d'un match international est déduite de sa date**, à partir de
     `config/seasons.yaml`. Le lac n'étant pas partitionné, chaque asset filtre sur sa
     partition.
+13. **Coupes d'Europe via ESPN**, pas allrugby (F08) : parseur existant, compositions
+    incluses. `intl_staging_espn` ne garde que le niveau `international` ; les coupes vont
+    sous `source=espn_europe` (colonne `source` = `espn`) pour ne pas s'écraser.
+14. **Calendrier** : une heure imputée perd toujours contre une heure observée, quelle que
+    soit la source. Les autres colonnes prennent la première valeur non nulle par priorité.
 
 ## 3. Soucis recensés (ouverts)
 
@@ -97,13 +103,13 @@ Les détails sont dans les Journaux des fiches.
 |---|---|---|---|
 | S1 | Le balisage HTML d'allrugby et de la LNR n'a jamais été confronté aux vraies pages. Les fixtures sont écrites à la main et les URL de saison et de match allrugby sont des hypothèses. | Les parseurs peuvent échouer au premier crawl. | Premier crawl limité à une partition. Comparer avec `tests/fixtures/*/README.md`, ajuster les parseurs et incrémenter `PARSER_VERSION`. |
 | S2 | Les formes JSON de World Rugby et d'ESPN viennent de dépôts tiers (`bpcsaund/rugby-analytics`, `transientlunatic/Rugby-Data`), pas des API elles-mêmes. | Même risque que S1. | À vérifier au premier appel autorisé. |
-| S3 | Les identifiants de ligues ESPN hors Top 14 (`180659`, `164205`, `289234`) ne sont pas vérifiés. | Mauvaise collecte possible. | À vérifier au premier appel autorisé. |
+| S3 | Les identifiants de ligues ESPN hors Top 14 (`180659`, `164205`, `289234`, coupes `271937`, `272073`), les champs de phase (`notes`, `week`) et les noms ESPN des clubs dans `team_aliases.csv` ne sont pas vérifiés. | Mauvaise collecte possible. | À vérifier au premier appel autorisé. |
 | S4 | La LNR ne donne pas les minutes. ESPN ne donne ni minutes ni cartons. | Les minutes viennent seulement d'allrugby (club) et de World Rugby (internationaux). | F09/F10 : priorité des sources par champ. |
 | S5 | Le Rugby Championship n'a pas de code dans `competitions.csv`. | Il est classé selon le mois (`SUMMER_TESTS`, `AUTUMN_TESTS`, `OTHER_TEST`). | Ajouter un code seulement si `docs/04` évolue (décision humaine). |
 | S6 | Fenêtres de tests non sourcées : été 2016, 2019 et 2023, automne 2015, 2016, 2021 et 2022. L'été 2020 n'a pas de fenêtre (COVID, accepté). | `in_test_window` est incomplet sur ces périodes. | Compléter quand la recherche documentaire sera possible ; Wikipédia a renvoyé des 429. |
 | S7 | Les 24 stades ont latitude et longitude à `NULL`, et les délocalisations ne sont pas exhaustives. | Pas de feature de déplacement ou de distance. | À compléter avant F17 si `docs/05` l'exige. |
 | S8 | Les dates de transition des conventions FFR/LNR (2014, 2017, 2018) sont fixées au 1er juillet par convention. | Approximation du régime de protection. | À confirmer avant l'usage analytique (F11, F13). |
-| S9 | Les quotas et la couverture du plan gratuit d'API-Sports ne sont pas vérifiés. | Bloquant pour le run réel de F08. | Lire api-sports.io, puis décision humaine et clé `.env`. |
+| S9 | Les quotas et la couverture du plan gratuit d'API-Sports ne sont pas vérifiés. Client API-Sports non écrit (F08, pas de clé) ; rang de priorité réservé. | Calendrier sans secours API-Sports. | Lire api-sports.io, puis décision humaine et clé `.env` ; écrire `sources/apisports/` alors. |
 | S10 | L'activation de la LNR repose sur l'exception de fouille de textes et de données, sans réponse de la LNR (contact@lnr.fr). | Risque juridique si la LNR fait opposition. | Respecter un opt-out ; en cas de blocage, appliquer la consigne humaine. |
 
 ### Technique et outillage
@@ -127,8 +133,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 
 | ID | Feature | Dépend de | Prérequis humain | Points d'attention |
 |---|---|---|---|---|
-| **F08** | Coupes d'Europe et calendrier | F03, F04 | Clé API-Sports et `apisports: authorized` | Champions Cup et Challenge Cup pour les clubs du Top 14 ; calendrier fiable (coups d'envoi, stades). Réutiliser `sources/espn/fetch.py`. |
-| F09 | Résolution d'entités joueurs | F05, F06, F07 | Revue de `er_overrides.csv` | Splink (backend DuckDB), ancre LNR, < 1 % de doublons. Produit `dim_player` et `player_source_xref`. |
+| **F09** | Résolution d'entités joueurs | F05, F06, F07 | Revue de `er_overrides.csv` | Splink (backend DuckDB), ancre LNR, < 1 % de doublons. Produit `dim_player` et `player_source_xref`. |
 | F10 | Marts de participation et éligibilité | F08, F09 | — | `fact_eligibility` (joueur × match de son équipe, joué ou non). |
 | F11 | Analyse descriptive des séquences | F10 | — | Publiable sans aucune donnée de blessure. |
 | F12 | Signal « sortie précoce » | F10 | — | Score de suspicion à partir des minutes. |
@@ -150,8 +155,8 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F08**, développée sur fixtures si la clé API-Sports n'est pas
-fournie. Avant F09, traiter T2 et T3 (`make dagster`, `.gitignore`).
+Prochaine étape immédiate : **F09**. Avant, traiter T2 et T3 (`make dagster`, `.gitignore`).
+Run réel F08 : `espn: authorized` (décision humaine), puis vérifier S3.
 
 ## 5. Règles à appliquer (toutes features)
 

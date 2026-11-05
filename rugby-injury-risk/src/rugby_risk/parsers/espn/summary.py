@@ -29,6 +29,16 @@ def _score(competitor: dict[str, Any]) -> int | None:
     return int(value) if value.isdigit() else None
 
 
+def phase(event: dict[str, Any]) -> str | None:
+    """Phase from `competitions[0].notes` (knockouts) or `week.number` (pool/league round)."""
+    # shortcut: champs `notes`/`week` repris de payloads publics, à vérifier au 1er appel autorisé.
+    notes = (event.get("competitions") or [{}])[0].get("notes") or []
+    if notes and notes[0].get("headline"):
+        return str(notes[0]["headline"])
+    week = (event.get("week") or {}).get("number")
+    return f"R{week}" if week else None
+
+
 def parse_summary(payload: str) -> tuple[dict[str, object], list[dict[str, object]]]:
     data = json.loads(payload)
     header = data.get("header") or {}
@@ -77,7 +87,7 @@ def parse_summary(payload: str) -> tuple[dict[str, object], list[dict[str, objec
             str((header.get("league") or {}).get("name") or ""), kickoff_ts.date()
         ),
         "season_id": season_id,
-        "round": None,
+        "round": phase(header),
         "kickoff_ts": kickoff_ts,
         "kickoff_time_imputed": False,
         "venue_name": ((data.get("gameInfo") or {}).get("venue") or {}).get("fullName"),

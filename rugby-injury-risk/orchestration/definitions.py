@@ -6,6 +6,8 @@ from orchestration.assets.allrugby import (
     allrugby_staging_matches,
     allrugby_staging_profiles,
 )
+from orchestration.assets.calendar import calendar_staging
+from orchestration.assets.europe import europe_staging_espn
 from orchestration.assets.internationals import (
     intl_minutes_check,
     intl_staging_espn,
@@ -24,5 +26,7 @@ defs = Definitions(
         intl_staging_worldrugby,
         intl_staging_espn,
         intl_minutes_check,
+        europe_staging_espn,
+        calendar_staging,
     ]
 )

@@ -1,0 +1,430 @@
+{
+ "header": {
+  "id": "910002",
+  "league": {
+   "name": "EPCR Challenge Cup"
+  },
+  "notes": [
+   {
+    "headline": "Quarter-final"
+   }
+  ],
+  "competitions": [
+   {
+    "notes": [
+     {
+      "headline": "Quarter-final"
+     }
+    ],
+    "date": "2024-04-12T19:00Z",
+    "competitors": [
+     {
+      "homeAway": "home",
+      "team": {
+       "displayName": "Clermont Auvergne"
+      },
+      "score": "27"
+     },
+     {
+      "homeAway": "away",
+      "team": {
+       "displayName": "Benetton"
+      },
+      "score": "13"
+     }
+    ]
+   }
+  ]
+ },
+ "gameInfo": {
+  "venue": {
+   "fullName": "Stade Fictif"
+  }
+ },
+ "rosters": [
+  {
+   "homeAway": "home",
+   "team": {
+    "displayName": "Clermont Auvergne"
+   },
+   "roster": [
+    {
+     "jersey": "1",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-1",
+      "displayName": "Joueur Clermont Auvergne 1"
+     }
+    },
+    {
+     "jersey": "2",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-2",
+      "displayName": "Joueur Clermont Auvergne 2"
+     }
+    },
+    {
+     "jersey": "3",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-3",
+      "displayName": "Joueur Clermont Auvergne 3"
+     }
+    },
+    {
+     "jersey": "4",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-4",
+      "displayName": "Joueur Clermont Auvergne 4"
+     }
+    },
+    {
+     "jersey": "5",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-5",
+      "displayName": "Joueur Clermont Auvergne 5"
+     }
+    },
+    {
+     "jersey": "6",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-6",
+      "displayName": "Joueur Clermont Auvergne 6"
+     }
+    },
+    {
+     "jersey": "7",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-7",
+      "displayName": "Joueur Clermont Auvergne 7"
+     }
+    },
+    {
+     "jersey": "8",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-8",
+      "displayName": "Joueur Clermont Auvergne 8"
+     }
+    },
+    {
+     "jersey": "9",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-9",
+      "displayName": "Joueur Clermont Auvergne 9"
+     }
+    },
+    {
+     "jersey": "10",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-10",
+      "displayName": "Joueur Clermont Auvergne 10"
+     }
+    },
+    {
+     "jersey": "11",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-11",
+      "displayName": "Joueur Clermont Auvergne 11"
+     }
+    },
+    {
+     "jersey": "12",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-12",
+      "displayName": "Joueur Clermont Auvergne 12"
+     }
+    },
+    {
+     "jersey": "13",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-13",
+      "displayName": "Joueur Clermont Auvergne 13"
+     }
+    },
+    {
+     "jersey": "14",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-14",
+      "displayName": "Joueur Clermont Auvergne 14"
+     }
+    },
+    {
+     "jersey": "15",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-15",
+      "displayName": "Joueur Clermont Auvergne 15"
+     }
+    },
+    {
+     "jersey": "16",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-16",
+      "displayName": "Joueur Clermont Auvergne 16"
+     }
+    },
+    {
+     "jersey": "17",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-17",
+      "displayName": "Joueur Clermont Auvergne 17"
+     }
+    },
+    {
+     "jersey": "18",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-18",
+      "displayName": "Joueur Clermont Auvergne 18"
+     }
+    },
+    {
+     "jersey": "19",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-19",
+      "displayName": "Joueur Clermont Auvergne 19"
+     }
+    },
+    {
+     "jersey": "20",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-20",
+      "displayName": "Joueur Clermont Auvergne 20"
+     }
+    },
+    {
+     "jersey": "21",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-21",
+      "displayName": "Joueur Clermont Auvergne 21"
+     }
+    },
+    {
+     "jersey": "22",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-22",
+      "displayName": "Joueur Clermont Auvergne 22"
+     }
+    },
+    {
+     "jersey": "23",
+     "starter": false,
+     "athlete": {
+      "id": "e-cle-23",
+      "displayName": "Joueur Clermont Auvergne 23"
+     }
+    }
+   ]
+  },
+  {
+   "homeAway": "away",
+   "team": {
+    "displayName": "Benetton"
+   },
+   "roster": [
+    {
+     "jersey": "1",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-1",
+      "displayName": "Joueur Benetton 1"
+     }
+    },
+    {
+     "jersey": "2",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-2",
+      "displayName": "Joueur Benetton 2"
+     }
+    },
+    {
+     "jersey": "3",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-3",
+      "displayName": "Joueur Benetton 3"
+     }
+    },
+    {
+     "jersey": "4",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-4",
+      "displayName": "Joueur Benetton 4"
+     }
+    },
+    {
+     "jersey": "5",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-5",
+      "displayName": "Joueur Benetton 5"
+     }
+    },
+    {
+     "jersey": "6",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-6",
+      "displayName": "Joueur Benetton 6"
+     }
+    },
+    {
+     "jersey": "7",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-7",
+      "displayName": "Joueur Benetton 7"
+     }
+    },
+    {
+     "jersey": "8",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-8",
+      "displayName": "Joueur Benetton 8"
+     }
+    },
+    {
+     "jersey": "9",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-9",
+      "displayName": "Joueur Benetton 9"
+     }
+    },
+    {
+     "jersey": "10",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-10",
+      "displayName": "Joueur Benetton 10"
+     }
+    },
+    {
+     "jersey": "11",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-11",
+      "displayName": "Joueur Benetton 11"
+     }
+    },
+    {
+     "jersey": "12",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-12",
+      "displayName": "Joueur Benetton 12"
+     }
+    },
+    {
+     "jersey": "13",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-13",
+      "displayName": "Joueur Benetton 13"
+     }
+    },
+    {
+     "jersey": "14",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-14",
+      "displayName": "Joueur Benetton 14"
+     }
+    },
+    {
+     "jersey": "15",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-15",
+      "displayName": "Joueur Benetton 15"
+     }
+    },
+    {
+     "jersey": "16",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-16",
+      "displayName": "Joueur Benetton 16"
+     }
+    },
+    {
+     "jersey": "17",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-17",
+      "displayName": "Joueur Benetton 17"
+     }
+    },
+    {
+     "jersey": "18",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-18",
+      "displayName": "Joueur Benetton 18"
+     }
+    },
+    {
+     "jersey": "19",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-19",
+      "displayName": "Joueur Benetton 19"
+     }
+    },
+    {
+     "jersey": "20",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-20",
+      "displayName": "Joueur Benetton 20"
+     }
+    },
+    {
+     "jersey": "21",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-21",
+      "displayName": "Joueur Benetton 21"
+     }
+    },
+    {
+     "jersey": "22",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-22",
+      "displayName": "Joueur Benetton 22"
+     }
+    },
+    {
+     "jersey": "23",
+     "starter": false,
+     "athlete": {
+      "id": "e-ben-23",
+      "displayName": "Joueur Benetton 23"
+     }
+    }
+   ]
+  }
+ ]
+}

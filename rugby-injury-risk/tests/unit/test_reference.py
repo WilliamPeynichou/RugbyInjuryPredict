@@ -22,6 +22,8 @@ pytestmark = pytest.mark.unit
         "protected_players",
         "opt_out",
         "er_overrides",
+        "team_aliases",
+        "venue_aliases",
     ],
 )
 def test_csv_schema(name):

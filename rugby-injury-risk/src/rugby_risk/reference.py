@@ -81,8 +81,32 @@ def _schema(name: str) -> pa.DataFrameSchema:
         "protected_players": {"season_id": text(), "player_name": text(), "source_url": text()},
         "opt_out": {"player_id": pa.Column(pl.Int64, unique=True)},
         "er_overrides": {"source": text(), "source_player_id": text(), "player_id": text()},
+        "team_aliases": {
+            "raw_name": text(),
+            "source": text(),
+            "team_canonical": text(),
+            "is_national": pa.Column(pl.Boolean),
+            "country": text(),
+        },
+        "venue_aliases": {
+            "raw_name": pa.Column(pl.String, unique=True),
+            "venue_id": pa.Column(pl.Int64),
+        },
     }
     return pa.DataFrameSchema(schemas[name], strict=True, coerce=True)
+
+
+def _check_aliases(name: str, frame: pl.DataFrame) -> None:
+    if name == "team_aliases":
+        if frame.select("raw_name", "source").is_duplicated().any():
+            raise ValueError("Duplicate team alias")
+        if (
+            frame.select("team_canonical", "is_national", "country").unique().height
+            != frame["team_canonical"].n_unique()
+        ):
+            raise ValueError("Inconsistent team identity")
+    if name == "venue_aliases" and not set(frame["venue_id"]).issubset(venues()["venue_id"]):
+        raise ValueError("Unknown venue in aliases")
 
 
 @lru_cache
@@ -92,6 +116,10 @@ def _load(name: str) -> pl.DataFrame:
     if name in {"test_windows", "rules_protection"}:
         frame = frame.with_columns(
             pl.col("start_date", "end_date").str.to_date("%Y-%m-%d", strict=True)
+        )
+    if name == "team_aliases":
+        frame = frame.with_columns(
+            pl.col("is_national").replace_strict({"true": True, "false": False})
         )
     frame = schema.validate(frame)
     if name in {"test_windows", "rules_protection"} and not _intervals(
@@ -120,6 +148,7 @@ def _load(name: str) -> pl.DataFrame:
             raise ValueError("Unknown venue in surfaces")
         if not set(frame["season_id"]).issubset(s.season_id for s in load_seasons()):
             raise ValueError("Unknown season in surfaces")
+    _check_aliases(name, frame)
     return frame
 
 
@@ -157,6 +186,50 @@ def opt_out() -> pl.DataFrame:
 
 def er_overrides() -> pl.DataFrame:
     return _load("er_overrides").clone()
+
+
+def team_aliases() -> pl.DataFrame:
+    return _load("team_aliases").clone()
+
+
+def venue_aliases() -> pl.DataFrame:
+    return _load("venue_aliases").clone()
+
+
+@lru_cache
+def _team_index() -> dict[tuple[str, str], str]:
+    frame = _load("team_aliases")
+    return dict(
+        zip(
+            zip(frame["source"], frame["raw_name"], strict=True),
+            frame["team_canonical"],
+            strict=True,
+        )
+    )
+
+
+def team_canonical(raw: str, source: str) -> str | None:
+    """Source-specific alias first, then the `*` (any source) alias; None if unknown."""
+    index = _team_index()
+    return index.get((source, raw)) or index.get(("*", raw))
+
+
+def is_french_club(canonical: str | None) -> bool:
+    if canonical is None:
+        return False
+    rows = _load("team_aliases").filter(pl.col("team_canonical") == canonical)
+    return (
+        not rows.is_empty()
+        and rows.item(0, "country") == "France"
+        and not rows.item(0, "is_national")
+    )
+
+
+def venue_id(raw: str | None) -> int | None:
+    if raw is None:
+        return None
+    rows = _load("venue_aliases").filter(pl.col("raw_name") == raw)
+    return None if rows.is_empty() else int(rows.item(0, "venue_id"))
 
 
 def position_group(code: str) -> str:

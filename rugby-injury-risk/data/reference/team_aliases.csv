@@ -1,0 +1,46 @@
+raw_name,source,team_canonical,is_national,country
+Stade Toulousain,*,Stade Toulousain,false,France
+Toulouse,espn,Stade Toulousain,false,France
+Stade Rochelais,*,Stade Rochelais,false,France
+La Rochelle,espn,Stade Rochelais,false,France
+ASM Clermont,*,ASM Clermont Auvergne,false,France
+ASM Clermont Auvergne,*,ASM Clermont Auvergne,false,France
+Clermont Auvergne,espn,ASM Clermont Auvergne,false,France
+Union Bordeaux Bègles,*,Union Bordeaux Bègles,false,France
+Bordeaux Begles,espn,Union Bordeaux Bègles,false,France
+RC Toulon,*,RC Toulon,false,France
+Toulon,espn,RC Toulon,false,France
+Racing 92,*,Racing 92,false,France
+Stade Français Paris,*,Stade Français Paris,false,France
+Stade Francais Paris,espn,Stade Français Paris,false,France
+Castres Olympique,*,Castres Olympique,false,France
+Montpellier Hérault Rugby,*,Montpellier Hérault Rugby,false,France
+Montpellier,espn,Montpellier Hérault Rugby,false,France
+Section Paloise,*,Section Paloise,false,France
+Pau,espn,Section Paloise,false,France
+Aviron Bayonnais,*,Aviron Bayonnais,false,France
+Bayonne,espn,Aviron Bayonnais,false,France
+LOU Rugby,*,LOU Rugby,false,France
+Lyon,espn,LOU Rugby,false,France
+USA Perpignan,*,USA Perpignan,false,France
+Perpignan,espn,USA Perpignan,false,France
+CA Brive,*,CA Brive,false,France
+Brive,espn,CA Brive,false,France
+US Oyonnax,*,US Oyonnax,false,France
+Oyonnax,espn,US Oyonnax,false,France
+FC Grenoble,*,FC Grenoble,false,France
+Grenoble,espn,FC Grenoble,false,France
+SU Agen,*,SU Agen,false,France
+Agen,espn,SU Agen,false,France
+Biarritz Olympique,*,Biarritz Olympique,false,France
+Biarritz,espn,Biarritz Olympique,false,France
+RC Vannes,*,RC Vannes,false,France
+Vannes,espn,RC Vannes,false,France
+US Montauban,*,US Montauban,false,France
+Montauban,espn,US Montauban,false,France
+Leinster,*,Leinster,false,Ireland
+Harlequins,*,Harlequins,false,England
+Benetton,*,Benetton,false,Italy
+France,*,France,true,France
+Ireland,*,Ireland,true,Ireland
+New Zealand,*,New Zealand,true,New Zealand

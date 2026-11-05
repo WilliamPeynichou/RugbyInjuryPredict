@@ -76,14 +76,22 @@ def espn_roster(side: str, team: str, size: int) -> dict:
 
 
 def espn_summary(
-    event_id: str, league: str, kickoff: str, home: str, away: str, rosters: list[dict]
+    event_id: str,
+    league: str,
+    kickoff: str,
+    home: str,
+    away: str,
+    rosters: list[dict],
+    extra: dict | None = None,
 ) -> dict:
     return {
         "header": {
             "id": event_id,
             "league": {"name": league},
+            **(extra or {}),
             "competitions": [
                 {
+                    **({"notes": extra["notes"]} if extra and "notes" in extra else {}),
                     "date": kickoff,
                     "competitors": [
                         {"homeAway": "home", "team": {"displayName": home}, "score": "27"},
@@ -187,6 +195,95 @@ def main() -> None:
     dump(
         ESPN / "incomplete_summary.json",
         espn_summary("900002", "Rugby World Cup", "2023-09-09T19:15Z", irl, fra, []),
+    )
+
+    europe()
+
+
+def board_event(event_id: str, date: str, home: str, away: str, venue: str, week: int) -> dict:
+    return {
+        "id": event_id,
+        "date": date,
+        "week": {"number": week},
+        "status": {"type": {"completed": False}},
+        "competitions": [
+            {
+                "venue": {"fullName": venue},
+                "competitors": [
+                    {"homeAway": "home", "team": {"displayName": home}},
+                    {"homeAway": "away", "team": {"displayName": away}},
+                ],
+            }
+        ],
+    }
+
+
+def europe() -> None:
+    """F08 : poule Champions Cup, quart Challenge Cup, match sans club français, calendrier."""
+
+    def rosters(home: str, away: str) -> list[dict]:
+        return [espn_roster("home", home, 23), espn_roster("away", away, 23)]
+
+    dump(
+        ESPN / "champions_cup_pool.json",
+        espn_summary(
+            "910001",
+            "Investec Champions Cup",
+            "2024-01-13T17:30Z",
+            "Toulouse",
+            "Harlequins",
+            rosters("Toulouse", "Harlequins"),
+            {"week": {"number": 2}},
+        ),
+    )
+    dump(
+        ESPN / "challenge_cup_qf.json",
+        espn_summary(
+            "910002",
+            "EPCR Challenge Cup",
+            "2024-04-12T19:00Z",
+            "Clermont Auvergne",
+            "Benetton",
+            rosters("Clermont Auvergne", "Benetton"),
+            {"notes": [{"headline": "Quarter-final"}]},
+        ),
+    )
+    dump(
+        ESPN / "champions_cup_no_french.json",
+        espn_summary(
+            "910003",
+            "Investec Champions Cup",
+            "2024-01-14T15:00Z",
+            "Leinster",
+            "Harlequins",
+            rosters("Leinster", "Harlequins"),
+            {"week": {"number": 2}},
+        ),
+    )
+    # Page calendrier : le match de poule (même heure) + un match à venir.
+    dump(
+        ESPN / "scoreboard_champions_cup.json",
+        {
+            "leagues": [{"name": "Investec Champions Cup"}],
+            "events": [
+                board_event(
+                    "910001",
+                    "2024-01-13T17:30Z",
+                    "Toulouse",
+                    "Harlequins",
+                    "Stade Ernest Wallon",
+                    2,
+                ),
+                board_event(
+                    "910004",
+                    "2024-04-06T14:00Z",
+                    "La Rochelle",
+                    "Leinster",
+                    "Stade Marcel Deflandre",
+                    5,
+                ),
+            ],
+        },
     )
 
 

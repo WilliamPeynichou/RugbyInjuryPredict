@@ -26,7 +26,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
 | F07 | [Ingestion des matchs internationaux](F07-ingest-internationals.md) | F03, F04 | M | done |
-| F08 | [Ingestion coupes d'Europe et calendrier](F08-ingest-europe-calendar.md) | F03, F04 | M | todo |
+| F08 | [Ingestion coupes d'Europe et calendrier](F08-ingest-europe-calendar.md) | F03, F04 | M | done |
 | F09 | [Résolution d'entités joueurs](F09-entity-resolution.md) | F05, F06, F07 | L | todo |
 | F10 | [Marts de participation et éligibilité](F10-participation-marts.md) | F08, F09 | L | todo |
 | F11 | [Analyse descriptive des séquences par poste](F11-descriptive-sequences.md) | F10 | M | todo |
@@ -37,7 +37,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 |---|---|---|---|---|
 | F12 | [Signal « sortie précoce »](F12-signal-exits.md) | F10 | M | todo |
 | F13 | [Signal « absence » et motifs non-blessure](F13-signal-absences.md) | F10 | M | todo |
-| F14 | [Collecte presse et points médicaux](F14-ingest-news.md) | F03, F04 | M | todo |
+| F14 | [Collecte presse et points médicaux](F14-ingest-news.md) | F03, F04 | M | done |
 | F15 | [Extraction LLM des blessures](F15-llm-injury-extraction.md) | F14, F09 | L | todo |
 | F16 | [Fusion des signaux, annotation et contrôle qualité](F16-injury-fusion-annotation.md) | F12, F13, F15 | L | todo |
 
