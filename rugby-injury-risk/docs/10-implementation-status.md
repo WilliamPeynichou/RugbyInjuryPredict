@@ -1,6 +1,6 @@
 # 10 — Journal d'implémentation (état des lieux)
 
-État au 2026-11-05, features F00 à F11 livrées.
+État au 2026-11-05, features F00 à F12 livrées.
 
 Ce document est la vue d'ensemble pour reprendre le développement :
 1. ce qui est fait ;
@@ -20,20 +20,20 @@ Les sources de vérité détaillées restent :
 | 0 — Socle | F00 bootstrap, F01 registre des sources, F02 données de référence | ✅ fait |
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
 | 2 — Internationaux, coupes, entités | F07 → F11 | ✅ fait |
-| 3 — Labellisation des blessures | F12 → F16 | ⬜ à faire |
+| 3 — Labellisation des blessures | F12 ✅ ; F13 → F16 | 🟡 en cours |
 | 4 — Table d'apprentissage et baselines | F17 → F20 | ⬜ à faire |
 | 5 — Modèle de production | F21, F22 | ⬜ à faire |
 | 6 — Challenger et gravité | F23, F24 | ⬜ à faire |
 | 7 — Produit | F25 → F27 | ⬜ à faire |
 | 8 — Exploitation | F28, F29 | ⬜ à faire |
 
-Le dernier `make check` local est vert : ruff, format, mypy strict et pytest 186 tests,
-couverture 88,96 %).
+Le dernier `make check` local est vert : ruff, format, mypy strict et pytest 188 tests,
+couverture 88,05 %).
 
 Git :
 - une branche `feat/Fxx-*` par feature, avec des commits Conventional Commits ;
 - les branches sont **empilées** : chacune part de la précédente, et
-  `feat/F11-descriptive-sequences` contient tout l'historique ;
+  `feat/F12-signal-exits` contient tout l'historique ;
 - rien n'est encore fusionné dans une branche `main`.
 
 ## 2. Ce qui est fait
@@ -51,7 +51,8 @@ Git :
 | F08 | `4671523` | Coupes d'Europe via ESPN (`parse_europe` : Champions/Challenge Cup avec au moins un club français) → `staging/match/source=espn_europe`. Page calendrier = `scoreboard` ESPN. `team_aliases.csv` (+ `country`) et `venue_aliases.csv` (→ `venue_id`). Calendrier unifié `staging/fixture_calendar` (une ligne par clé naturelle, priorité LNR > allrugby > World Rugby > ESPN > API-Sports, heure imputée toujours battue), rapport `_reports/calendar_conflicts` (> 2 h). |
 | F09 | `81f409f` | Résolution d'entités joueurs : ancre lnr↔allrugby (même match, club, maillot), Splink 5 (DuckDB, m/u fixés, auto ≥ 0,95, revue ≥ 0,6), union-find avec gardes, overrides humains (`er_overrides.csv`), IDs stables. Tables `player_source_xref`, `er_dim_player`, 3 asset checks, CLI `rugby-risk er review/decide`. |
 | F10 | `3d89672` | Marts dbt `dim_team`, `fact_match`, `fact_appearance`, `fact_squad_membership`, `fact_eligibility`, `match_minutes_check`, `dim_season.quality_flag`. Ids stables (md5 de la clé naturelle). Asset `participation_marts` (dbtRunner, sans dagster-dbt) + check `top14_minutes_quality` (`ERROR` < 98 %). Rapport `reports/coverage.md`. |
-| F11 | (ce commit) | Macro dbt `consecutive_run_id` (seule implémentation des séquences, réutilisée en F17). Modèle `analysis_player_sequences` (séquences par joueur et saison, raison de fin). `analysis/sequences.py` (médiane, P90, max, charge, rotations courtes, k ≥ 10) et figures matplotlib. CLI `rugby-risk report sequences` → `reports/descriptive_sequences.md`. |
+| F11 | `2470a0c` | Macro dbt `consecutive_run_id` (seule implémentation des séquences, réutilisée en F17). Modèle `analysis_player_sequences` (séquences par joueur et saison, raison de fin). `analysis/sequences.py` (médiane, P90, max, charge, rotations courtes, k ≥ 10) et figures matplotlib. CLI `rugby-risk report sequences` → `reports/descriptive_sequences.md`. |
+| F12 | (ce commit) | Seuils dans `config/injury_rules.yaml` (Pydantic → vars dbt). Modèle `int_injury_signal__exit` (force ∈ [0,1], bloc × 0,3, absent-au-match-suivant + 0,2 ; info postérieure, cible uniquement). `off_reason_derived` (sources non écrasées). Rapport `reports/exit_calibration.md`. |
 | Docs | `0ee73f2` | Première version de ce document. |
 
 ### Autorisations de collecte (état réel)
@@ -145,8 +146,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 
 | ID | Feature | Dépend de | Prérequis humain | Points d'attention |
 |---|---|---|---|---|
-| **F12** | Signal « sortie précoce » | F10 | — | Score de suspicion à partir des minutes. |
-| F13 | Signal « absence » | F10 | — | Motifs : sélection, suspension, repos protégé, rotation. |
+| **F13** | Signal « absence » | F10 | — | Motifs : sélection, suspension, repos protégé, rotation. |
 | F14 | Collecte presse | F03, F04 | Choix des flux autorisés | `news` reste `false` sans décision humaine. |
 | F15 | Extraction LLM des blessures | F14, F09 | Clé LLM dans `.env`, budget validé | Sortie Pydantic, modèle choisi par `LLM_MODEL`. |
 | F16 | Fusion, annotation, contrôle qualité | F12, F13, F15 | 300 à 500 épisodes annotés à la main ; avis d'un juriste sur l'art. 9 | Comparer l'incidence obtenue aux priors (PRISP). |
@@ -164,7 +164,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F12**.
+Prochaine étape immédiate : **F13**.
 Run réel F09 : audit humain de 100 joueurs (critère F09) ; les parseurs
 internationaux doivent lire les profils (birth_date), sinon forte file de revue.
 

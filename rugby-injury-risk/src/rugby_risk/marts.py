@@ -8,6 +8,8 @@ from pathlib import Path
 import duckdb
 from dbt.cli.main import dbtRunner
 
+from rugby_risk.injuries.rules import dbt_vars
+
 QUALITY_THRESHOLD = 0.98
 
 
@@ -26,7 +28,7 @@ def build_marts(staging_dir: Path, log_dir: Path, target_dir: Path) -> bool:
             "--target-path",
             str(target_dir),
             "--vars",
-            json.dumps({"staging_dir": str(staging_dir)}),
+            json.dumps({"staging_dir": str(staging_dir), **dbt_vars()}),
         ]
     )
     return bool(result.success)

@@ -3,9 +3,10 @@ from collections.abc import Sequence
 from contextlib import closing
 from pathlib import Path
 
-from rugby_risk.analysis.sequences import write_report
+from rugby_risk.analysis.sequences import write_report as write_sequences_report
 from rugby_risk.entity_resolution.review import decide, read_review_queue
 from rugby_risk.http.store import RawStore
+from rugby_risk.injuries.exit_report import write_report
 from rugby_risk.warehouse import connect
 
 
@@ -24,10 +25,15 @@ def main(argv: Sequence[str] | None = None) -> int:
     report = sub.add_parser("report", help="rapports agrégés (sans donnée nominative)")
     report_sub = report.add_subparsers(dest="cmd", required=True)
     report_sub.add_parser("sequences", help="reports/descriptive_sequences.md (F11)")
+    report_sub.add_parser("exits", help="reports/exit_calibration.md (F12)")
     args = parser.parse_args(argv)
     if args.group == "report":
         with closing(connect()) as con:
-            path = write_report(con, Path("reports/descriptive_sequences.md"))
+            if args.cmd == "exits":
+                out, writer = Path("reports/exit_calibration.md"), write_report
+            else:
+                out, writer = Path("reports/descriptive_sequences.md"), write_sequences_report
+            path = writer(con, out)
         print(f"Rapport écrit : {path}")
         return 0
     if args.group == "er":

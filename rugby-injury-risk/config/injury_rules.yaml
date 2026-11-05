@@ -1,0 +1,12 @@
+# Injury labelling rules (F12+). Only place where these thresholds live; dbt receives them as vars.
+exit_signal:
+  # Starter off before this minute (by position_group) = early exit. Forwards are replaced
+  # early for tactical reasons, hence lower thresholds.
+  early_exit_minute: { front_row: 40, lock: 45, back_row: 45, half_back: 55, centre: 55, back_three: 55 }
+  early_exit_strength: 0.7
+  very_early_minute: 20
+  very_early_strength: 0.8
+  sub_off_strength: 0.9
+  block_change_factor: 0.3
+  absent_next_bonus: 0.2
+  suspected_threshold: 0.7

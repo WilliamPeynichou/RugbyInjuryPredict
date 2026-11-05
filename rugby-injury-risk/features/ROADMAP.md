@@ -35,7 +35,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F12 | [Signal « sortie précoce »](F12-signal-exits.md) | F10 | M | todo |
+| F12 | [Signal « sortie précoce »](F12-signal-exits.md) | F10 | M | done |
 | F13 | [Signal « absence » et motifs non-blessure](F13-signal-absences.md) | F10 | M | todo |
 | F14 | [Collecte presse et points médicaux](F14-ingest-news.md) | F03, F04 | M | done |
 | F15 | [Extraction LLM des blessures](F15-llm-injury-extraction.md) | F14, F09 | L | todo |
