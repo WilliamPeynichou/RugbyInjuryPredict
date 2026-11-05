@@ -1,6 +1,6 @@
 # 10 — Journal d'implémentation (état des lieux)
 
-État au 2026-11-03, features F00 à F08 livrées.
+État au 2026-11-05, features F00 à F09 livrées.
 
 Ce document est la vue d'ensemble pour reprendre le développement :
 1. ce qui est fait ;
@@ -19,7 +19,7 @@ Les sources de vérité détaillées restent :
 |---|---|---|
 | 0 — Socle | F00 bootstrap, F01 registre des sources, F02 données de référence | ✅ fait |
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
-| 2 — Internationaux, coupes, entités | F07, F08 ✅ ; F09, F10, F11 | 🟡 en cours |
+| 2 — Internationaux, coupes, entités | F07, F08, F09 ✅ ; F10, F11 | 🟡 en cours |
 | 3 — Labellisation des blessures | F12 → F16 | ⬜ à faire |
 | 4 — Table d'apprentissage et baselines | F17 → F20 | ⬜ à faire |
 | 5 — Modèle de production | F21, F22 | ⬜ à faire |
@@ -27,13 +27,13 @@ Les sources de vérité détaillées restent :
 | 7 — Produit | F25 → F27 | ⬜ à faire |
 | 8 — Exploitation | F28, F29 | ⬜ à faire |
 
-Le dernier `make check` local est vert : ruff, format, mypy strict et pytest (144 tests,
-couverture 92,23 %).
+Le dernier `make check` local est vert : ruff, format, mypy strict et pytest 175 tests,
+couverture 88,30 %).
 
 Git :
 - une branche `feat/Fxx-*` par feature, avec des commits Conventional Commits ;
 - les branches sont **empilées** : chacune part de la précédente, et
-  `feat/F08-ingest-europe-calendar` contient tout l'historique ;
+  `feat/F09-entity-resolution` contient tout l'historique ;
 - rien n'est encore fusionné dans une branche `main`.
 
 ## 2. Ce qui est fait
@@ -89,6 +89,9 @@ Les détails sont dans les Journaux des fiches.
 12. **La saison d'un match international est déduite de sa date**, à partir de
     `config/seasons.yaml`. Le lac n'étant pas partitionné, chaque asset filtre sur sa
     partition.
+15. **Résolution d'entités** (F09) : ancre déterministe lnr↔allrugby (même match, même club,
+    même maillot) + Splink (m/u fixés, sans EM) pour le reste, overrides humains prioritaires.
+    Garde d'union : une date partagée doit désigner le même match (invariant 1).
 13. **Coupes d'Europe via ESPN**, pas allrugby (F08) : parseur existant, compositions
     incluses. `intl_staging_espn` ne garde que le niveau `international` ; les coupes vont
     sous `source=espn_europe` (colonne `source` = `espn`) pour ne pas s'écraser.
@@ -133,8 +136,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 
 | ID | Feature | Dépend de | Prérequis humain | Points d'attention |
 |---|---|---|---|---|
-| **F09** | Résolution d'entités joueurs | F05, F06, F07 | Revue de `er_overrides.csv` | Splink (backend DuckDB), ancre LNR, < 1 % de doublons. Produit `dim_player` et `player_source_xref`. |
-| F10 | Marts de participation et éligibilité | F08, F09 | — | `fact_eligibility` (joueur × match de son équipe, joué ou non). |
+| **F10** | Marts de participation et éligibilité | F08, F09 | — | `fact_eligibility` (joueur × match de son équipe, joué ou non). |
 | F11 | Analyse descriptive des séquences | F10 | — | Publiable sans aucune donnée de blessure. |
 | F12 | Signal « sortie précoce » | F10 | — | Score de suspicion à partir des minutes. |
 | F13 | Signal « absence » | F10 | — | Motifs : sélection, suspension, repos protégé, rotation. |
@@ -155,8 +157,9 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F09** (T2 et T3 clos).
-Run réel F08 : `espn: authorized` (décision humaine), puis vérifier S3.
+Prochaine étape immédiate : **F10**.
+Run réel F09 : après F10, audit humain de 100 joueurs (critère F09) ; les parseurs
+internationaux doivent lire les profils (birth_date), sinon forte file de revue.
 
 ## 5. Règles à appliquer (toutes features)
 

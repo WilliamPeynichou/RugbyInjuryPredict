@@ -50,8 +50,10 @@ def _seed(tmp_path):
     _put(store, "espn", f"{ESPN_BASE}?event=900002", FIXTURES / "espn" / "incomplete_summary.json")
 
 
-def _materialize(select, tmp_path):
+def _materialize(select, tmp_path, env_extra: dict | None = None):
     env = dict(os.environ, PYTHONPATH=f"{REPO}:{REPO / 'src'}", DATA_DIR=str(tmp_path / "data"))
+    if env_extra:
+        env.update(env_extra)
     result = subprocess.run(
         [
             sys.executable,

@@ -27,7 +27,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 |---|---|---|---|---|
 | F07 | [Ingestion des matchs internationaux](F07-ingest-internationals.md) | F03, F04 | M | done |
 | F08 | [Ingestion coupes d'Europe et calendrier](F08-ingest-europe-calendar.md) | F03, F04 | M | done |
-| F09 | [Résolution d'entités joueurs](F09-entity-resolution.md) | F05, F06, F07 | L | todo |
+| F09 | [Résolution d'entités joueurs](F09-entity-resolution.md) | F05, F06, F07 | L | done |
 | F10 | [Marts de participation et éligibilité](F10-participation-marts.md) | F08, F09 | L | todo |
 | F11 | [Analyse descriptive des séquences par poste](F11-descriptive-sequences.md) | F10 | M | todo |
 

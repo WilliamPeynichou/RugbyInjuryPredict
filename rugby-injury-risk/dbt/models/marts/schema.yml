@@ -6,6 +6,10 @@ models:
     columns: [{name: season_id, data_tests: [unique, not_null]}]
   - name: dim_venue
     columns: [{name: venue_id, data_tests: [unique, not_null]}]
+  - name: dim_player
+    columns:
+      - {name: player_id, data_tests: [unique, not_null]}
+      - {name: player_key, data_tests: [unique, not_null]}
   - name: venue_surface
     columns:
       - {name: venue_id, data_tests: [not_null, {relationships: {to: ref('dim_venue'), field: venue_id}}]}

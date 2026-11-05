@@ -7,6 +7,12 @@ from orchestration.assets.allrugby import (
     allrugby_staging_profiles,
 )
 from orchestration.assets.calendar import calendar_staging
+from orchestration.assets.entities import (
+    er_no_double_sheet_same_day,
+    er_stable_ids,
+    er_unique_source_id,
+    player_entities,
+)
 from orchestration.assets.europe import europe_staging_espn
 from orchestration.assets.internationals import (
     intl_minutes_check,
@@ -28,5 +34,7 @@ defs = Definitions(
         intl_minutes_check,
         europe_staging_espn,
         calendar_staging,
-    ]
+        player_entities,
+    ],
+    asset_checks=[er_unique_source_id, er_no_double_sheet_same_day, er_stable_ids],
 )
