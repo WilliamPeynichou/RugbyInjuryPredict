@@ -48,7 +48,7 @@ Git :
 | F05 | `bf1544d` | allrugby : URLs, découverte des pages en ligne, parseurs match (minutes, cartons, mise en quarantaine) et joueur. Coup d'envoi Europe/Paris, heure imputée à 15:00. Assets Dagster partitionnés par saison, recalculés hors ligne depuis le lac brut. |
 | F06 | `830d4ad` | LNR activée par décision humaine. Parseur de compositions (identifiants LNR, postes normalisés via `position_aliases.csv`, minutes `NULL`). Partitions saison × journée. Rapport `lnr_vs_allrugby` → `data/staging/_reports/lineup_diff/`. |
 | F07 | `1c476eb` | World Rugby : minutes reconstruites (`Sub On/Off`, `IR`/`HIAO` en bascule, rouge = sortie définitive). ESPN : compositions, minutes `NULL`. Correspondance des compétitions via `competition_aliases.csv`, avec repli selon le mois. Féminin, rugby à 7 et jeunes exclus. Assets `intl_staging_worldrugby` et `intl_staging_espn`, rapport `intl_minutes_check`. |
-| F08 | `F08_SHA` | Coupes d'Europe via ESPN (`parse_europe` : Champions/Challenge Cup avec au moins un club français) → `staging/match/source=espn_europe`. Page calendrier = `scoreboard` ESPN. `team_aliases.csv` (+ `country`) et `venue_aliases.csv` (→ `venue_id`). Calendrier unifié `staging/fixture_calendar` (une ligne par clé naturelle, priorité LNR > allrugby > World Rugby > ESPN > API-Sports, heure imputée toujours battue), rapport `_reports/calendar_conflicts` (> 2 h). |
+| F08 | `4671523` | Coupes d'Europe via ESPN (`parse_europe` : Champions/Challenge Cup avec au moins un club français) → `staging/match/source=espn_europe`. Page calendrier = `scoreboard` ESPN. `team_aliases.csv` (+ `country`) et `venue_aliases.csv` (→ `venue_id`). Calendrier unifié `staging/fixture_calendar` (une ligne par clé naturelle, priorité LNR > allrugby > World Rugby > ESPN > API-Sports, heure imputée toujours battue), rapport `_reports/calendar_conflicts` (> 2 h). |
 | Docs | `0ee73f2` | Première version de ce document. |
 
 ### Autorisations de collecte (état réel)
@@ -117,8 +117,8 @@ Les détails sont dans les Journaux des fiches.
 | # | Souci | Impact | Action prévue |
 |---|---|---|---|
 | T1 | **Résolu 2026-11-03** : premier push, deux runs GitHub Actions réussis (~1m30 chacun) — le critère CI distante de F00 est clos. Reste le critère « machine distincte » de F00. | — | Tester `make setup` sur une autre machine, puis cocher le critère F00. |
-| T2 | **La cible `make dagster` est probablement inopérante.** Elle passe plusieurs assets séparés par des virgules dans un seul `--select`, ce qui ne sélectionne rien et renvoie quand même rc 0. | La commande semble réussir sans rien matérialiser. | Utiliser un `--select` par asset (ou la syntaxe de sélection Dagster), puis vérifier. |
-| T3 | Les tests d'intégration Dagster laissent des dossiers `.tmp_dagster_home_*` non ignorés par git. | Risque de les ajouter par erreur dans un commit. | Les ajouter à `.gitignore`, ou les nettoyer dans les tests. |
+| T2 | **Clos 2026-11-05 (faux positif)** : `--select a,b` matérialise bien chaque asset (vérifié : `STEP_SUCCESS` pour deux assets, Parquet écrits). Seul un avertissement `SupersessionWarning` de la CLI Dagster subsiste. | — | Rien ; migrer vers `dg launch` si la commande disparaît. |
+| T3 | **Résolu 2026-11-05** : `.tmp_dagster_home_*/` ajouté à `.gitignore` (et au test `test_gitignore`). | — | — |
 | T4 | `make check` dure environ 2 min 15. Dans l'outil shell de l'agent, une session de plus de 2 min est tuée (SIGHUP, `Error 129`) en plein pytest. | Faux échec. | Lancer `make check` détaché, par exemple via un sous-processus avec `start_new_session`, et lire `/tmp/mk.log`. |
 | T5 | `allrugby_staging_matches` et `allrugby_staging_appearances` refont la même analyse des pages. | Double coût CPU (négligeable sur fixtures). | Fusionner en un multi-asset si le volume réel le justifie. |
 | T6 | Les assets internationaux parcourent tout le manifeste pour chaque saison. | Coût linéaire en taille du lac. | Filtrer par date dans le manifeste si le volume réel le justifie. |
@@ -155,7 +155,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F09**. Avant, traiter T2 et T3 (`make dagster`, `.gitignore`).
+Prochaine étape immédiate : **F09** (T2 et T3 clos).
 Run réel F08 : `espn: authorized` (décision humaine), puis vérifier S3.
 
 ## 5. Règles à appliquer (toutes features)

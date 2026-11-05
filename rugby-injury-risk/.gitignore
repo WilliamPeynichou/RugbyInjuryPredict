@@ -17,6 +17,7 @@ data/review/
 *.duckdb
 *.duckdb.*
 mlruns/
+.tmp_dagster_home_*/
 web/node_modules/
 web/.next/
 
