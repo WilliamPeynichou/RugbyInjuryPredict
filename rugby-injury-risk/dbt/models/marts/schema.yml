@@ -14,3 +14,33 @@ models:
     columns:
       - {name: venue_id, data_tests: [not_null, {relationships: {to: ref('dim_venue'), field: venue_id}}]}
       - {name: season_id, data_tests: [not_null, {relationships: {to: ref('dim_season'), field: season_id}}]}
+  - name: dim_team
+    columns:
+      - {name: team_id, data_tests: [unique, not_null]}
+      - {name: name, data_tests: [unique, not_null]}
+  - name: fact_match
+    columns:
+      - {name: match_id, data_tests: [unique, not_null]}
+      - {name: competition_code, data_tests: [not_null, {relationships: {to: ref('dim_competition'), field: competition_code}}]}
+      - {name: season_id, data_tests: [not_null, {relationships: {to: ref('dim_season'), field: season_id}}]}
+      - {name: kickoff_ts, data_tests: [not_null]}
+      - {name: home_team_id, data_tests: [not_null, {relationships: {to: ref('dim_team'), field: team_id}}]}
+      - {name: away_team_id, data_tests: [not_null, {relationships: {to: ref('dim_team'), field: team_id}}]}
+  - name: fact_appearance
+    columns:
+      - {name: match_id, data_tests: [not_null, {relationships: {to: ref('fact_match'), field: match_id}}]}
+      - {name: player_id, data_tests: [not_null, {relationships: {to: ref('dim_player'), field: player_id}}]}
+      - {name: team_id, data_tests: [not_null, {relationships: {to: ref('dim_team'), field: team_id}}]}
+      - {name: is_starter, data_tests: [not_null]}
+      - {name: off_reason, data_tests: [{accepted_values: {values: [tactical, injury, hia, card, unknown]}}]}
+  - name: fact_squad_membership
+    columns:
+      - {name: player_id, data_tests: [not_null, {relationships: {to: ref('dim_player'), field: player_id}}]}
+      - {name: team_id, data_tests: [not_null, {relationships: {to: ref('dim_team'), field: team_id}}]}
+      - {name: valid_from, data_tests: [not_null]}
+  - name: fact_eligibility
+    columns:
+      - {name: match_id, data_tests: [not_null, {relationships: {to: ref('fact_match'), field: match_id}}]}
+      - {name: player_id, data_tests: [not_null, {relationships: {to: ref('dim_player'), field: player_id}}]}
+      - {name: team_id, data_tests: [not_null]}
+      - {name: on_sheet, data_tests: [not_null]}

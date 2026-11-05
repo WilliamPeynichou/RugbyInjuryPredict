@@ -38,15 +38,20 @@ _LOCK_PATH = Path("data/warehouse.lock")
 
 
 @contextmanager
-def _locked_connect():
+def warehouse_lock():
     _LOCK_PATH.parent.mkdir(parents=True, exist_ok=True)
     with _LOCK_PATH.open("w") as handle:
         fcntl.flock(handle, fcntl.LOCK_EX)
         try:
-            with closing(connect()) as con:
-                yield con
+            yield
         finally:
             fcntl.flock(handle, fcntl.LOCK_UN)
+
+
+@contextmanager
+def _locked_connect():
+    with warehouse_lock(), closing(connect()) as con:
+        yield con
 
 
 XREF_TABLE = "player_source_xref"

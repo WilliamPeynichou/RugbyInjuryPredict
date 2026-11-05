@@ -7,7 +7,15 @@ from rugby_risk.config.seasons import load_seasons
 
 REF = Path("data/reference")
 SEEDS = Path("dbt/seeds")
-NAMES = ["positions", "competitions", "venues", "venue_surface", "test_windows", "rules_protection"]
+NAMES = [
+    "positions",
+    "competitions",
+    "venues",
+    "venue_surface",
+    "test_windows",
+    "rules_protection",
+    "team_aliases",
+]
 
 SEEDS.mkdir(parents=True, exist_ok=True)
 for name in NAMES:

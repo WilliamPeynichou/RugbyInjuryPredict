@@ -7,6 +7,7 @@ from orchestration.assets.allrugby import (
     allrugby_staging_profiles,
 )
 from orchestration.assets.calendar import calendar_staging
+from orchestration.assets.dbt_assets import participation_marts, top14_minutes_quality
 from orchestration.assets.entities import (
     er_no_double_sheet_same_day,
     er_stable_ids,
@@ -35,6 +36,12 @@ defs = Definitions(
         europe_staging_espn,
         calendar_staging,
         player_entities,
+        participation_marts,
     ],
-    asset_checks=[er_unique_source_id, er_no_double_sheet_same_day, er_stable_ids],
+    asset_checks=[
+        er_unique_source_id,
+        er_no_double_sheet_same_day,
+        er_stable_ids,
+        top14_minutes_quality,
+    ],
 )

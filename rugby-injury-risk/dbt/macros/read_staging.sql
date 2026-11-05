@@ -1,4 +1,5 @@
-{# Reads data/staging/<entity>/**/*.parquet; typed empty relation when no file exists yet. #}
+{# Reads data/staging/<entity>/**/*.parquet; typed empty relation when no file exists yet.
+   hive_partitioning off: the `source=` directory must not override the `source` column. #}
 {% macro read_staging(entity, columns) %}
 {%- set pattern = var('staging_dir', 'data/staging') ~ '/' ~ entity ~ '/**/*.parquet' -%}
 {%- set n = 0 -%}
@@ -6,7 +7,7 @@
   {%- set n = run_query("select count(*) from glob('" ~ pattern ~ "')").columns[0].values()[0] -%}
 {%- endif -%}
 {%- if n > 0 -%}
-select * from read_parquet('{{ pattern }}')
+select * from read_parquet('{{ pattern }}', hive_partitioning = false)
 {%- else -%}
 select
 {%- for name, type in columns.items() %} null::{{ type }} as {{ name }}{{ "," if not loop.last }}
