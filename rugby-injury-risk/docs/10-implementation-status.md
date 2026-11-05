@@ -1,6 +1,6 @@
 # 10 — Journal d'implémentation (état des lieux)
 
-État au 2026-11-05, features F00 à F10 livrées.
+État au 2026-11-05, features F00 à F11 livrées.
 
 Ce document est la vue d'ensemble pour reprendre le développement :
 1. ce qui est fait ;
@@ -19,7 +19,7 @@ Les sources de vérité détaillées restent :
 |---|---|---|
 | 0 — Socle | F00 bootstrap, F01 registre des sources, F02 données de référence | ✅ fait |
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
-| 2 — Internationaux, coupes, entités | F07, F08, F09, F10 ✅ ; F11 | 🟡 en cours |
+| 2 — Internationaux, coupes, entités | F07 → F11 | ✅ fait |
 | 3 — Labellisation des blessures | F12 → F16 | ⬜ à faire |
 | 4 — Table d'apprentissage et baselines | F17 → F20 | ⬜ à faire |
 | 5 — Modèle de production | F21, F22 | ⬜ à faire |
@@ -27,13 +27,13 @@ Les sources de vérité détaillées restent :
 | 7 — Produit | F25 → F27 | ⬜ à faire |
 | 8 — Exploitation | F28, F29 | ⬜ à faire |
 
-Le dernier `make check` local est vert : ruff, format, mypy strict et pytest 177 tests,
-couverture 88,46 %).
+Le dernier `make check` local est vert : ruff, format, mypy strict et pytest 186 tests,
+couverture 88,96 %).
 
 Git :
 - une branche `feat/Fxx-*` par feature, avec des commits Conventional Commits ;
 - les branches sont **empilées** : chacune part de la précédente, et
-  `feat/F10-participation-marts` contient tout l'historique ;
+  `feat/F11-descriptive-sequences` contient tout l'historique ;
 - rien n'est encore fusionné dans une branche `main`.
 
 ## 2. Ce qui est fait
@@ -50,7 +50,8 @@ Git :
 | F07 | `1c476eb` | World Rugby : minutes reconstruites (`Sub On/Off`, `IR`/`HIAO` en bascule, rouge = sortie définitive). ESPN : compositions, minutes `NULL`. Correspondance des compétitions via `competition_aliases.csv`, avec repli selon le mois. Féminin, rugby à 7 et jeunes exclus. Assets `intl_staging_worldrugby` et `intl_staging_espn`, rapport `intl_minutes_check`. |
 | F08 | `4671523` | Coupes d'Europe via ESPN (`parse_europe` : Champions/Challenge Cup avec au moins un club français) → `staging/match/source=espn_europe`. Page calendrier = `scoreboard` ESPN. `team_aliases.csv` (+ `country`) et `venue_aliases.csv` (→ `venue_id`). Calendrier unifié `staging/fixture_calendar` (une ligne par clé naturelle, priorité LNR > allrugby > World Rugby > ESPN > API-Sports, heure imputée toujours battue), rapport `_reports/calendar_conflicts` (> 2 h). |
 | F09 | `81f409f` | Résolution d'entités joueurs : ancre lnr↔allrugby (même match, club, maillot), Splink 5 (DuckDB, m/u fixés, auto ≥ 0,95, revue ≥ 0,6), union-find avec gardes, overrides humains (`er_overrides.csv`), IDs stables. Tables `player_source_xref`, `er_dim_player`, 3 asset checks, CLI `rugby-risk er review/decide`. |
-| F10 | (ce commit) | Marts dbt `dim_team`, `fact_match`, `fact_appearance`, `fact_squad_membership`, `fact_eligibility`, `match_minutes_check`, `dim_season.quality_flag`. Ids stables (md5 de la clé naturelle). Asset `participation_marts` (dbtRunner, sans dagster-dbt) + check `top14_minutes_quality` (`ERROR` < 98 %). Rapport `reports/coverage.md`. |
+| F10 | `3d89672` | Marts dbt `dim_team`, `fact_match`, `fact_appearance`, `fact_squad_membership`, `fact_eligibility`, `match_minutes_check`, `dim_season.quality_flag`. Ids stables (md5 de la clé naturelle). Asset `participation_marts` (dbtRunner, sans dagster-dbt) + check `top14_minutes_quality` (`ERROR` < 98 %). Rapport `reports/coverage.md`. |
+| F11 | (ce commit) | Macro dbt `consecutive_run_id` (seule implémentation des séquences, réutilisée en F17). Modèle `analysis_player_sequences` (séquences par joueur et saison, raison de fin). `analysis/sequences.py` (médiane, P90, max, charge, rotations courtes, k ≥ 10) et figures matplotlib. CLI `rugby-risk report sequences` → `reports/descriptive_sequences.md`. |
 | Docs | `0ee73f2` | Première version de ce document. |
 
 ### Autorisations de collecte (état réel)
@@ -103,6 +104,8 @@ Les détails sont dans les Journaux des fiches.
     dossier `source=` écrase la colonne `source`). Minutes inconnues = `NULL` (pas 0) ;
     `played` = `true` pour un titulaire sans minutes, `NULL` pour un remplaçant sans minutes
     (écart documenté dans `docs/04`). Pas de `dagster-dbt` : un asset appelle `dbtRunner`.
+17. **Séquences F11** : coupées en fin de saison ; remplaçant sans minutes = non joué (casse
+    la séquence). Dépendance `matplotlib` ajoutée (API `Figure`, sans pyplot).
 
 ## 3. Soucis recensés (ouverts)
 
@@ -142,8 +145,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 
 | ID | Feature | Dépend de | Prérequis humain | Points d'attention |
 |---|---|---|---|---|
-| **F11** | Analyse descriptive des séquences | F10 | — | Publiable sans aucune donnée de blessure. |
-| F12 | Signal « sortie précoce » | F10 | — | Score de suspicion à partir des minutes. |
+| **F12** | Signal « sortie précoce » | F10 | — | Score de suspicion à partir des minutes. |
 | F13 | Signal « absence » | F10 | — | Motifs : sélection, suspension, repos protégé, rotation. |
 | F14 | Collecte presse | F03, F04 | Choix des flux autorisés | `news` reste `false` sans décision humaine. |
 | F15 | Extraction LLM des blessures | F14, F09 | Clé LLM dans `.env`, budget validé | Sortie Pydantic, modèle choisi par `LLM_MODEL`. |
@@ -162,7 +164,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F11**.
+Prochaine étape immédiate : **F12**.
 Run réel F09 : audit humain de 100 joueurs (critère F09) ; les parseurs
 internationaux doivent lire les profils (birth_date), sinon forte file de revue.
 

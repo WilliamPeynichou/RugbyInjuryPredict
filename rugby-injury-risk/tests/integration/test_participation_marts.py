@@ -5,6 +5,7 @@ import duckdb
 import polars as pl
 import pytest
 
+from rugby_risk.analysis.sequences import write_report
 from rugby_risk.calendar import build_calendar
 from rugby_risk.marts import build_marts, coverage_markdown, low_quality_seasons
 from rugby_risk.warehouse import staging_frame
@@ -190,3 +191,20 @@ def test_squad_appearance_and_quality(mini_season, tmp_path):
     report = coverage_markdown(mini_season)
     assert f"| {SEASON} | TOP14 | 6 | 100.0 | 0.0 |" in report
     assert f"| {SEASON} | SIX_NATIONS | 1 | 0.0 | 0.0 |" in report
+
+
+def test_sequences_model_and_report(mini_season, tmp_path):
+    got = _rows(
+        mini_season,
+        "select player_id, length, competitions, end_reason from analysis_player_sequences",
+    )
+    assert got == {
+        (1, 2, "TOP14", "absence"),
+        (1, 3, "TOP14", "end_of_season"),
+        (2, 4, "TOP14", "end_of_season"),
+        (3, 4, "SIX_NATIONS,TOP14", "absence"),
+        (3, 2, "TOP14", "end_of_season"),
+        (4, 1, "TOP14", "end_of_season"),
+    }
+    report = write_report(mini_season, tmp_path / "reports" / "seq.md").read_text()
+    assert "Aucune cellule avec au moins 10 joueurs" in report

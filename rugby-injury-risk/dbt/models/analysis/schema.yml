@@ -1,0 +1,7 @@
+version: 2
+models:
+  - name: analysis_player_sequences
+    columns:
+      - {name: player_id, data_tests: [not_null]}
+      - {name: length, data_tests: [not_null]}
+      - {name: end_reason, data_tests: [{accepted_values: {values: [absence, bench_unused, end_of_season]}}]}

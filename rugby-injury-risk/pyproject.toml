@@ -21,6 +21,7 @@ dependencies = [
     "dagster>=1.10",
     "dagster-webserver>=1.13.28",
     "splink>=5.0.0",
+    "matplotlib>=3.9",
 ]
 
 [dependency-groups]
