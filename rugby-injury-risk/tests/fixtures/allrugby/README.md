@@ -1,17 +1,15 @@
 # Fixtures allrugby
 
-Construites à la main (script `build_fixtures.py`, markup figé), car `allrugby` n'est pas
-autorisée : aucune page réelle n'a été capturée. Le format reprend les éléments publics
-documentés dans `docs/01-data-sources.md` (URL `joueurs/{slug}-{id}.html`, feuilles de match
-avec n° de maillot 1–15 titulaire / 16–23 banc, minutes, cartons). **Hypothèses non vérifiées
-sur le site réel :** slugs d'URL saison/match, balises exactes (`div.matchinfo`, `table.club_stats`,
-`ul.fiche`), codage des cartons. À valider dès le premier crawl autorisé ; signaler les écarts
-dans le journal de F05.
+Pages **réelles** capturées le 2026-11-06 après l'autorisation humaine de `allrugby`
+(scripts, styles, SVG et en-tête de navigation retirés ; tableaux par saison retirés des
+pages joueur pour la taille). Usage : tests de parseurs uniquement, pas de redistribution.
 
 | Fichier | Cas couvert |
 |---|---|
-| `match_red_card.html` | match standard, heure de coup d'envoi présente, carton rouge (n°2, 51'), banc |
-| `match_standard.html` | heure de coup d'envoi absente → imputée 15:00 locale + flag, remplaçants non entrés à 0' |
-| `match_playoff.html` | phase finale (`top14-playoffs`, ronde « Demi ») |
-| `player_full.html` | profil complet (naissance, taille, poids, nationalité, JIFF, sélections) |
-| `player_partial.html` | profil incomplet sans exception |
+| `calendar_top14_2024.html` | calendrier Top 14 2023-2024 : 188 liens de match |
+| `match_standard.html` | J22 Bayonne–Bordeaux, coup d'envoi 17h00, re-entrée (HUGUET 54' puis 74') |
+| `match_reentry_no_venue.html` | J1 Bayonne–Toulouse, stade vide, HÉGUY 48' (= page joueur) |
+| `match_final_yellow.html` | finale 2024, un carton jaune (`div.cj`) |
+| `match_prod2_red.html` | Pro D2 (quarantaine) ; cartons rouges (`div.cr`) testés en la relabellisant Top 14 |
+| `player_jiff.html` | profil JIFF, taille/poids, poste, JSON-LD `Person` |
+| `player_non_jiff.html` | profil non JIFF, nationalité étrangère |

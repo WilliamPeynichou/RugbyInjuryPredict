@@ -27,3 +27,4 @@ data/dbt_logs/
 dbt/.user.yml
 dbt/logs/
 dbt/target/
+.dagster_home/

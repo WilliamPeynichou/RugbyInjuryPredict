@@ -1,13 +1,16 @@
 """Parse a World Rugby (pulselive) match summary + timeline into staging rows.
 
 PARSER_VERSION = worldrugby-1
-Payload shapes (see src/rugby_risk/sources/worldrugby/README.md):
+Payload shapes verified on the live API (2026-11-06):
 - summary: `match` (matchId, competition, time.millis, venue, teams[].name, scores[])
-  and `teams[i].teamList.list[]` (number, player.id, player.name.display);
-- timeline: `timeline[]` (type, teamIndex, playerId, time.secs).
-Minutes: "Sub On"/"Sub Off" are explicit; "IR"/"HIAO" tag both players at the same
-second, so they toggle the player's state (method of bpcsaund/rugby-analytics).
-"Red Card" takes the player off for good. No timeline -> minutes NULL.
+  and `teams[i].teamList.list[]` (number, position, player.id, player.altId,
+  player.name.display, player.dob.label);
+- timeline: `timeline[]` (type, teamIndex, playerId, playerAltId, time.secs).
+Identifier quirk (real API): some events carry the player's registration `id`,
+others their `altId`; both are matched against the team list. Libellés cartons
+réels : "Yellow"/"Red" (plus "Red Card" historique). Minutes: "Sub On"/"Sub Off"
+explicit; "IR"/"HIAO" tag both players at the same second, so they toggle the
+player's state. "Red" takes the player off for good. No timeline -> minutes NULL.
 """
 
 import json
@@ -25,32 +28,57 @@ SOURCE = "worldrugby"
 FULL_MATCH_SECS = 80 * 60
 MAX_MINUTES = 100  # borne du schéma staging (prolongations comprises)
 TOGGLE_TYPES = {"IR", "HIAO"}
-MOVE_TYPES = {"Sub On", "Sub Off", "Red Card", *TOGGLE_TYPES}
+GOES_OFF_TYPES = {"Sub Off", "Red Card", "Red"}  # libellés réels : "Red", "Yellow"
+MOVE_TYPES = {"Sub On", "Sub Off", *GOES_OFF_TYPES, *TOGGLE_TYPES}
+
+
+def _event_key(event: dict[str, Any], ids: dict[str, str]) -> str | None:
+    """Timeline player -> summary player id via registration id or altId.
+
+    Quirk réel (2026-11-06): l'API mélange les deux identifiants selon le type
+    d'événement et l'équipe, et `teamIndex` n'est pas fiable ; on identifie par
+    clef (id ou altId) et on ignore teamIndex.
+    """
+    return ids.get(str(event.get("playerId"))) or ids.get(str(event.get("playerAltId")))
+
+
+def _id_map(lineups: list[dict[str, Any]]) -> dict[str, str]:
+    """Global player map across both teams: any timeline identifier -> player id."""
+    ids: dict[str, str] = {}
+    for lineup in lineups:
+        for p in (lineup.get("teamList") or {}).get("list", []):
+            player_id = str(p["player"]["id"])
+            ids[player_id] = player_id
+            alt = p["player"].get("altId")
+            if alt:
+                ids[str(alt)] = player_id
+    return ids
 
 
 def _minutes(starter: bool, events: list[tuple[int, str]], match_end: int) -> int:
     on, since, total = starter, 0, 0
     for secs, kind in sorted(e for e in events if e[1] in MOVE_TYPES):
-        goes_off = kind in {"Sub Off", "Red Card"} or (kind in TOGGLE_TYPES and on)
+        goes_off = kind in GOES_OFF_TYPES or (kind in TOGGLE_TYPES and on)
         if goes_off and on:
             total += max(0, secs - since)
             on = False
         elif not goes_off and not on:  # un "on" redondant est ignoré
             on, since = True, secs
-        if kind == "Red Card":
+        if kind in {"Red Card", "Red"}:
             break
     if on:
         total += max(0, match_end - since)
     return min(round(total / 60), MAX_MINUTES)
 
 
-def _events(timeline: dict[str, Any] | None, team_idx: int) -> dict[str, list[tuple[int, str]]]:
+def _events(
+    timeline: dict[str, Any] | None, ids: dict[str, str]
+) -> dict[str, list[tuple[int, str]]]:
     out: dict[str, list[tuple[int, str]]] = {}
     for event in (timeline or {}).get("timeline", []):
-        if event.get("teamIndex") == team_idx and event.get("playerId"):
-            out.setdefault(str(event["playerId"]), []).append(
-                (int(event["time"]["secs"]), str(event["type"]))
-            )
+        key = _event_key(event, ids)
+        if key is not None and event.get("time"):
+            out.setdefault(key, []).append((int(event["time"]["secs"]), str(event["type"])))
     return out
 
 
@@ -74,16 +102,17 @@ def parse_match(
     lineups = summary.get("teams") or []
     if len(teams) != 2 or len(lineups) != 2:
         raise IntlParseError("Équipes incomplètes")
+    ids = _id_map(lineups)
     all_secs = [
         int(e["time"]["secs"]) for e in (timeline or {}).get("timeline", []) if e.get("time")
     ]
     match_end = max([FULL_MATCH_SECS, *all_secs])
     appearances: list[dict[str, object]] = []
-    for idx, (team, lineup) in enumerate(zip(teams, lineups, strict=True)):
+    for team, lineup in zip(teams, lineups, strict=True):
         players = [p for p in (lineup.get("teamList") or {}).get("list", []) if p.get("number")]
         if len([p for p in players if int(p["number"]) <= 15]) != 15:
             raise IntlParseError(f"{team.get('name')}: composition sans 15 titulaires")
-        events = _events(timeline, idx)
+        events = _events(timeline, ids)
         for p in players:
             shirt = int(p["number"])
             player_id = str(p["player"]["id"])
@@ -101,8 +130,8 @@ def parse_match(
                     "minutes_played": None
                     if timeline is None
                     else _minutes(shirt <= 15, kinds, match_end),
-                    "yellow_cards": sum(1 for _, k in kinds if k == "Yellow Card"),
-                    "red_cards": sum(1 for _, k in kinds if k == "Red Card"),
+                    "yellow_cards": sum(1 for _, k in kinds if k.startswith("Yellow")),
+                    "red_cards": sum(1 for _, k in kinds if k in {"Red Card", "Red"}),
                 }
             )
     scores = info.get("scores") or [None, None]

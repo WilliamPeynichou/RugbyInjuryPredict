@@ -121,8 +121,8 @@ Les détails sont dans les Journaux des fiches.
 
 | # | Souci | Impact | Action prévue |
 |---|---|---|---|
-| S1 | Le balisage HTML d'allrugby et de la LNR n'a jamais été confronté aux vraies pages. Les fixtures sont écrites à la main et les URL de saison et de match allrugby sont des hypothèses. | Les parseurs peuvent échouer au premier crawl. | Premier crawl limité à une partition. Comparer avec `tests/fixtures/*/README.md`, ajuster les parseurs et incrémenter `PARSER_VERSION`. |
-| S2 | Les formes JSON de World Rugby et d'ESPN viennent de dépôts tiers (`bpcsaund/rugby-analytics`, `transientlunatic/Rugby-Data`), pas des API elles-mêmes. | Même risque que S1. | À vérifier au premier appel autorisé. |
+| S1 | **allrugby : résolu 2026-11-06** — parseurs réécrits sur markup réel (`allrugby-2`), crawl pilote 2022-23→2024-25 lancé. **LNR : ouvert** — parseur non vérifié sur page réelle. | — | Vérifier le parseur LNR au prochain crawl (1 partition). |
+| S2 | **World Rugby : résolu 2026-11-06** — formes réelles vérifiées (cartons `Yellow`/`Red`, quirk id/altId et `teamIndex` peu fiable corrigés). **ESPN : partiel** — ids de ligues vérifiés en direct (Top 14, coupes, 6N, tests) ; parseur JSON non testé sur réponse réelle. | — | Tester le parseur ESPN sur une réponse réelle. |
 | S3 | Les identifiants de ligues ESPN hors Top 14 (`180659`, `164205`, `289234`, coupes `271937`, `272073`), les champs de phase (`notes`, `week`) et les noms ESPN des clubs dans `team_aliases.csv` ne sont pas vérifiés. | Mauvaise collecte possible. | À vérifier au premier appel autorisé. |
 | S4 | La LNR ne donne pas les minutes. ESPN ne donne ni minutes ni cartons. | Les minutes viennent seulement d'allrugby (club) et de World Rugby (internationaux). Sans allrugby, une saison Top 14 passe `quality_flag = 'low'` et l'asset check F10 échoue (voulu). | Priorité par champ en place (F10). Run réel allrugby nécessaire. |
 | S5 | Le Rugby Championship n'a pas de code dans `competitions.csv`. | Il est classé selon le mois (`SUMMER_TESTS`, `AUTUMN_TESTS`, `OTHER_TEST`). | Ajouter un code seulement si `docs/04` évolue (décision humaine). |

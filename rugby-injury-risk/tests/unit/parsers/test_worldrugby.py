@@ -93,3 +93,26 @@ def test_all_mapped_codes_exist():
         set(aliases["competition_code"].to_list()) | {"AUTUMN_TESTS", "SUMMER_TESTS", "OTHER_TEST"}
         <= known
     )
+
+
+def test_real_six_nations_2024_labels():
+    # Données réelles (2026-11-06) : l'API renvoie les types "Red" / "Yellow"
+    # (pas "Red Card" / "Yellow Card"). Willemse : jaune 8', rouge 31', sorti pour de bon.
+    summary = (FIXTURES / "six_nations_2024_summary.json").read_text()
+    timeline = (FIXTURES / "six_nations_2024_timeline.json").read_text()
+    match, apps = parse_match(summary, timeline)
+    assert match["source_match_id"] == "31163"
+    willemse = next(a for a in apps if a["player_name"] == "Paul Willemse")
+    assert willemse["yellow_cards"] == 1 and willemse["red_cards"] == 1
+    assert willemse["minutes_played"] == 31
+    assert {a["team_name"] for a in apps} == {"France", "Ireland"}
+    by_team = {t: [a for a in apps if a["team_name"] == t] for t in ("France", "Ireland")}
+    assert len(by_team["France"]) == 23 and len(by_team["Ireland"]) == 23
+    assert sum(a["minutes_played"] for a in by_team["Ireland"]) == 1200
+    # France : 1151, pas 1200, car le remplaçant HIA (Fouyssac, entré ~17') est
+    # absent de la feuille et ses événements portent des ids introuvables : l'API
+    # ne permet pas de l'attribuer (~49 minutes perdues, donnée, pas parseur).
+    france_total = sum(a["minutes_played"] for a in by_team["France"])
+    assert france_total == 1151
+    fouyssac = next((a for a in apps if a["player_name"] == "Paul Fouyssac"), None)
+    assert fouyssac is None  # hors feuille : non ingéré

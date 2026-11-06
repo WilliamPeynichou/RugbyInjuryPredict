@@ -68,3 +68,12 @@ allrugby est la source primaire des minutes. Le développement se fait **entièr
 - Cast Polars 2 : `pl.Schema({k: v.type ...})` à partir des dtypes Pandera (`v.type` = classe de dtype) ; centralisé dans `warehouse.staging_frame`.
 - Pas d'appel réseau dans la suite de tests (client jamais instancié hors tests respx ; matérialisation testée sur lac de fixtures).
 - `make check` vert : 109 tests, couverture 93,91 %. CI distante non exécutée.
+
+## Journal (2026-11-06, réécriture sur markup réel)
+
+- **Découverte réelle** : calendrier `/competitions/top-14-{année_fin}/calendrier.html` (188 liens 2023-2024 : 182 journées + barrages/demies/finale/access match) ; matchs `/saison-{saison}/matchs/{slug}-{id}.html` ; joueurs `/joueurs/{slug}-{id}.html`. Les slugs du code initial étaient faux ; corrigés.
+- **Feuille de match** : une seule table `table.fdm` (2 équipes côte à côte, cartons `div.cj|cr|co` avec la minute, lignes de remplacements « X remplacé par Y, N' »). Minutes reconstruites depuis la timeline des remplacements sur 80' (ré-entrées incluses), cartons rouges retirant au moment du carton. **Vérifié** : total 15×80 par équipe et cas HÉGUY (46' + 2' = 48') identique à la page joueur.
+- **Page joueur** : JSON-LD `Person` (nom, nationalité, année de naissance seule → `birth_date = NULL`), taille/poids/poste/JIFF dans le texte de la bio. `positions_raw` = poste français (« 3ème ligne »).
+- **Position** : déduite du numéro (`position_from_shirt`, vocabulaire `positions.csv`) ; banc = `unknown` (convention espn/worldrugby).
+- **Crawl** : reprise sur lac (pages passées non re-téléchargées), un joueur = une seule page, un 404 n'arrête pas la saison (log warning). Filtre de partition corrigé (`/saison-{saison}/matchs/` ; le filtre `/matches/` ratait tout).
+- Fixtures remplacées par des pages réelles nettoyées (usage test interne, voir `tests/fixtures/allrugby/README.md`).

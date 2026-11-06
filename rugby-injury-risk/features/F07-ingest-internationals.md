@@ -68,3 +68,10 @@ La charge internationale est une composante clé de l'enchaînement. Les joueurs
 - ROADMAP : statuts F03, F05, F06 corrigés en `done` (oubli des tours précédents).
 
 - `make check` vert : 131 tests, couverture 91,84 %. CI distante non exécutée. Aucun appel réel aux API.
+
+## Journal (2026-11-06, vérification API réelle)
+
+- Formes de l'API confirmées (list, summary, timeline). **Cartons** : libellés réels `Yellow`/`Red` (le code attendait `Yellow Card`/`Red Card`) → Willemse 31' maintenant correct.
+- **Quirk d'identifiants** : la timeline mélange l'id d'enregistrement (`player.id`) et `playerAltId` selon les événements, et `teamIndex` n'est pas fiable (des événements français portent idx1). Correction : identification par clef (id ou altId) sur la carte des deux feuilles, `teamIndex` ignoré. Minutes des entrants désormais calculées (ex. Bielle-Biarrey 17').
+- **Limite connue** : un remplaçant médical hors feuille (Fouyssac, France–Irlande 2024) a des ids introuvables et ses minutes (~49) ne sont pas attribuables ; le total d'équipe descend à ~1151 au lieu de 1200 dans ce cas. Donnée API, pas un bug parseur (test réel documenté).
+- Fixtures `six_nations_2024_*` ajoutées (données réelles France–Irlande 02/02/2024).

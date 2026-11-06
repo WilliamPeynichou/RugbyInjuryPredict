@@ -11,21 +11,10 @@ from rugby_risk.warehouse import staging_frame, write_staging
 
 @asset(partitions_def=season_partitions, compute_kind="python")
 async def allrugby_raw_pages(context: AssetExecutionContext) -> MaterializeResult:
-    """Collect season/match/player pages into the raw lake. Live: requires human authorization."""
-    season_id = context.partition_key
-    known = {
-        p.rsplit("-", 1)[-1].removesuffix(".html")
-        for p in (
-            row.url_canonical
-            for row in RawStore().iter_manifest("allrugby")
-            if "/joueurs/" in row.url_canonical
-        )
-    }
+    """Collect calendar/match/player pages into the raw lake (live, resumable)."""
     async with PoliteClient("allrugby") as client:
-        stats = await fetch_season(client, season_id, known_player_ids=known)
-    return MaterializeResult(
-        metadata={"match_pages": len(stats["match_ids"]), "player_pages": len(stats["player_ids"])}
-    )
+        stats = await fetch_season(client, context.partition_key)
+    return MaterializeResult(metadata=dict(stats))
 
 
 def _content(store: RawStore, url: str, source: str = "allrugby") -> str:
@@ -36,13 +25,16 @@ def _content(store: RawStore, url: str, source: str = "allrugby") -> str:
 
 
 def _lake_rows(store: RawStore, url_filter: str) -> list:
-    return [row for row in store.iter_manifest("allrugby") if url_filter in row.url_canonical]
+    rows = {
+        r.url_canonical: r for r in store.iter_manifest("allrugby") if url_filter in r.url_canonical
+    }
+    return list(rows.values())  # one row per URL even after refetches
 
 
 def _write_matches(context: AssetExecutionContext) -> Output:
     store = RawStore()
     matches, appearances, quarantined = [], [], []
-    for row in _lake_rows(store, "/matches/"):
+    for row in _lake_rows(store, f"/saison-{context.partition_key}/matchs/"):
         try:
             match, rows = parse_match(_content(store, row.url_canonical), context.partition_key)
         except MatchParseError as error:

@@ -1,34 +1,29 @@
-from pathlib import Path
-
 import pytest
 
 from rugby_risk.parsers.allrugby.player import PlayerParseError, parse_player
 
 pytestmark = pytest.mark.unit
+FIXTURES = "tests/fixtures/allrugby"
 
 
-def test_full_profile():
-    profile = parse_player(
-        Path("tests/fixtures/allrugby/player_full.html").read_text(encoding="utf-8"), "108"
-    )
-    assert profile["full_name"] == "Antoine DUPONT"
-    assert str(profile["birth_date"]) == "1994-12-14"
-    assert profile["height_cm"] == 174
-    assert profile["weight_kg"] == 85
-    assert profile["nationality"] == "France"
-    assert profile["jiff"] is True
+def _load(name):
+    return open(f"{FIXTURES}/{name}", encoding="utf-8").read()
 
 
-def test_partial_profile_no_exception():
-    profile = parse_player(
-        Path("tests/fixtures/allrugby/player_partial.html").read_text(encoding="utf-8"), "319"
-    )
-    assert profile["full_name"] == "Louis FOURNIER"
-    assert profile["birth_date"] is None
-    assert profile["height_cm"] is None
-    assert profile["jiff"] is None
+def test_jiff_player():
+    profile = parse_player(_load("player_jiff.html"), "5427")
+    assert profile["full_name"] == "Baptiste HÉGUY"
+    assert (profile["height_cm"], profile["weight_kg"]) == (196, 108)
+    assert profile["nationality"] == "France" and profile["jiff"] is True
+    assert profile["positions_raw"] == "3ème ligne"
+    assert profile["birth_date"] is None  # allrugby ne donne que l'année
 
 
-def test_invalid_page_quarantined():
+def test_non_jiff_player():
+    profile = parse_player(_load("player_non_jiff.html"), "5005")
+    assert profile["jiff"] is False and profile["nationality"] == "Australie"
+
+
+def test_missing_person_quarantined():
     with pytest.raises(PlayerParseError):
-        parse_player("<html><body>sans nom</body></html>", "1")
+        parse_player("<html><body><h1>x</h1></body></html>", "1")

@@ -16,6 +16,7 @@ REPO = Path(__file__).resolve().parent.parent.parent
 
 pytestmark = pytest.mark.integration
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "allrugby"
+SEASON_URL = "https://www.allrugby.com/saison-2023-2024/matchs"
 
 
 def _seed_lake(tmp_path):
@@ -23,11 +24,13 @@ def _seed_lake(tmp_path):
     data_dir.mkdir()
     store = RawStore(data_dir / "raw")
     pages = {
-        "match_red_card.html": "https://www.allrugby.com/matches/1",
-        "match_standard.html": "https://www.allrugby.com/matches/2",
-        "match_playoff.html": "https://www.allrugby.com/matches/3",
-        "player_full.html": "https://www.allrugby.com/joueurs/antoine-dupont-108.html",
-        "player_partial.html": "https://www.allrugby.com/joueurs/louis-fournier-319.html",
+        "match_standard.html": f"{SEASON_URL}/bayonne-bordeaux-19357.html",
+        "match_reentry_no_venue.html": f"{SEASON_URL}/bayonne-toulouse-19238.html",
+        "match_final_yellow.html": f"{SEASON_URL}/toulouse-bordeaux-21156.html",
+        # autre saison + Pro D2 : ignorée par le filtre de saison de la partition
+        "match_prod2_red.html": "https://www.allrugby.com/saison-2021-2022/matchs/montauban-bayonne-14708.html",
+        "player_jiff.html": "https://www.allrugby.com/joueurs/baptiste-heguy-5427.html",
+        "player_non_jiff.html": "https://www.allrugby.com/joueurs/adam-coleman-5005.html",
     }
     for file, url in pages.items():
         content = (FIXTURES / file).read_bytes()
@@ -104,5 +107,5 @@ def test_staging_assets_offline_and_idempotent(tmp_path):
     SCHEMAS["match"].validate(matches)
     SCHEMAS["appearance"].validate(apps)
     SCHEMAS["player_profile"].validate(profiles)
-    assert matches.height == 3 and apps.height == 120 and profiles.height == 2
-    assert set(profiles["source_player_id"]) == {"108", "319"}
+    assert matches.height == 3 and apps.height == 3 * 46 and profiles.height == 2
+    assert set(profiles["source_player_id"]) == {"5427", "5005"}
