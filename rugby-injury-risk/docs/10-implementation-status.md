@@ -62,7 +62,8 @@ Git :
 | Source | `authorized` | Note |
 |---|---|---|
 | lnr | ✅ true | Décision humaine du 2026-11-03, dans le cadre de la fouille de textes et de données (art. L.122-5-3 CPI) : recherche non commerciale, sans redistribution, `min_delay_seconds: 5.0`, robots.txt respecté. **Consigne humaine** : si la LNR bloque (refus, robots, 403/429 persistants), on garde ce qui est déjà collecté, sans contournement. Aucun crawl réel lancé. |
-| allrugby, itsrugby, espn, worldrugby, apisports, sportradar, wikipedia, news | ❌ false | F03 lève `SourceNotAuthorizedError` avant tout appel réseau (testé). Le code de collecte en ligne existe pour allrugby, espn et worldrugby. |
+| allrugby, espn, worldrugby, apisports, wikipedia, news | ✅ true | Décision humaine du 2026-11-06, même cadre de fouille de textes et de données. `news` = Rugbyrama RSS seulement. Données de santé : recherche pseudonymisée, modèles expérimentaux non promouvables avant l'avis du juriste. |
+| itsrugby, sportradar | ❌ false | Fermées. |
 
 API retenue pour le calendrier (F08) : **API-Sports**. Elle est freemium selon le document de
 recherche. Les quotas ne sont pas vérifiés. La clé doit être fournie hors dépôt, via `.env`.

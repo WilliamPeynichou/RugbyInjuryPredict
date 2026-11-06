@@ -106,9 +106,3 @@ def test_staging_assets_offline_and_idempotent(tmp_path):
     SCHEMAS["player_profile"].validate(profiles)
     assert matches.height == 3 and apps.height == 120 and profiles.height == 2
     assert set(profiles["source_player_id"]) == {"108", "319"}
-
-
-def test_live_run_fails_cleanly(tmp_path):
-    result = _materialize("allrugby_raw_pages", tmp_path)
-    assert result.returncode != 0
-    assert "SourceNotAuthorizedError" in result.stderr
