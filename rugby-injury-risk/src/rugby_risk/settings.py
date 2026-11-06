@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     pseudonym_salt: SecretStr = SecretStr("")
     llm_api_key: SecretStr = SecretStr("")
     llm_model: str = ""
+    llm_base_url: str = "https://api.openai.com/v1"
+    llm_max_retries_json: int = 2
     supabase_url: str = ""
     supabase_service_key: SecretStr = SecretStr("")
     mlflow_tracking_uri: str = "./mlruns"

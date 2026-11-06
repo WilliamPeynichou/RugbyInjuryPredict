@@ -60,9 +60,46 @@ class StagingFixture(pa.DataFrameModel):
     source: pl.String
 
 
+class StagingNewsDoc(pa.DataFrameModel):
+    """Press document (input of F15; produced by F14 when authorized)."""
+
+    doc_id: pl.String
+    url: pl.String
+    published_at: pl.Datetime(time_zone="UTC")  # type: ignore[valid-type]
+    title: pl.String = pa.Field(nullable=True)
+    text: pl.String
+
+
+class StagingInjuryMention(pa.DataFrameModel):
+    """Structured injury mention extracted from a press document (F15)."""
+
+    mention_id: pl.String
+    doc_id: pl.String
+    player_name: pl.String
+    team_name: pl.String = pa.Field(nullable=True)
+    player_id: pl.Int64 = pa.Field(nullable=True)
+    match_id: pl.Int64 = pa.Field(nullable=True)
+    onset_date: pl.Date = pa.Field(nullable=True)
+    onset_context: pl.String
+    body_region: pl.String = pa.Field(nullable=True)
+    injury_type: pl.String = pa.Field(nullable=True)
+    is_concussion: pl.Boolean
+    announced_duration_days_min: pl.Int64 = pa.Field(nullable=True)
+    announced_duration_days_max: pl.Int64 = pa.Field(nullable=True)
+    season_ending: pl.Boolean
+    return_mentioned: pl.Boolean
+    quote: pl.String = pa.Field(nullable=True)
+    needs_review: pl.Boolean
+    extraction_model: pl.String
+    prompt_version: pl.String
+    extracted_at: pl.Datetime(time_zone="UTC")  # type: ignore[valid-type]
+
+
 SCHEMAS = {
     "match": StagingMatch,
     "appearance": StagingAppearance,
     "player_profile": StagingPlayerProfile,
     "fixture_calendar": StagingFixture,
+    "news_doc": StagingNewsDoc,
+    "injury_mention": StagingInjuryMention,
 }

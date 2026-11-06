@@ -15,6 +15,7 @@ from orchestration.assets.entities import (
     player_entities,
 )
 from orchestration.assets.europe import europe_staging_espn
+from orchestration.assets.injury_mentions import injury_mentions
 from orchestration.assets.internationals import (
     intl_minutes_check,
     intl_staging_espn,
@@ -37,6 +38,7 @@ defs = Definitions(
         calendar_staging,
         player_entities,
         participation_marts,
+        injury_mentions,
     ],
     asset_checks=[
         er_unique_source_id,

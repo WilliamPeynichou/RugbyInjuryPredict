@@ -1,6 +1,6 @@
 # 10 — Journal d'implémentation (état des lieux)
 
-État au 2026-11-05, features F00 à F13 livrées.
+État au 2026-11-05, features F00 à F15 livrées (F14 héritée, fiche à reprendre).
 
 Ce document est la vue d'ensemble pour reprendre le développement :
 1. ce qui est fait ;
@@ -20,7 +20,7 @@ Les sources de vérité détaillées restent :
 | 0 — Socle | F00 bootstrap, F01 registre des sources, F02 données de référence | ✅ fait |
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
 | 2 — Internationaux, coupes, entités | F07 → F11 | ✅ fait |
-| 3 — Labellisation des blessures | F12, F13 ✅ ; F14 → F16 | 🟡 en cours |
+| 3 — Labellisation des blessures | F12, F13, F15 ✅ ; F14 (fiche), F16 | 🟡 en cours |
 | 4 — Table d'apprentissage et baselines | F17 → F20 | ⬜ à faire |
 | 5 — Modèle de production | F21, F22 | ⬜ à faire |
 | 6 — Challenger et gravité | F23, F24 | ⬜ à faire |
@@ -33,7 +33,7 @@ couverture 88,05 %).
 Git :
 - une branche `feat/Fxx-*` par feature, avec des commits Conventional Commits ;
 - les branches sont **empilées** : chacune part de la précédente, et
-  `feat/F13-signal-absences` contient tout l'historique ;
+  `feat/F15-llm-injury-extraction` contient tout l'historique ;
 - rien n'est encore fusionné dans une branche `main`.
 
 ## 2. Ce qui est fait
@@ -53,7 +53,8 @@ Git :
 | F10 | `3d89672` | Marts dbt `dim_team`, `fact_match`, `fact_appearance`, `fact_squad_membership`, `fact_eligibility`, `match_minutes_check`, `dim_season.quality_flag`. Ids stables (md5 de la clé naturelle). Asset `participation_marts` (dbtRunner, sans dagster-dbt) + check `top14_minutes_quality` (`ERROR` < 98 %). Rapport `reports/coverage.md`. |
 | F11 | `2470a0c` | Macro dbt `consecutive_run_id` (seule implémentation des séquences, réutilisée en F17). Modèle `analysis_player_sequences` (séquences par joueur et saison, raison de fin). `analysis/sequences.py` (médiane, P90, max, charge, rotations courtes, k ≥ 10) et figures matplotlib. CLI `rugby-risk report sequences` → `reports/descriptive_sequences.md`. |
 | F12 | (voir `feat/F12-signal-exits`) | Seuils dans `config/injury_rules.yaml` (Pydantic → vars dbt). Modèle `int_injury_signal__exit` (force ∈ [0,1], bloc × 0,3, absent-au-match-suivant + 0,2 ; info postérieure, cible uniquement). `off_reason_derived` (sources non écrasées). Rapport `reports/exit_calibration.md`. |
-| F13 | (ce commit) | `int_absence_runs` (6 règles ordonnées, censure fin de saison), `int_eligibility__with_reason` (enrichissement sans écrasement), `fact_unavailability` (hors injury_candidate), `int_absence_report`. Seuils dans `config/injury_rules.yaml` (section `absence_signal`). Rapport `reports/absence_reasons.md`. |
+| F13 | `a5bdd9b` | `int_absence_runs` (6 règles ordonnées, censure fin de saison), `int_eligibility__with_reason` (enrichissement sans écrasement), `fact_unavailability` (hors injury_candidate), `int_absence_report`. Seuils dans `config/injury_rules.yaml` (section `absence_signal`). Rapport `reports/absence_reasons.md`. |
+| F15 | (ce commit) | Client LLM OpenAI-compatible (httpx, cache disque, retry JSON, tokens loggés) — refuse de s'appeler sans clé validée humainement. Prompt versionné `extract_v1`, schémas Pydantic (`InjuryMention`), conversion durées FR, rattachement joueur (normalize F09 + effectif saison) et match (≤ 7 j), file `data/review/news_player_queue.csv`. Staging `news_doc` + `injury_mention`. Asset `injury_mentions`. Vocabulaires testés contre docs/04. |
 | Docs | `0ee73f2` | Première version de ce document. |
 
 ### Autorisations de collecte (état réel)
@@ -106,6 +107,9 @@ Les détails sont dans les Journaux des fiches.
     dossier `source=` écrase la colonne `source`). Minutes inconnues = `NULL` (pas 0) ;
     `played` = `true` pour un titulaire sans minutes, `NULL` pour un remplaçant sans minutes
     (écart documenté dans `docs/04`). Pas de `dagster-dbt` : un asset appelle `dbtRunner`.
+19. **LLM F15** : client générique OpenAI-compatible, jamais appelé sans validation humaine
+    (clé/fournisseur, docs/07) ; cache disque par (doc_id, prompt_version, model) ; le pipeline
+    est testé avec un stub injecté, jamais de réseau. Entrée `news_doc` = contrat F14.
 18. **Signaux F12/F13** : seuils dans `config/injury_rules.yaml` (vars dbt) ; les `sources` (fact_appearance, fact_eligibility) ne sont jamais écrasés — les enrichissements (`off_reason_derived`, `absence_reason`) vivent dans des modèles intermédiaires.
 17. **Séquences F11** : coupées en fin de saison ; remplaçant sans minutes = non joué (casse
     la séquence). Dépendance `matplotlib` ajoutée (API `Figure`, sans pyplot).
@@ -149,9 +153,8 @@ Le développement et les tests sur fixtures restent toujours possibles.
 
 | ID | Feature | Dépend de | Prérequis humain | Points d'attention |
 |---|---|---|---|---|
-| **F14** | Collecte presse | F03, F04 | Choix des flux autorisés | `news` reste `false` sans décision humaine. |
-| F15 | Extraction LLM des blessures | F14, F09 | Clé LLM dans `.env`, budget validé | Sortie Pydantic, modèle choisi par `LLM_MODEL`. |
-| F16 | Fusion, annotation, contrôle qualité | F12, F13, F15 | 300 à 500 épisodes annotés à la main ; avis d'un juriste sur l'art. 9 | Comparer l'incidence obtenue aux priors (PRISP). |
+| F14 | Collecte presse | F03, F04 | Choix des flux autorisés | `news` reste `false` sans décision humaine ; fiche à reprendre (T9). |
+| **F16** | Fusion, annotation, contrôle qualité | F12, F13, F15 | 300 à 500 épisodes annotés à la main ; avis juriste art. 9 | Comparer l'incidence aux priors (PRISP). |
 | F17 | Table `ml_player_match` et test anti-fuite | F16 | — | Features calculées à `as_of_ts` ; `player_key` pseudonymisé. |
 | F18 | Cadre d'évaluation et MLflow | F17 | — | Découpage par saison, log-loss et Brier, bootstrap par joueur. |
 | F19 | Baseline Poisson par poste | F18 | — | Référence M0 et priors. |
@@ -166,7 +169,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F15** (extraction LLM). Écart connu : la fiche F14 est marquée
+Prochaine étape immédiate : **F16** (fusion des signaux et annotation). Écart connu : la fiche F14 est marquée
 `done` dans la ROADMAP (code de collecte presse hérité de F03) mais ses cases et son Journal
 ne sont pas remplis — à reprendre au passage.
 Run réel F09 : audit humain de 100 joueurs (critère F09) ; les parseurs
