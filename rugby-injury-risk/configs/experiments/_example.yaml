@@ -1,0 +1,8 @@
+# Exemple de configuration d'expérience (F18). Copier vers un nouveau fichier par run.
+# Surcharges de rugby_risk.modeling.runner.ExperimentConfig (valeurs par défaut ci-dessous).
+min_train_seasons: 5
+allow_final_test: false # true uniquement pour une version majeure, journalisé
+bootstrap_replications: 500
+seed: 0
+target_col: y_injury
+mlflow_uri: sqlite:///data/mlflow.db
