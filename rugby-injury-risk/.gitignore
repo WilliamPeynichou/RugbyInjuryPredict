@@ -28,3 +28,6 @@ dbt/.user.yml
 dbt/logs/
 dbt/target/
 .dagster_home/
+reports/experiments/
+data/mlflow.db
+data/ml/

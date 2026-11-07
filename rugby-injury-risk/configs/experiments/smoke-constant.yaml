@@ -1,0 +1,7 @@
+# Smoke test F18 sur vraies données (3 saisons pilotes seulement -> min_train_seasons: 1).
+min_train_seasons: 1
+allow_final_test: false
+bootstrap_replications: 100
+seed: 0
+target_col: y_injury
+mlflow_uri: sqlite:///data/mlflow.db
