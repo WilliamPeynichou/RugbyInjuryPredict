@@ -17,7 +17,36 @@ from rugby_risk.injuries.exit_report import write_report
 from rugby_risk.warehouse import connect
 
 
-def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0912, PLR0915
+def _train(model_name: str, config_path: Path) -> int:
+    """F18: entraînement via le runner (splits par saison, MLflow, rapport)."""
+    import polars as pl  # noqa: PLC0415
+    import yaml  # noqa: PLC0415 - import paresseux : évite sklearn/mlflow au démarrage
+
+    from rugby_risk.modeling.null import registry  # noqa: PLC0415
+    from rugby_risk.modeling.runner import (  # noqa: PLC0415
+        ExperimentConfig,
+        run_experiment,
+    )
+
+    factories = registry()
+    if model_name not in factories:
+        raise SystemExit(f"Modèle inconnu: {model_name} (disponibles: {sorted(factories)})")
+    overrides = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    config = ExperimentConfig(**overrides)
+    export_path = Path("data/ml/ml_player_match.parquet")
+    if not export_path.exists():
+        raise SystemExit(
+            f"Export introuvable: {export_path} — lancer d'abord le pipeline"
+            " (scripts/run_pipeline.sh) pour matérialiser l'asset ml_table."
+        )
+    df = pl.read_parquet(export_path)
+    result = run_experiment(factories[model_name], df, config)
+    print(f"Rapport : {result.report_path}")
+    print(f"Log-loss pooled: {result.aggregated.log_loss:.4f}")
+    return 0
+
+
+def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0911, PLR0912, PLR0915
     parser = argparse.ArgumentParser(prog="rugby-risk")
     sub = parser.add_subparsers(dest="group", required=True)
     raw = sub.add_parser("raw")
@@ -37,6 +66,9 @@ def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0912, PLR0915
     report_sub.add_parser(
         "injury-quality", help="reports/injury_label_quality.md (F16, après annotation)"
     )
+    train = sub.add_parser("train", help="entraîne un modèle via le cadre F18")
+    train.add_argument("model_name", help="nom dans rugby_risk.modeling.null.registry()")
+    train.add_argument("--config", default="configs/experiments/_example.yaml")
     annotate = sub.add_parser(
         "annotate", help="échantillon d'annotation humaine des épisodes (F16)"
     )
@@ -92,6 +124,8 @@ def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0912, PLR0915
         path = record_decision(args.key, args.kind, args.decision, args.confidence)
         print(f"Décision enregistrée dans {path}")
         return 0
+    if args.group == "train":
+        return _train(args.model_name, Path(args.config))
     if args.group == "er":
         if args.cmd == "review":
             queue = read_review_queue()

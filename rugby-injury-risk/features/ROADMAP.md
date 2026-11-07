@@ -46,7 +46,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
 | F17 | [Table ml_player_match et test anti-fuite](F17-ml-table-leakage.md) | F16 | L | done |
-| F18 | [Cadre d'évaluation temporelle et MLflow](F18-evaluation-framework.md) | F17 | M | todo |
+| F18 | [Cadre d'évaluation temporelle et MLflow](F18-evaluation-framework.md) | F17 | M | done |
 | F19 | [Baseline Poisson par poste et priors](F19-baseline-poisson.md) | F18 | S | todo |
 | F20 | [Hazard en temps discret](F20-discrete-hazard.md) | F19 | M | todo |
 
