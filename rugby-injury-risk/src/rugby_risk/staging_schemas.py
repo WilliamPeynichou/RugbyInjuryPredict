@@ -95,6 +95,25 @@ class StagingInjuryMention(pa.DataFrameModel):
     extracted_at: pl.Datetime(time_zone="UTC")  # type: ignore[valid-type]
 
 
+class StagingInjuryEpisode(pa.DataFrameModel):
+    """Fused injury episodes (F16), written by the injury_episodes asset (source=fusion)."""
+
+    player_id: pl.Int64
+    onset_date: pl.Date = pa.Field(nullable=True)
+    onset_match_id: pl.Int64 = pa.Field(nullable=True)
+    context: pl.String = pa.Field(nullable=True)
+    body_region: pl.String = pa.Field(nullable=True)
+    injury_type: pl.String = pa.Field(nullable=True)
+    is_concussion: pl.Boolean = pa.Field(nullable=True)
+    return_date: pl.Date = pa.Field(nullable=True)
+    days_missed: pl.Int64 = pa.Field(nullable=True)
+    severity_class: pl.String = pa.Field(nullable=True)
+    censored: pl.Boolean = pa.Field(nullable=True)
+    source_confidence: pl.Float64 = pa.Field(nullable=True, ge=0.0, le=1.0)
+    signals: pl.String
+    evidence: pl.String
+
+
 SCHEMAS = {
     "match": StagingMatch,
     "appearance": StagingAppearance,
@@ -102,4 +121,5 @@ SCHEMAS = {
     "fixture_calendar": StagingFixture,
     "news_doc": StagingNewsDoc,
     "injury_mention": StagingInjuryMention,
+    "injury_episode": StagingInjuryEpisode,
 }
