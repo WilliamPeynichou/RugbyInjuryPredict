@@ -39,7 +39,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 | F13 | [Signal « absence » et motifs non-blessure](F13-signal-absences.md) | F10 | M | done |
 | F14 | [Collecte presse et points médicaux](F14-ingest-news.md) | F03, F04 | M | done |
 | F15 | [Extraction LLM des blessures](F15-llm-injury-extraction.md) | F14, F09 | L | done |
-| F16 | [Fusion des signaux, annotation et contrôle qualité](F16-injury-fusion-annotation.md) | F12, F13, F15 | L | todo |
+| F16 | [Fusion des signaux, annotation et contrôle qualité](F16-injury-fusion-annotation.md) | F12, F13, F15 | L | in_progress |
 
 ## Phase 4 — Table d'apprentissage et baselines
 

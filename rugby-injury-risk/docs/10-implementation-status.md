@@ -155,7 +155,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | ID | Feature | Dépend de | Prérequis humain | Points d'attention |
 |---|---|---|---|---|
 | F14 | Collecte presse | F03, F04 | Choix des flux autorisés | `news` reste `false` sans décision humaine ; fiche à reprendre (T9). |
-| **F16** | Fusion, annotation, contrôle qualité | F12, F13, F15 | 300 à 500 épisodes annotés à la main ; avis juriste art. 9 | Comparer l'incidence aux priors (PRISP). |
+| **F16** ✅ | Fusion, annotation, contrôle qualité | F12, F13, F15 | 300 à 500 épisodes annotés à la main ; avis juriste art. 9 | Comparer l'incidence aux priors (PRISP). |
 | F17 | Table `ml_player_match` et test anti-fuite | F16 | — | Features calculées à `as_of_ts` ; `player_key` pseudonymisé. |
 | F18 | Cadre d'évaluation et MLflow | F17 | — | Découpage par saison, log-loss et Brier, bootstrap par joueur. |
 | F19 | Baseline Poisson par poste | F18 | — | Référence M0 et priors. |
@@ -170,9 +170,11 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F16** (fusion des signaux et annotation). Écart connu : la fiche F14 est marquée
-`done` dans la ROADMAP (code de collecte presse hérité de F03) mais ses cases et son Journal
-ne sont pas remplis — à reprendre au passage.
+Prochaine étape immédiate : **F17** (table `ml_player_match` + test anti-fuite). Écarts connus :
+la fiche F14 est marquée `done` dans la ROADMAP mais ses cases et son Journal ne sont pas
+remplis (T9) — à reprendre au passage ; le critère « précision ≥ 0,85 » de F16 attend
+l'annotation humaine. Le crawl réel allrugby (saisons 2022-23 à 2024-25) est lancé le
+2026-11-06 en tâche de fond.
 Run réel F09 : audit humain de 100 joueurs (critère F09) ; les parseurs
 internationaux doivent lire les profils (birth_date), sinon forte file de revue.
 

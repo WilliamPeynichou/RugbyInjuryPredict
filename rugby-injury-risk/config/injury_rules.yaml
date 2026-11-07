@@ -16,3 +16,17 @@ absence_signal:
   protected_rest_max_matches: 1
   exit_link_threshold: 0.5
   intl_history_days: 365
+fusion:
+  # Fenêtre de groupement des signaux d'un même joueur (jours)
+  signal_window_days: 10
+  # Deux épisodes fusionnés si l'écart (onset2 vs fin de l'épisode 1) < N jours
+  merge_gap_days: 7
+  # Score de confiance des épisodes (table des combinaisons)
+  announcement_alone: 0.7
+  announcement_detail_bonus: 0.1
+  exit_absence: 0.75
+  exit_announcement: 0.9
+  exit_absence_announcement: 0.95
+  exit_weight: 0.6
+  absence_alone: 0.4
+  confidence_cap: 0.99

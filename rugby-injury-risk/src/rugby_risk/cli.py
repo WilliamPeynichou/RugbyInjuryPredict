@@ -6,12 +6,18 @@ from pathlib import Path
 from rugby_risk.analysis.sequences import write_report as write_sequences_report
 from rugby_risk.entity_resolution.review import decide, read_review_queue
 from rugby_risk.http.store import RawStore
+from rugby_risk.injuries import evaluate
 from rugby_risk.injuries.absence_report import write_report as write_absences_report
+from rugby_risk.injuries.annotation import (
+    ANNOTATIONS_PATH,
+    draw_sample,
+    record_decision,
+)
 from rugby_risk.injuries.exit_report import write_report
 from rugby_risk.warehouse import connect
 
 
-def main(argv: Sequence[str] | None = None) -> int:
+def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0912, PLR0915
     parser = argparse.ArgumentParser(prog="rugby-risk")
     sub = parser.add_subparsers(dest="group", required=True)
     raw = sub.add_parser("raw")
@@ -28,6 +34,21 @@ def main(argv: Sequence[str] | None = None) -> int:
     report_sub.add_parser("sequences", help="reports/descriptive_sequences.md (F11)")
     report_sub.add_parser("exits", help="reports/exit_calibration.md (F12)")
     report_sub.add_parser("absences", help="reports/absence_reasons.md (F13)")
+    report_sub.add_parser(
+        "injury-quality", help="reports/injury_label_quality.md (F16, après annotation)"
+    )
+    annotate = sub.add_parser(
+        "annotate", help="échantillon d'annotation humaine des épisodes (F16)"
+    )
+    annotate_sub = annotate.add_subparsers(dest="cmd", required=True)
+    sample_parser = annotate_sub.add_parser("sample", help="tire et affiche l'échantillon")
+    sample_parser.add_argument("--n", type=int, default=400)
+    sample_parser.add_argument("--seed", type=int, default=42)
+    decide_parser = annotate_sub.add_parser("decide", help="enregistre une décision humaine")
+    decide_parser.add_argument("key")
+    decide_parser.add_argument("decision", choices=["injury", "not_injury", "unsure"])
+    decide_parser.add_argument("--kind", choices=["episode", "non_episode"], default="episode")
+    decide_parser.add_argument("--confidence", type=float, default=0.0)
     args = parser.parse_args(argv)
     if args.group == "report":
         with closing(connect()) as con:
@@ -35,10 +56,41 @@ def main(argv: Sequence[str] | None = None) -> int:
                 out, writer = Path("reports/exit_calibration.md"), write_report
             elif args.cmd == "absences":
                 out, writer = Path("reports/absence_reasons.md"), write_absences_report
+            elif args.cmd == "injury-quality":
+                metrics = evaluate.compute_metrics(evaluate.load_annotations(ANNOTATIONS_PATH))
+                out = Path("reports/injury_label_quality.md")
+                out.write_text(
+                    evaluate.quality_report_markdown(
+                        evaluate.load_annotations(ANNOTATIONS_PATH), metrics
+                    ),
+                    encoding="utf-8",
+                )
+                print(f"Rapport écrit : {out}")
+                return 0
             else:
                 out, writer = Path("reports/descriptive_sequences.md"), write_sequences_report
             path = writer(con, out)
         print(f"Rapport écrit : {path}")
+        return 0
+    if args.group == "annotate":
+        if args.cmd == "sample":
+            with closing(connect()) as con:
+                sample = draw_sample(con, n=args.n, seed=args.seed)
+            out = Path("data/review/annotation_sample.csv")
+            out.parent.mkdir(parents=True, exist_ok=True)
+            with out.open("w", encoding="utf-8") as fh:
+                fh.write("episode_kind,key,season,band,confidence,summary\n")
+                for item in sample:
+                    fh.write(
+                        f"{item.episode_kind},{item.key},{item.season},"
+                        f"{item.band},{item.confidence:.4f},{item.summary}\n"
+                    )
+            for item in sample[:50]:
+                print(f"[{item.episode_kind}] {item.key} {item.summary}")
+            print(f"{len(sample)} items -> {out}")
+            return 0
+        path = record_decision(args.key, args.kind, args.decision, args.confidence)
+        print(f"Décision enregistrée dans {path}")
         return 0
     if args.group == "er":
         if args.cmd == "review":

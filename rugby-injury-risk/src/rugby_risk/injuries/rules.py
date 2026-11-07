@@ -32,11 +32,27 @@ class AbsenceSignalRules(BaseModel):
     intl_history_days: int = Field(ge=0)
 
 
+class FusionRules(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    signal_window_days: int = Field(ge=1)
+    merge_gap_days: int = Field(ge=1)
+    announcement_alone: float = Field(ge=0, le=1)
+    announcement_detail_bonus: float = Field(ge=0, le=1)
+    exit_absence: float = Field(ge=0, le=1)
+    exit_announcement: float = Field(ge=0, le=1)
+    exit_absence_announcement: float = Field(ge=0, le=1)
+    exit_weight: float = Field(ge=0, le=1)
+    absence_alone: float = Field(ge=0, le=1)
+    confidence_cap: float = Field(gt=0, le=1)
+
+
 class InjuryRules(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     exit_signal: ExitSignalRules
     absence_signal: AbsenceSignalRules
+    fusion: FusionRules
 
 
 def load_rules(path: Path = Path("config/injury_rules.yaml")) -> InjuryRules:

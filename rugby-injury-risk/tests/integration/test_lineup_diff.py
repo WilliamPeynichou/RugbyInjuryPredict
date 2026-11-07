@@ -34,7 +34,7 @@ def _put(store, url, content):
 
 
 def _allrugby_same_teams_html() -> bytes:
-    """Feuille allrugby (markup allrugby-1) pour le même match, avec UN joueur différent."""
+    """Feuille allrugby (markup allrugby-2) pour le même match, avec UN joueur différent."""
     names = [
         ("Cyril BAILLE", "1"),
         ("Peato MAUVAKA", "2"),
@@ -86,30 +86,43 @@ def _allrugby_same_teams_html() -> bytes:
         ("Gaetan GERMAIN", "23"),
     ]
 
-    def rows(names, team, city):
+    def rows(home, away):
         out = []
-        for shirt, (name, pid) in enumerate(names, start=1):
-            href = f"/joueurs/{name.lower().replace(' ', '-')}-{pid}.html"
+        pairs = zip(home, away, strict=True)
+        for shirt, ((hname, hpid), (aname, apid)) in enumerate(pairs, start=1):
+            href_h = f"/joueurs/{hname.lower().replace(' ', '-')}-{hpid}.html"
+            href_a = f"/joueurs/{aname.lower().replace(' ', '-')}-{apid}.html"
             out.append(
-                f'<tr><td class="n">{shirt}</td>'
-                f'<td class="player-name"><a href="{href}">{name}</a></td>'
-                f'<td class="minutes">80</td><td class="card"></td></tr>'
+                "<tr>"
+                '<td class="txtcenter"><div class="cartons"></div></td>'
+                "<td></td><td></td><td></td><td></td>"
+                f'<td class="txtright jiff"><strong><a href="{href_h}">{hname}</a></strong></td>'
+                f'<td class="txtcenter">{shirt}</td>'
+                f'<td class="txtleft jiff"><strong><a href="{href_a}">{aname}</a></strong></td>'
+                "<td></td><td></td><td></td><td></td>"
+                '<td class="txtcenter"><div class="cartons"></div></td>'
+                "</tr>"
             )
-        table = f'<table class="club_stats"><caption>{team} — {city}</caption>'
-        return f"{table}<tbody>{''.join(out)}</tbody></table>"
+        return "".join(out)
 
     return (
-        "<html><body>"
-        '<div class="matchinfo"><h2><span class="home">Stade Toulousain</span> '
-        '<span class="away">Union Bordeaux Bègles</span></h2>'
-        '<span class="competition-seo">top14</span><span class="season">2024-2025</span>'
-        '<span class="round">J10</span><span class="match-id">999</span>'
-        '<span class="kickoff">21/12/2024 21:05</span>'
-        '<div class="venue"><span itemprop="name">Stade Ernest-Wallon</span></div>'
-        '<span class="score">27-19</span></div>'
-        + rows(names, "Stade Toulousain", "Toulouse")
-        + rows(away_names, "Union Bordeaux Bègles", "Bordeaux")
-        + "</body></html>"
+        "<html><head>"
+        '<link rel="canonical" href="https://www.allrugby.com/saison-2024-2025/'
+        'matchs/toulouse-ubb-999.html"/></head><body>'
+        '<div id="container"><div class="pas"><div class="txtcenter">'
+        "<strong>Date : </strong>samedi 21 décembre 2024 "
+        "<strong>Coup d'envoi : </strong>21h05 "
+        "<strong>Stade : </strong>Stade Ernest-Wallon "
+        "<strong>Competition : </strong>Top 14 <strong>Phase : </strong>poule</div>"
+        '<div class="match_entete"><div class="equipe">Stade Toulousain</div>'
+        '<div class="score">27</div><div class="vs"></div>'
+        '<div class="score">19</div><div class="equipe">Union Bordeaux Bègles</div></div>'
+        '<div class="grid-2"><div><h1>Match Toulouse vs Bordeaux</h1>'
+        "pour le compte de la journée 10 de Top 14.</div></div>"
+        '<table class="rtable striped alternate fdm rtablecenter">'
+        "<caption>Feuille de match Toulouse vs Bordeaux</caption>"
+        f"<tbody>{rows(names, away_names)}</tbody></table>"
+        "</div></div></body></html>"
     ).encode()
 
 
@@ -138,7 +151,9 @@ def _seed(tmp_path):
     lnr_store.put(
         FetchResult(
             "allrugby",
-            canonicalize_url("https://www.allrugby.com/matches/999"),
+            canonicalize_url(
+                "https://www.allrugby.com/saison-2024-2025/matchs/toulouse-ubb-999.html"
+            ),
             200,
             ar_content,
             "text/html",

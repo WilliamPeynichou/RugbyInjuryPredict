@@ -3,6 +3,7 @@ from pathlib import Path
 import pytest
 
 from rugby_risk import reference
+from rugby_risk.parsers.allrugby.match import MatchParseError
 from rugby_risk.parsers.allrugby.match import parse_match as parse_allrugby
 from rugby_risk.parsers.espn import parse_scoreboard, parse_summary
 from rugby_risk.parsers.lnr import parse_lineup
@@ -35,7 +36,10 @@ def test_lookups():
 
 def _fixture_matches():
     for path in (FIX / "allrugby").glob("match_*.html"):
-        yield parse_allrugby(path.read_text(), "2023-2024")[0]
+        try:
+            yield parse_allrugby(path.read_text(), "2023-2024")[0]
+        except MatchParseError:
+            continue  # quarantaine légitime (ex. page Pro D2 hors périmètre)
     for path in (FIX / "lnr").glob("lineup_*.html"):
         yield parse_lineup(path.read_text(), "2024-2025")[0]
     for name in (

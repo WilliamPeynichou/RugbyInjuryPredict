@@ -1,0 +1,17 @@
+version: 2
+models:
+  - name: fact_injury_event
+    description: Épisodes de blessure candidats (fusion F12/F13/F15), confiance par combinaison de signaux.
+    columns:
+      - name: player_id
+        tests: [not_null]
+      - name: onset_date
+        tests: [not_null]
+      - name: context
+        tests:
+          - accepted_values:
+              values: ['match', 'training', 'unknown']
+      - name: severity_class
+        tests:
+          - accepted_values:
+              values: ['minimal_mild', 'moderate', 'severe', 'unknown']
