@@ -25,7 +25,7 @@ def exit_signals(exit_frame: pl.DataFrame) -> list[Signal]:
                         "match_id": row["match_id"],
                         "minute_off": row["minute_off"],
                         "off_reason_derived": row["off_reason_derived"],
-                        "signal_strength": row["signal_strength"],
+                        "signal_strength": float(row["signal_strength"]),
                     }
                 ],
             )
