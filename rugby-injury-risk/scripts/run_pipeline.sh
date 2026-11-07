@@ -26,4 +26,5 @@ done
 materialize --select participation_marts
 materialize --select injury_mentions
 materialize --select injury_episodes
+materialize --select ml_table
 echo "PIPELINE_OK"
