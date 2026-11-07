@@ -23,6 +23,7 @@ from orchestration.assets.internationals import (
     intl_staging_worldrugby,
 )
 from orchestration.assets.lnr import lnr_staging_lineups, lnr_vs_allrugby
+from orchestration.assets.ml import ml_table
 
 defs = Definitions(
     assets=[
@@ -41,6 +42,7 @@ defs = Definitions(
         participation_marts,
         injury_mentions,
         injury_episodes,
+        ml_table,
     ],
     asset_checks=[
         er_unique_source_id,

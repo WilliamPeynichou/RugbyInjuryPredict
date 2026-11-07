@@ -1,6 +1,6 @@
 import pytest
 
-from rugby_risk.parsers.allrugby.match import MatchParseError, parse_match
+from rugby_risk.parsers.allrugby.match import MatchParseError, _minutes, parse_match
 
 pytestmark = pytest.mark.unit
 FIXTURES = "tests/fixtures/allrugby"
@@ -65,3 +65,31 @@ def test_invalid_pages_quarantined():
     no_id = _load("match_standard.html").replace('rel="canonical"', 'rel="x"')
     with pytest.raises(MatchParseError, match="Identifiant"):
         parse_match(no_id, "2023-2024")
+
+
+def _synth_players(n: int) -> list[dict[str, object]]:
+    return [
+        {
+            "player_name": f"Joueur {i}",
+            "shirt": i,
+            "yellow": 0,
+            "red": 0,
+            "red_minute": None,
+            "source_player_id": str(i),
+        }
+        for i in range(1, n + 1)
+    ]
+
+
+def test_extra_time_match_is_100_minutes():
+    players = _synth_players(16)
+    # Un remplacement à 91' : match en prolongation, tous les titulaires restants montent à 100'.
+    subs = [("JOUEUR 15", "JOUEUR 16", 91)]
+    minutes = _minutes(players, subs)
+    assert minutes[15] == 91
+    assert minutes[16] == 9
+    assert all(minutes[i] == 100 for i in range(1, 15))
+    subs_80 = [("JOUEUR 15", "JOUEUR 16", 79)]
+    minutes_80 = _minutes(players, subs_80)
+    assert minutes_80[15] == 79 and minutes_80[16] == 1
+    assert all(minutes_80[i] == 80 for i in range(1, 15))

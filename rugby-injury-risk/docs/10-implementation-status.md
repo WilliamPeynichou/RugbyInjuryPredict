@@ -20,8 +20,8 @@ Les sources de vérité détaillées restent :
 | 0 — Socle | F00 bootstrap, F01 registre des sources, F02 données de référence | ✅ fait |
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
 | 2 — Internationaux, coupes, entités | F07 → F11 | ✅ fait |
-| 3 — Labellisation des blessures | F12, F13, F15 ✅ ; F14 (fiche), F16 | 🟡 en cours |
-| 4 — Table d'apprentissage et baselines | F17 → F20 | ⬜ à faire |
+| 3 — Labellisation des blessures | F12, F13, F15, F16 ✅ ; F14 (fiche à reprendre, T9) | ✅ fait (sauf annotation humaine) |
+| 4 — Table d'apprentissage et baselines | F17 ✅ ; F18 → F20 | 🟡 en cours |
 | 5 — Modèle de production | F21, F22 | ⬜ à faire |
 | 6 — Challenger et gravité | F23, F24 | ⬜ à faire |
 | 7 — Produit | F25 → F27 | ⬜ à faire |
@@ -156,7 +156,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 |---|---|---|---|---|
 | F14 | Collecte presse | F03, F04 | Choix des flux autorisés | `news` reste `false` sans décision humaine ; fiche à reprendre (T9). |
 | **F16** ✅ | Fusion, annotation, contrôle qualité | F12, F13, F15 | 300 à 500 épisodes annotés à la main ; avis juriste art. 9 | Comparer l'incidence aux priors (PRISP). |
-| F17 | Table `ml_player_match` et test anti-fuite | F16 | — | Features calculées à `as_of_ts` ; `player_key` pseudonymisé. |
+| **F17** ✅ | Table `ml_player_match` et test anti-fuite | F16 | — | Features `as_of_ts`, `player_key` seul, oracle Python indépendant + test de mutation. |
 | F18 | Cadre d'évaluation et MLflow | F17 | — | Découpage par saison, log-loss et Brier, bootstrap par joueur. |
 | F19 | Baseline Poisson par poste | F18 | — | Référence M0 et priors. |
 | F20 | Hazard en temps discret | F19 | — | Lien cloglog avec offset, splines, premières courbes h(N). |
@@ -170,13 +170,14 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F17** (table `ml_player_match` + test anti-fuite). Écarts connus :
-la fiche F14 est marquée `done` dans la ROADMAP mais ses cases et son Journal ne sont pas
-remplis (T9) — à reprendre au passage ; le critère « précision ≥ 0,85 » de F16 attend
-l'annotation humaine. Le crawl réel allrugby (saisons 2022-23 à 2024-25) est lancé le
-2026-11-06 en tâche de fond.
-Run réel F09 : audit humain de 100 joueurs (critère F09) ; les parseurs
-internationaux doivent lire les profils (birth_date), sinon forte file de revue.
+Prochaine étape immédiate : **F18** (cadre d'évaluation temporelle + MLflow, cible
+`make mlflow`). Écarts connus : la fiche F14 est marquée `done` dans la ROADMAP mais ses
+cases et son Journal ne sont pas remplis (T9) ; le critère « précision ≥ 0,85 » de F16
+attend l'annotation humaine ; run réel F09 (audit de 100 joueurs) et parseurs
+internationaux à compléter (birth_date). Crawl réel allrugby terminé le 2026-11-06 :
+3 saisons × 188 matchs ; staging reconstruit, `scripts/run_pipeline.sh` rejoue le pipeline
+hors-ligne (staging → entités → marts → blessures → table ML). F17 : `travel_km_14d` non
+produit (stades sans coordonnées, S7) ; EWMA en forme fermée (pas de `int_player_day`).
 
 ## 5. Règles à appliquer (toutes features)
 

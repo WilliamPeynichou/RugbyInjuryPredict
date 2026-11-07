@@ -39,13 +39,13 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 | F13 | [Signal « absence » et motifs non-blessure](F13-signal-absences.md) | F10 | M | done |
 | F14 | [Collecte presse et points médicaux](F14-ingest-news.md) | F03, F04 | M | done |
 | F15 | [Extraction LLM des blessures](F15-llm-injury-extraction.md) | F14, F09 | L | done |
-| F16 | [Fusion des signaux, annotation et contrôle qualité](F16-injury-fusion-annotation.md) | F12, F13, F15 | L | in_progress |
+| F16 | [Fusion des signaux, annotation et contrôle qualité](F16-injury-fusion-annotation.md) | F12, F13, F15 | L | done |
 
 ## Phase 4 — Table d'apprentissage et baselines
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F17 | [Table ml_player_match et test anti-fuite](F17-ml-table-leakage.md) | F16 | L | todo |
+| F17 | [Table ml_player_match et test anti-fuite](F17-ml-table-leakage.md) | F16 | L | done |
 | F18 | [Cadre d'évaluation temporelle et MLflow](F18-evaluation-framework.md) | F17 | M | todo |
 | F19 | [Baseline Poisson par poste et priors](F19-baseline-poisson.md) | F18 | S | todo |
 | F20 | [Hazard en temps discret](F20-discrete-hazard.md) | F19 | M | todo |

@@ -1,0 +1,10 @@
+version: 2
+models:
+  - name: ml_player_match
+    description: "F17 - table d'apprentissage pseudonymisée (docs/04 §4, docs/05)."
+    columns:
+      - {name: player_key, data_tests: [not_null]}
+      - {name: match_id, data_tests: [not_null]}
+      - {name: as_of_ts, data_tests: [not_null]}
+      - {name: dataset_version, data_tests: [not_null]}
+      - {name: y_injury, data_tests: [not_null]}

@@ -28,6 +28,7 @@ from rugby_risk.warehouse import staging_frame
 PARSER_VERSION = "allrugby-2"
 DEFAULT_KICKOFF_HOUR_LOCAL = 15  # heure locale imputée quand la page ne la donne pas
 MATCH_MINUTES = 80
+EXTRA_TIME_MINUTES = 100
 REQUIRED_STARTERS = 15
 LINEUP_CELLS = 13
 SUB_CELLS = 3
@@ -139,9 +140,11 @@ def _minutes(
         shirt = int(str(p["shirt"]))
         if isinstance(red, int) and shirt in on:
             total[shirt] += max(red - on.pop(shirt), 0)
+    # Prolongation (phases finales) : un événement après 80' => match de 100'.
+    end = EXTRA_TIME_MINUTES if any(m > MATCH_MINUTES for *_, m in subs) else MATCH_MINUTES
     for shirt, start in on.items():
-        total[shirt] += MATCH_MINUTES - start
-    return {s: (None if s in ambiguous else min(m, MATCH_MINUTES)) for s, m in total.items()}
+        total[shirt] += end - start
+    return {s: (None if s in ambiguous else min(m, end)) for s, m in total.items()}
 
 
 def _sheet(
