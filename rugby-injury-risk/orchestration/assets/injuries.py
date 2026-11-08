@@ -21,6 +21,7 @@ from dbt.cli.main import dbtRunner
 from orchestration.assets.dbt_assets import participation_marts
 from orchestration.assets.entities import warehouse_lock
 from orchestration.assets.injury_mentions import injury_mentions
+from rugby_risk.features.registry import INJURY_CONF_THRESHOLD
 from rugby_risk.injuries import priors
 from rugby_risk.injuries.fusion import episode_frame, fuse
 from rugby_risk.injuries.fusion_inputs import (
@@ -76,10 +77,12 @@ def injury_episodes(context: AssetExecutionContext) -> Output:
         if not ok:
             raise RuntimeError("dbt build en échec après fusion (voir data/dbt_logs)")
         incidence = priors.incidence_rows(con)
+        label_incidence = priors.incidence_rows(con, min_confidence=INJURY_CONF_THRESHOLD)
     reports = Path("reports")
     reports.mkdir(exist_ok=True)
     (reports / "injury_incidence.md").write_text(
-        priors.incidence_markdown(incidence), encoding="utf-8"
+        priors.incidence_markdown(incidence, label_incidence, INJURY_CONF_THRESHOLD),
+        encoding="utf-8",
     )
     counts = {
         k: sum(1 for e in episodes if k in e.signals) for k in ("exit", "absence", "announcement")
