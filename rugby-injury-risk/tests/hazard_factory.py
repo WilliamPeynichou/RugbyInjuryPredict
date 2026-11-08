@@ -11,6 +11,8 @@ from typing import Any
 import numpy as np
 import polars as pl
 
+TEAMS = 14
+
 POSITIONS = (
     ("PROP", "front_row", "forward"),
     ("HOOKER", "front_row", "forward"),
@@ -69,6 +71,7 @@ def hazard_frame(  # noqa: PLR0913 - paramètres du processus simulé
             "season_id": [f"{2020 + s}-{2021 + s}" for s in season],
             "kickoff_ts": kickoff,
             "dataset_version": ["synthetic"] * n,
+            "team_id": [f"t{i % TEAMS:02d}" for i in player],
             "played": played,
             "minutes_played": minutes.astype(np.int32),
             "y_injury": y,
@@ -143,6 +146,7 @@ def selection_frame(  # noqa: PLR0913 - paramètres du processus simulé
         "season_id",
         "kickoff_ts",
         "dataset_version",
+        "team_id",
         "played",
         "minutes_played",
         "y_injury",
@@ -194,6 +198,7 @@ def selection_frame(  # noqa: PLR0913 - paramètres du processus simulé
                     "season_id": f"{2020 + s_}-{2021 + s_}",
                     "kickoff_ts": kickoff,
                     "dataset_version": "synthetic",
+                    "team_id": f"t{i % TEAMS:02d}",
                     "played": played,
                     "minutes_played": 80 if played else 0,
                     "y_injury": y,
@@ -225,3 +230,61 @@ def selection_frame(  # noqa: PLR0913 - paramètres du processus simulé
                 for k in keys:
                     out[k].append(row[k])
     return pl.DataFrame(out)
+
+
+# Vrais effets par poste (échelle cloglog, écart à l'intercept) du DGP hiérarchique (F22).
+TRUE_POSITION_EFFECTS = {
+    "PROP": 0.10,
+    "HOOKER": 0.35,
+    "LOCK": 0.0,
+    "BACK_ROW": 0.15,
+    "SCRUM_HALF": -0.25,
+    "FLY_HALF": -0.15,
+    "CENTRE": 0.05,
+    "WING": 0.20,
+    "FULLBACK": -0.30,
+}
+
+
+def hierarchical_frame(  # noqa: PLR0913 - paramètres du processus simulé
+    *,
+    players: int = 500,
+    seasons: int = 2,
+    matches: int = 26,
+    alpha: float = -2.6,
+    slope_forward: float = 0.15,
+    slope_back: float = 0.0,
+    sigma_player: float = 0.4,
+    sigma_team: float = 0.2,
+    rest_prob: float = 0.0,
+    seed: int = 0,
+) -> pl.DataFrame:
+    """M2 DGP: cloglog(h) = alpha + effect[position_code] + slope[unit] * consecutive_std
+    + u_player + v_team_season + log(minutes/80). Other covariates of `hazard_frame` have no
+    effect. `consecutive_std` = consecutive_matches standardised on the whole frame (the
+    design learns the same moments when the whole frame is the training fold)."""
+    df = hazard_frame(
+        players=players, seasons=seasons, matches=matches, rest_prob=rest_prob, seed=seed
+    )
+    rng = np.random.default_rng(seed + 1)
+    cons = df["consecutive_matches"].to_numpy().astype(float)
+    cons_std = (cons - cons.mean()) / cons.std()
+    effect = np.array([TRUE_POSITION_EFFECTS[c] for c in df["position_code"]])
+    slope = np.where(df["unit"].to_numpy() == "forward", slope_forward, slope_back)
+    u = rng.normal(0, sigma_player, size=players)
+    player_idx = np.array([int(k[1:]) for k in df["player_key"]])
+    team_season = [f"{t}|{s}" for t, s in zip(df["team_id"], df["season_id"], strict=True)]
+    levels = sorted(set(team_season))
+    v = dict(zip(levels, rng.normal(0, sigma_team, size=len(levels)), strict=True))
+    minutes = df["minutes_played"].to_numpy().astype(float)
+    played = df["played"].to_numpy()
+    eta = (
+        alpha
+        + effect
+        + slope * cons_std
+        + u[player_idx]
+        + np.array([v[t] for t in team_season])
+        + np.log(np.where(played, minutes, 80) / 80)
+    )
+    y = played & (rng.random(len(df)) < 1 - np.exp(-np.exp(eta)))
+    return df.with_columns(pl.Series("y_injury", y))

@@ -55,7 +55,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
 | **F21** ✅ | [Modèle de sélection et pondération IPW](F21-selection-ipw.md) | F20 | — | Gate de calibration cross-fitté, sensibilité troncature/stabilisation, coefficients de charge à la hausse comme attendu. |
-| F22 | [Modèle hiérarchique bayésien par poste](F22-hierarchical-bayes.md) | F21 | L | todo |
+| **F22** ✅ | [Modèle hiérarchique bayésien par poste](F22-hierarchical-bayes.md) | F21 | L | PyMC hiérarchique non centré, IPW par `pm.Potential`, Gauss-Hermite pour joueurs/équipe-saisons nouveaux, prior predictive 9/9 dans la bande, run de référence conforme §6 (R̂ 1,0064, 0 divergence), revue M2 vs M0/M1/M1w + sensibilités. |
 
 ## Phase 6 — Challenger et gravité
 

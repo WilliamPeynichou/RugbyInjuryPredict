@@ -27,6 +27,8 @@ dependencies = [
     "scipy>=1.18",
     "statsmodels>=0.14",
     "patsy>=1.0",
+    "pymc>=5.26.1",
+    "arviz>=0.22,<1",
 ]
 
 [dependency-groups]
@@ -60,7 +62,7 @@ disallow_untyped_defs = false
 disallow_any_generics = false
 
 [[tool.mypy.overrides]]
-module = ["sklearn.*", "scipy.*", "statsmodels.*", "patsy.*", "pandas.*"]
+module = ["sklearn.*", "scipy.*", "statsmodels.*", "patsy.*", "pandas.*", "pymc.*", "pytensor.*", "arviz.*"]
 ignore_missing_imports = true
 
 [tool.mypy]

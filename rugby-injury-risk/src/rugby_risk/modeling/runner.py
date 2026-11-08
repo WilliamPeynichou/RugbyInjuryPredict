@@ -154,6 +154,63 @@ def _model_figures(model: RiskModel, directory: Path, run_id: str) -> list[Path]
     return list(hook(directory, run_id)) if hook is not None else []
 
 
+def _model_artifacts(model: RiskModel, directory: Path, run_id: str) -> list[Path]:
+    """Serialized model files (e.g. F22 NetCDF InferenceData), logged to MLflow."""
+    hook = getattr(model, "report_artifacts", None)
+    return list(hook(directory, run_id)) if hook is not None else []
+
+
+def group_calibration(
+    y: np.ndarray, p: np.ndarray, groups: np.ndarray
+) -> list[dict[str, float | int | str]]:
+    """Calibration slope / intercept and incidence per `position_group` (docs/06 §3.2, §6)."""
+    rows: list[dict[str, float | int | str]] = []
+    for group in sorted(set(groups.tolist())):
+        mask = groups == group
+        m = evaluate(y[mask], p[mask])
+        rows.append(
+            {
+                "position_group": str(group),
+                "n": m.n,
+                "events": int(y[mask].sum()),
+                "observed": m.prevalence,
+                "predicted": m.predicted_incidence,
+                "slope": m.calibration_slope,
+                "intercept": m.calibration_intercept,
+            }
+        )
+    return rows
+
+
+def _calibration_artifact(
+    run_id: str, model_name: str, y_all: np.ndarray, p_all: np.ndarray, reports: Path
+) -> Path:
+    """Figure de calibration pooled pour le rapport d'expérience."""
+    reports.mkdir(parents=True, exist_ok=True)
+    curve = calibration_curve(y_all, p_all)
+    fig_path = reports / f"{run_id}_calibration.png"
+    _calibration_figure(curve, f"{model_name} - calibration pooled", fig_path)
+    return fig_path
+
+
+def _pooled_test_arrays(
+    df: pl.DataFrame,
+    fold_results: list[FoldResult],
+    config: ExperimentConfig,
+) -> tuple[np.ndarray, np.ndarray]:
+    """Concatène clés joueur et groupes de poste des lignes de test de chaque fold."""
+    keys, groups = [], []
+    has_groups = "position_group" in df.columns
+    for fr in fold_results:
+        test = _played(df, (fr.fold.test_season,), config)
+        keys.append(test["player_key"].to_numpy())
+        if has_groups:
+            groups.append(test["position_group"].cast(pl.String).fill_null("unknown").to_numpy())
+        else:
+            groups.append(np.full(len(test), "unknown", dtype=object))
+    return np.concatenate(keys), np.concatenate(groups)
+
+
 def run_experiment(
     model_factory: Callable[[], RiskModel],
     df: pl.DataFrame,
@@ -213,12 +270,7 @@ def run_experiment(
     y_all = np.concatenate(pooled_y)
     p_all = np.concatenate(pooled_p)
     aggregated = evaluate(y_all, p_all, p_reference=np.concatenate(pooled_ref))
-    pooled_keys = np.concatenate(
-        [
-            _played(df, (fr.fold.test_season,), config)["player_key"].to_numpy()
-            for fr in fold_results
-        ]
-    )
+    pooled_keys, pooled_groups = _pooled_test_arrays(df, fold_results, config)
 
     def brier_pooled(mask: np.ndarray, y: np.ndarray = y_all, p: np.ndarray = p_all) -> float:
         return float(evaluate(y[mask], p[mask]).brier)
@@ -233,11 +285,10 @@ def run_experiment(
 
     run_id = f"{model.name}-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}"
     reports = Path("reports") / "experiments"
-    reports.mkdir(parents=True, exist_ok=True)
-    curve = calibration_curve(y_all, p_all)
-    fig_path = reports / f"{run_id}_calibration.png"
-    _calibration_figure(curve, f"{model.name} - calibration pooled", fig_path)
+    fig_path = _calibration_artifact(run_id, model.name, y_all, p_all, reports)
     figures = [fig_path, *_model_figures(model, reports, run_id)]
+    artifacts = _model_artifacts(model, reports, run_id)
+    params = model.params()
     result = ExperimentResult(
         run_id=run_id,
         model_name=model.name,
@@ -250,15 +301,19 @@ def run_experiment(
         report_path=reports / f"{run_id}.md",
         config=config,
         extra={
-            "params": model.params(),
+            "params": params,
             "tables": getattr(model, "report_tables", lambda: {})() or {},
             "figures": [p.name for p in figures],
+            "artifacts": [p.name for p in artifacts],
             "censored_played_rows": censored_played,
             "min_label_followup": followup,
+            "group_calibration": group_calibration(y_all, p_all, pooled_groups),
+            "run_status": str(params.get("mcmc_status", "ok")),
+            "registry_name": getattr(model, "registry_name", None),
         },
     )
     result.report_path.write_text(experiment_markdown(result), encoding="utf-8")
-    _log_mlflow(result, figures)
+    _log_mlflow(result, [*figures, *artifacts])
     return result
 
 
@@ -285,6 +340,7 @@ def _log_mlflow(result: ExperimentResult, figures: list[Path]) -> None:
                 "dataset_version": result.dataset_version,
                 "git_sha": result.git_sha or "",
                 "allow_final_test": str(result.config.allow_final_test),
+                "run_status": result.extra.get("run_status", "ok"),
             }
         )
         for name, value in result.aggregated.as_dict().items():
@@ -303,3 +359,29 @@ def _log_mlflow(result: ExperimentResult, figures: list[Path]) -> None:
         for path in figures:
             mlflow.log_artifact(str(path))
         mlflow.log_artifact(str(result.report_path))
+        registry_name = result.extra.get("registry_name")
+        if registry_name:
+            _register(mlflow, registry_name, result)
+
+
+def _register(mlflow: Any, name: str, result: ExperimentResult) -> None:
+    """Model registry version WITHOUT promotion (docs/06 §5: promotion is a human decision).
+
+    The version points at the run artifacts (NetCDF + report); its tags carry the MCMC status
+    so a `failed` run is visibly not promotable."""
+    client = mlflow.MlflowClient()
+    run = mlflow.active_run()
+    if run is None:
+        return
+    if not client.search_registered_models(filter_string=f"name = '{name}'"):
+        client.create_registered_model(name)
+    client.create_model_version(
+        name=name,
+        source=run.info.artifact_uri,
+        run_id=run.info.run_id,
+        tags={
+            "run_status": result.extra.get("run_status", "ok"),
+            "dataset_version": result.dataset_version,
+            "report": result.report_path.name,
+        },
+    )

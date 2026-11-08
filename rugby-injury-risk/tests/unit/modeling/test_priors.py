@@ -51,3 +51,24 @@ def test_priors_version_exists() -> None:
     assert priors.PRIORS_VERSION.count(".") == 2
     lo, hi = expected_base_rate_band()
     assert 0 < lo < hi
+
+
+def test_m2_intercept_prior_matches_docs() -> None:
+    """docs/06 §2 : log(-log(1 - 0,07)) ≈ -2,62, ±0,5 couvre ~4-12 % par match."""
+    mu = priors.m2_intercept_mu()
+    assert mu == pytest.approx(-2.62, abs=0.01)
+    lo = 1 - math.exp(-math.exp(mu - priors.M2_INTERCEPT_SD))
+    hi = 1 - math.exp(-math.exp(mu + priors.M2_INTERCEPT_SD))
+    assert 0.04 < lo < 0.05
+    assert 0.10 < hi < 0.12
+
+
+def test_m2_load_prior_scales_with_std() -> None:
+    """256 minutes (3,2 FGE) d'écart-type -> exactement log(1,14) et 0,15."""
+    mu, sd = priors.m2_load_prior(256.0)
+    assert mu == pytest.approx(math.log(1.14))
+    assert sd == pytest.approx(0.15)
+    mu_half, _ = priors.m2_load_prior(128.0)
+    assert mu_half == pytest.approx(mu / 2)
+    with pytest.raises(ValueError):
+        priors.m2_load_prior(0.0)

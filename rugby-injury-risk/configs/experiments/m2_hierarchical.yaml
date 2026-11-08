@@ -1,0 +1,13 @@
+# M2 — hazard cloglog hiérarchique bayésien (F22, production). Modèles :
+#   rugby-risk train m2_hierarchical [--fast]        (un run, rapport d'expérience)
+#   rugby-risk review-model [--fast]                 (M2 + M0/M1/M1w + sensibilités ->
+#                                                     reports/model_review_<run_id>.md)
+# Priors : modeling/priors.py (docs/06 §2). Diagnostics exigés : R-hat <= 1,01, ESS >= 400,
+# 0 divergence, sinon run `failed` (tag MLflow run_status, version de registre non promouvable).
+# 3 saisons pilotes -> min_train_seasons: 1 (prod : 5, cf. _example.yaml).
+min_train_seasons: 1
+allow_final_test: false
+bootstrap_replications: 200
+seed: 0
+target_col: y_injury
+mlflow_uri: sqlite:///data/mlflow.db

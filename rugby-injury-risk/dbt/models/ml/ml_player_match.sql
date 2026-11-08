@@ -1,11 +1,12 @@
 -- F17 : table d'apprentissage, une ligne par joueur éligible × match (docs/04 §4).
--- Pseudonymisée (player_key seul). Colonnes : rugby_risk.features.registry (partition testée).
+-- Pseudonymisée (player_key seul ; team_id = club, non nominatif, effet équipe-saison F22). Colonnes : rugby_risk.features.registry (partition testée).
 -- dataset_version = md5 du contenu trié : deux builds identiques -> même version.
 with rows as (
   select
     d.player_key,
     b.match_id,
     b.season_id,
+    b.team_id,
     b.kickoff_ts,
     b.kickoff_ts - interval 1 second as as_of_ts,
     b.on_sheet,

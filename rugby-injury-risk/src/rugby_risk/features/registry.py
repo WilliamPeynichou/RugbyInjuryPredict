@@ -12,6 +12,7 @@ ID_COLUMNS: Final = (
     "player_key",
     "match_id",
     "season_id",
+    "team_id",  # F22 : effet aléatoire équipe-saison (club, non nominatif)
     "kickoff_ts",
     "as_of_ts",
     "dataset_version",

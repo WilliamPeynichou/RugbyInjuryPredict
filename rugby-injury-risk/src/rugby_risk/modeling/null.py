@@ -46,6 +46,10 @@ def registry() -> dict[str, Callable[[], RiskModel]]:
         PositionRateModel,
     )
     from rugby_risk.modeling.hazard import DiscreteHazardModel  # noqa: PLC0415
+    from rugby_risk.modeling.hierarchical import (  # noqa: PLC0415
+        FAST_SAMPLER,
+        HierarchicalHazardModel,
+    )
     from rugby_risk.modeling.selection import WeightedHazardModel  # noqa: PLC0415
 
     return {
@@ -62,5 +66,17 @@ def registry() -> dict[str, Callable[[], RiskModel]]:
         ),
         "m1w_hazard_ipw_raw": lambda: WeightedHazardModel(
             stabilize=False, name="m1w_hazard_ipw_raw"
+        ),
+        # F22 : M2 hiérarchique bayésien (production). _fast = exploration (sous-échantillon
+        # joueurs, 2 chaînes x 500), _noipw = sensibilité docs/06 §3.3.
+        "m2_hierarchical": HierarchicalHazardModel,
+        "m2_hierarchical_fast": lambda: HierarchicalHazardModel(
+            sampler=FAST_SAMPLER, name="m2_hierarchical_fast"
+        ),
+        "m2_hierarchical_noipw": lambda: HierarchicalHazardModel(
+            ipw=False, name="m2_hierarchical_noipw"
+        ),
+        "m2_hierarchical_noipw_fast": lambda: HierarchicalHazardModel(
+            ipw=False, sampler=FAST_SAMPLER, name="m2_hierarchical_noipw_fast"
         ),
     }

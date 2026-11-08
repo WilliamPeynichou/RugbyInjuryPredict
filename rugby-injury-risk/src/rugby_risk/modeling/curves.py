@@ -61,6 +61,15 @@ class CurveModel(Protocol):
     def predict_proba(self, df: pl.DataFrame) -> np.ndarray: ...
 
 
+class DrawCurveModel(Protocol):
+    """Bayesian model exposing posterior draws of the hazard (M2, F22)."""
+
+    profiles_: dict[str, dict[str, Any]]
+    scenarios_: Scenarios
+
+    def predict_draws(self, df: pl.DataFrame) -> np.ndarray: ...
+
+
 def scenario_frame(
     profile: dict[str, Any],
     overrides: dict[str, Any],
@@ -77,6 +86,26 @@ def scenario_frame(
     return pl.DataFrame(data, strict=False)
 
 
+def _curve_frame(
+    model: CurveModel | DrawCurveModel,
+    position_code: str,
+    n_range: Iterable[int] | None,
+    scenario: str,
+) -> pl.DataFrame:
+    if position_code not in model.profiles_:
+        raise KeyError(f"Poste absent du train : {position_code}")
+    scenarios = model.scenarios_
+    if scenario not in scenarios.overrides:
+        raise KeyError(f"Scénario inconnu : {scenario} (connus : {sorted(scenarios.overrides)})")
+    return scenario_frame(
+        model.profiles_[position_code],
+        scenarios.overrides[scenario],
+        n_range if n_range is not None else scenarios.n_range,
+        scenarios.minutes_played,
+        position_code,
+    )
+
+
 def hazard_curve(
     model: CurveModel,
     position_code: str,
@@ -84,19 +113,19 @@ def hazard_curve(
     scenario: str = "median",
 ) -> np.ndarray:
     """h(N) for N in `n_range` for a position, under a named scenario."""
-    if position_code not in model.profiles_:
-        raise KeyError(f"Poste absent du train : {position_code}")
-    scenarios = model.scenarios_
-    if scenario not in scenarios.overrides:
-        raise KeyError(f"Scénario inconnu : {scenario} (connus : {sorted(scenarios.overrides)})")
-    frame = scenario_frame(
-        model.profiles_[position_code],
-        scenarios.overrides[scenario],
-        n_range if n_range is not None else scenarios.n_range,
-        scenarios.minutes_played,
-        position_code,
-    )
+    frame = _curve_frame(model, position_code, n_range, scenario)
     return np.asarray(model.predict_proba(frame), dtype=float)
+
+
+def hazard_curve_draws(
+    model: DrawCurveModel,
+    position_code: str,
+    n_range: Iterable[int] | None = None,
+    scenario: str = "median",
+) -> np.ndarray:
+    """(draws, N) posterior h(N): credible intervals are quantiles over axis 0 (F22)."""
+    frame = _curve_frame(model, position_code, n_range, scenario)
+    return np.asarray(model.predict_draws(frame), dtype=float)
 
 
 def cumulative_risk(hazards: Sequence[float] | np.ndarray) -> float:

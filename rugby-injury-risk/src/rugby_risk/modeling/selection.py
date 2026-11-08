@@ -18,7 +18,7 @@ in [0.8, 1.2] before the weights are used; otherwise IPW is disabled for the fol
 warning is reported.
 """
 
-from dataclasses import dataclass
+from dataclasses import dataclass, replace
 from pathlib import Path
 from typing import Any, Final
 
@@ -264,6 +264,45 @@ def stabilized_weights(
     return w, diagnostics
 
 
+def fit_ipw_weights(
+    train: pl.DataFrame,
+    eligible: pl.DataFrame,
+    *,
+    selection: SelectionSpec,
+    stabilize: bool,
+    truncate: tuple[float, float],
+) -> tuple[np.ndarray | None, WeightDiagnostics, SelectionModel, str | None]:
+    """F21 pipeline for one training fold: selection model on ALL eligible rows, gate on the
+    cross-fitted calibration slope, stabilized truncated weights on the played `train` rows.
+
+    Returns `(weights or None if the gate is closed, diagnostics, selection model, warning)`.
+    Shared by M1w and M2 (F22).
+    """
+    model = SelectionModel(selection).fit(eligible)
+    slope = model.calibration_slope_cv(eligible)
+    pi = model.predict_proba(train)
+    positions = train.get_column("position_group").cast(pl.String).to_numpy()
+    rates = (
+        eligible.group_by("position_group")
+        .agg(pl.col("played").cast(pl.Float64).mean().alias("rate"))
+        .select([pl.col("position_group").cast(pl.String).alias("pos"), pl.col("rate")])
+    )
+    position_rates = {r["pos"]: float(r["rate"]) for r in rates.iter_rows(named=True)}
+    w, raw = stabilized_weights(
+        pi, positions, stabilize=stabilize, position_rates=position_rates, truncate=truncate
+    )
+    lo, hi = SLOPE_BOUNDS
+    slope_ok = lo <= slope <= hi
+    warning = (
+        None
+        if slope_ok
+        else f"Pente de calibration de la sélection = {slope:.3f} hors [{lo}; {hi}]"
+        " : IPW désactivé pour ce fold (poids = 1)."
+    )
+    diagnostics = replace(raw, slope=slope, slope_ok=slope_ok, ipw_enabled=slope_ok)
+    return (w if slope_ok else None), diagnostics, model, warning
+
+
 class WeightedHazardModel:
     """M1w : M1 hazard + IPW selection correction (F21).
 
@@ -311,58 +350,19 @@ class WeightedHazardModel:
     ) -> "WeightedHazardModel":
         if eligible is None:
             raise ValueError("M1w exige le frame éligible (runner, requires_eligible)")
-        self.selection_ = SelectionModel(self.selection_spec).fit(eligible)
-        slope = self.selection_.calibration_slope_cv(eligible)
-        pi = self.selection_.predict_proba(train)
-        positions = train.get_column("position_group").cast(pl.String).to_numpy()
-        rates = (
-            eligible.group_by("position_group")
-            .agg(pl.col("played").cast(pl.Float64).mean().alias("rate"))
-            .select(
-                [
-                    pl.col("position_group").cast(pl.String).alias("pos"),
-                    pl.col("rate"),
-                ]
-            )
-        )
-        position_rates = {r["pos"]: float(r["rate"]) for r in rates.iter_rows(named=True)}
-        w, diagnostics = stabilized_weights(
-            pi,
-            positions,
+        w, self.diagnostics_, self.selection_, self.warning_ = fit_ipw_weights(
+            train,
+            eligible,
+            selection=self.selection_spec,
             stabilize=self.stabilize,
-            position_rates=position_rates,
             truncate=self.truncate,
-        )
-        lo, hi = SLOPE_BOUNDS
-        slope_ok = lo <= slope <= hi
-        ipw_enabled = slope_ok
-        if not slope_ok:
-            self.warning_ = (
-                f"Pente de calibration de la sélection = {slope:.3f} hors [{lo}; {hi}]"
-                " : IPW désactivé pour ce fold (poids = 1)."
-            )
-            w = np.ones(len(train), dtype=float)
-        self.diagnostics_ = WeightDiagnostics(
-            n=diagnostics.n,
-            slope=slope,
-            slope_ok=slope_ok,
-            ipw_enabled=ipw_enabled,
-            stabilized=diagnostics.stabilized,
-            truncate_lo=diagnostics.truncate_lo,
-            truncate_hi=diagnostics.truncate_hi,
-            weight_median=diagnostics.weight_median,
-            weight_p01=diagnostics.weight_p01,
-            weight_p99=diagnostics.weight_p99,
-            weight_max=diagnostics.weight_max,
-            ess=diagnostics.ess,
-            ess_ratio=diagnostics.ess_ratio,
         )
         self._ref = DiscreteHazardModel(
             self.link, spec=self.spec, curve_replications=0, seed=self.seed
         ).fit(train, valid)
         self.hazard_ = DiscreteHazardModel(
             self.link, spec=self.spec, curve_replications=self.curve_replications, seed=self.seed
-        ).fit(train, valid, sample_weight=w if ipw_enabled else None)
+        ).fit(train, valid, sample_weight=w)
         return self
 
     def predict_proba(self, df: pl.DataFrame) -> np.ndarray:

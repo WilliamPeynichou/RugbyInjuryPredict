@@ -2,6 +2,7 @@ import argparse
 from collections.abc import Sequence
 from contextlib import closing
 from pathlib import Path
+from typing import Any
 
 from rugby_risk.analysis.sequences import write_report as write_sequences_report
 from rugby_risk.entity_resolution.review import decide, read_review_queue
@@ -17,32 +18,50 @@ from rugby_risk.injuries.exit_report import write_report
 from rugby_risk.warehouse import connect
 
 
-def _train(model_name: str, config_path: Path) -> int:
-    """F18: entraînement via le runner (splits par saison, MLflow, rapport)."""
+def _experiment_inputs(config_path: Path) -> tuple[Any, Any, Any]:
+    """Model registry, ExperimentConfig and the ML export (F18 entry point)."""
     import polars as pl  # noqa: PLC0415
     import yaml  # noqa: PLC0415 - import paresseux : évite sklearn/mlflow au démarrage
 
     from rugby_risk.modeling.null import registry  # noqa: PLC0415
-    from rugby_risk.modeling.runner import (  # noqa: PLC0415
-        ExperimentConfig,
-        run_experiment,
-    )
+    from rugby_risk.modeling.runner import ExperimentConfig  # noqa: PLC0415
 
-    factories = registry()
-    if model_name not in factories:
-        raise SystemExit(f"Modèle inconnu: {model_name} (disponibles: {sorted(factories)})")
     overrides = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
-    config = ExperimentConfig(**overrides)
     export_path = Path("data/ml/ml_player_match.parquet")
     if not export_path.exists():
         raise SystemExit(
             f"Export introuvable: {export_path} — lancer d'abord le pipeline"
             " (scripts/run_pipeline.sh) pour matérialiser l'asset ml_table."
         )
-    df = pl.read_parquet(export_path)
-    result = run_experiment(factories[model_name], df, config)
+    return registry(), ExperimentConfig(**overrides), pl.read_parquet(export_path)
+
+
+def _train(model_name: str, config_path: Path, *, fast: bool = False) -> int:
+    """F18: entraînement via le runner (splits par saison, MLflow, rapport)."""
+    from rugby_risk.modeling.runner import run_experiment  # noqa: PLC0415
+
+    factories, config, df = _experiment_inputs(config_path)
+    name = f"{model_name}_fast" if fast else model_name
+    if name not in factories:
+        raise SystemExit(f"Modèle inconnu: {name} (disponibles: {sorted(factories)})")
+    result = run_experiment(factories[name], df, config)
     print(f"Rapport : {result.report_path}")
     print(f"Log-loss pooled: {result.aggregated.log_loss:.4f}")
+    return 0
+
+
+def _review(config_path: Path, *, fast: bool, sensitivities: bool) -> int:
+    """F22: M2 + M0/M1/M1w + sensibilités -> reports/model_review_<run_id>.md."""
+    from rugby_risk.modeling.review import run_review, write_review  # noqa: PLC0415
+
+    if not sensitivities:
+        raise SystemExit("La revue de modèle exige les sensibilités (docs/06 §3.3).")
+    factories, config, df = _experiment_inputs(config_path)
+    main = "m2_hierarchical_fast" if fast else "m2_hierarchical"
+    if fast:  # sensibilités dans le même mode que le modèle principal
+        factories = {**factories, f"{main}_noipw": factories["m2_hierarchical_noipw_fast"]}
+    review = run_review(df, config, factories, main=main)
+    print(f"Revue : {write_review(review)}")
     return 0
 
 
@@ -69,6 +88,11 @@ def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0911, PLR0912, P
     train = sub.add_parser("train", help="entraîne un modèle via le cadre F18")
     train.add_argument("model_name", help="nom dans rugby_risk.modeling.null.registry()")
     train.add_argument("--config", default="configs/experiments/_example.yaml")
+    train.add_argument("--fast", action="store_true", help="variante <modèle>_fast (itération)")
+    review_model = sub.add_parser("review-model", help="revue M2 (F22) : model_review_<id>.md")
+    review_model.add_argument("--config", default="configs/experiments/m2_hierarchical.yaml")
+    review_model.add_argument("--fast", action="store_true", help="M2 --fast (exploration)")
+    review_model.add_argument("--no-sensitivities", action="store_true")
     annotate = sub.add_parser(
         "annotate", help="échantillon d'annotation humaine des épisodes (F16)"
     )
@@ -125,7 +149,9 @@ def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0911, PLR0912, P
         print(f"Décision enregistrée dans {path}")
         return 0
     if args.group == "train":
-        return _train(args.model_name, Path(args.config))
+        return _train(args.model_name, Path(args.config), fast=args.fast)
+    if args.group == "review-model":
+        return _review(Path(args.config), fast=args.fast, sensitivities=not args.no_sensitivities)
     if args.group == "er":
         if args.cmd == "review":
             queue = read_review_queue()

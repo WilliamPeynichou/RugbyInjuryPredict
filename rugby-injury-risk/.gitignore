@@ -22,6 +22,7 @@ web/node_modules/
 web/.next/
 
 dbt/seeds/ref_*.csv
+dbt/data/
 data/dbt_target/
 data/dbt_logs/
 dbt/.user.yml

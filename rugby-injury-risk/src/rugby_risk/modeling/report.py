@@ -2,6 +2,8 @@
 
 from typing import TYPE_CHECKING
 
+from rugby_risk.modeling.metrics import CALIBRATION_SLOPE_RANGE
+
 if TYPE_CHECKING:
     from rugby_risk.modeling.runner import ExperimentResult
 
@@ -22,6 +24,7 @@ def experiment_markdown(result: "ExperimentResult") -> str:
         f" dans la saison) : {result.extra.get('censored_played_rows', 0)} lignes jouées",
         f"- Splits : rolling origin, min_train_seasons={result.config.min_train_seasons},"
         f" test final autorisé : {result.config.allow_final_test}",
+        f"- Statut du run : `{result.extra.get('run_status', 'ok')}`",
         "",
         "## Résultat agrégé (pooled sur les saisons de test)",
         "",
@@ -58,6 +61,26 @@ def experiment_markdown(result: "ExperimentResult") -> str:
     if agg.alerts:
         lines += ["", "## Alertes", ""]
         lines += [f"- {a}" for a in agg.alerts]
+    groups = result.extra.get("group_calibration", [])
+    if groups:
+        lines += [
+            "",
+            "## Calibration par groupe de postes (pooled test)",
+            "",
+            "| Groupe | Lignes | Blessures | Observé | Prédit | Pente | Intercept | Pente OK |",
+            "|---|---|---|---|---|---|---|---|",
+        ]
+        lo, hi = CALIBRATION_SLOPE_RANGE
+        lines += [
+            f"| {g['position_group']} | {g['n']} | {g['events']} | {g['observed']:.4f}"
+            f" | {g['predicted']:.4f} | {g['slope']:.3f} | {g['intercept']:.3f}"
+            f" | {lo <= float(g['slope']) <= hi} |"
+            for g in groups
+        ]
+        lines.append(
+            f"\nCritère docs/06 §6 : pente dans [{lo}; {hi}] pour chaque groupe. Peu d'événements"
+            " par groupe : pente très bruitée, à lire avec le nombre de blessures."
+        )
     tables = result.extra.get("tables", {})
     if tables:
         lines.append("")
