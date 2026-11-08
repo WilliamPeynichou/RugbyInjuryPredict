@@ -1,0 +1,10 @@
+# M1 — hazard temps discret, lien logit (F20). Modèle : rugby-risk train m1_hazard_logit.
+# Offset log(minutes/80), splines + interactions poste x charge (modeling/design.py).
+# Courbes h(N) : bootstrap joueur 200 réplications (DiscreteHazardModel.curve_replications).
+# 3 saisons pilotes -> min_train_seasons: 1 (prod : 5, cf. _example.yaml).
+min_train_seasons: 1
+allow_final_test: false
+bootstrap_replications: 200
+seed: 0
+target_col: y_injury
+mlflow_uri: sqlite:///data/mlflow.db

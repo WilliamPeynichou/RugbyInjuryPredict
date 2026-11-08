@@ -6,3 +6,4 @@ bootstrap_replications: 500
 seed: 0
 target_col: y_injury
 mlflow_uri: sqlite:///data/mlflow.db
+# min_label_followup: null  # null = config/injury_rules.yaml (absence_signal)

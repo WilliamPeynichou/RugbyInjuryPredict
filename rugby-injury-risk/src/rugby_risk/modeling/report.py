@@ -18,6 +18,8 @@ def experiment_markdown(result: "ExperimentResult") -> str:
         f"- dataset_version : `{result.dataset_version}`",
         f"- git_sha : `{result.git_sha}`",
         f"- Cible : `{result.config.target_col}` (lignes jouées uniquement)",
+        f"- Labels censurés exclus (suivi < {result.extra.get('min_label_followup')} matchs"
+        f" dans la saison) : {result.extra.get('censored_played_rows', 0)} lignes jouées",
         f"- Splits : rolling origin, min_train_seasons={result.config.min_train_seasons},"
         f" test final autorisé : {result.config.allow_final_test}",
         "",
@@ -41,14 +43,16 @@ def experiment_markdown(result: "ExperimentResult") -> str:
         "",
         "## Folds",
         "",
-        "| Fold | Test | Lignes | Prévalence | Log-loss | Brier | Brier IC90 | PR-AUC |",
-        "|---|---|---|---|---|---|---|---|",
+        "| Fold | Test | Lignes | Prévalence | Log-loss | Brier | Brier skill"
+        " | Brier IC90 | PR-AUC |",
+        "|---|---|---|---|---|---|---|---|---|",
     ]
     for fr in result.folds:
         m = fr.metrics
+        skill = f"{m.brier_skill:.4f}" if m.brier_skill is not None else "n/a"
         lines.append(
             f"| {fr.fold.fold_id} | {fr.fold.test_season} | {m.n} | {m.prevalence:.4f}"
-            f" | {m.log_loss:.4f} | {m.brier:.5f}"
+            f" | {m.log_loss:.4f} | {m.brier:.5f} | {skill}"
             f" | [{fr.brier_boot_low:.5f}; {fr.brier_boot_high:.5f}] | {m.auc_pr:.4f} |"
         )
     if agg.alerts:
@@ -61,7 +65,12 @@ def experiment_markdown(result: "ExperimentResult") -> str:
             lines += [f"## {title}", "", body, ""]
     lines += [
         "",
-        f"Figure : `reports/experiments/{result.run_id}_calibration.png`.",
+        "Figures : "
+        + ", ".join(
+            f"`reports/experiments/{name}`"
+            for name in result.extra.get("figures", [f"{result.run_id}_calibration.png"])
+        )
+        + ".",
         "",
     ]
     return "\n".join(lines)

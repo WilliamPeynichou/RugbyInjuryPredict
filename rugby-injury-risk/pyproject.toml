@@ -25,6 +25,8 @@ dependencies = [
     "mlflow>=3.18.0",
     "scikit-learn>=1.9.1",
     "scipy>=1.18",
+    "statsmodels>=0.14",
+    "patsy>=1.0",
 ]
 
 [dependency-groups]
@@ -58,7 +60,7 @@ disallow_untyped_defs = false
 disallow_any_generics = false
 
 [[tool.mypy.overrides]]
-module = ["sklearn.*", "scipy.*"]
+module = ["sklearn.*", "scipy.*", "statsmodels.*", "patsy.*", "pandas.*"]
 ignore_missing_imports = true
 
 [tool.mypy]

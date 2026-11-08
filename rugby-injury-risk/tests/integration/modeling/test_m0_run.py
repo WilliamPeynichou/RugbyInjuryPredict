@@ -17,7 +17,7 @@ def _ml_frame(warehouse: Path) -> pl.DataFrame:
     with duckdb.connect(str(warehouse)) as con:
         return pl.from_arrow(
             con.execute(
-                """select season_id, played, y_injury, player_key, dataset_version,
+                """select season_id, played, y_injury, player_key, dataset_version, kickoff_ts,
                           minutes_played, position_code, position_group
                    from ml_player_match"""
             ).to_arrow_table()

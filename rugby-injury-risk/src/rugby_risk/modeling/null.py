@@ -45,9 +45,12 @@ def registry() -> dict[str, Callable[[], RiskModel]]:
         GlobalRateModel,
         PositionRateModel,
     )
+    from rugby_risk.modeling.hazard import DiscreteHazardModel  # noqa: PLC0415
 
     return {
         ConstantModel.name: lambda: ConstantModel(),  # noqa: PLW0108 - factory standard
         GlobalRateModel.name: lambda: GlobalRateModel(),  # noqa: PLW0108
         PositionRateModel.name: lambda: PositionRateModel(),  # noqa: PLW0108
+        "m1_hazard_cloglog": lambda: DiscreteHazardModel(link="cloglog"),
+        "m1_hazard_logit": lambda: DiscreteHazardModel(link="logit"),
     }

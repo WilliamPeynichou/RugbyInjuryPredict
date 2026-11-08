@@ -71,3 +71,12 @@ Les prédictions ne portent que sur les lignes `played = true` ; les lignes non 
 - La détection de blessures dépend des seuils F12/F13 : la prévalence 1,6 % et les taux par poste bougeront avec l'annotation F16.
 - `m0_global` dans le runner : la référence de skill est le taux global sans lissage ; si M0-position devient la référence officielle, basculer `GlobalRateModel` → `PositionRateModel` dans `runner.py`.
 
+
+### 2026-11-08 — révision (F20)
+
+- Censure du label en fin de saison découverte en F20 : le runner exclut désormais les lignes
+  sans 2 matchs de suivi (`with_label_observability`). M0 par poste refait sur cette base
+  (test 2024-25, 7 819 lignes, prévalence 1,71 %) : log-loss 0,0979, Brier 0,01716, skill
+  +0,0001 vs global, taux par poste 9,5 (HOOKER) à 33,3 (SCRUM_HALF) /1000 h. Les chiffres
+  ci-dessus (8 473 lignes) incluaient ces faux négatifs.
+- La ROADMAP n'avait pas été passée à `done` dans le commit F19 : corrigé dans le commit F20.

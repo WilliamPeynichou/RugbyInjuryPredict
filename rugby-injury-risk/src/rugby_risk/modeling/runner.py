@@ -23,7 +23,12 @@ from rugby_risk.modeling.baselines import GlobalRateModel
 from rugby_risk.modeling.bootstrap import cluster_bootstrap, percentile_interval
 from rugby_risk.modeling.metrics import Metrics, calibration_curve, evaluate
 from rugby_risk.modeling.report import experiment_markdown
-from rugby_risk.modeling.validation import Fold, season_folds
+from rugby_risk.modeling.validation import (
+    LABEL_OBSERVABLE,
+    Fold,
+    season_folds,
+    with_label_observability,
+)
 
 
 @dataclass(frozen=True)
@@ -36,6 +41,9 @@ class ExperimentConfig:
     seed: int = 0
     target_col: str = "y_injury"
     mlflow_uri: str = "sqlite:///data/mlflow.db"  # file store déprécié mlflow 3.x
+    # Suivi minimal (matchs d'équipe suivants dans la saison) pour que y soit observable.
+    # None = absence_signal.min_matches_injury_candidate de config/injury_rules.yaml.
+    min_label_followup: int | None = None
 
 
 @dataclass(frozen=True)
@@ -86,11 +94,21 @@ def _played(df: pl.DataFrame, seasons: tuple[str, ...], config: ExperimentConfig
     # Les lignes jouées sans minutes connues (trou de parsing, S7) sont exclues :
     # l'exposition est l'offset du hazard, sans elle pas de prédiction honnête.
     # Sur les vraies données ces lignes ont toutes y_injury = 0 (0,8 % des jouées).
+    # Les lignes à label censuré (suivi insuffisant en fin de saison) aussi : y = 0 y
+    # signifie « non observable » (0 blessure sur 677 lignes de phase finale).
     return (
         df.filter(pl.col("season_id").is_in(list(seasons)))
-        .filter(pl.col("played"))
+        .filter(pl.col("played") & pl.col(LABEL_OBSERVABLE))
         .drop_nulls(subset=[config.target_col, "minutes_played"])
     )
+
+
+def _min_followup(config: ExperimentConfig) -> int:
+    if config.min_label_followup is not None:
+        return config.min_label_followup
+    from rugby_risk.injuries.rules import load_rules  # noqa: PLC0415 - source unique du seuil
+
+    return load_rules().absence_signal.min_matches_injury_candidate
 
 
 def _calibration_figure(curve: dict[str, np.ndarray], title: str, path: Path) -> None:
@@ -106,6 +124,12 @@ def _calibration_figure(curve: dict[str, np.ndarray], title: str, path: Path) ->
     plt.close(fig)
 
 
+def _model_figures(model: RiskModel, directory: Path, run_id: str) -> list[Path]:
+    """Model-specific figures (e.g. F20 h(N) curves), from the last fold's model."""
+    hook = getattr(model, "report_figures", None)
+    return list(hook(directory, run_id)) if hook is not None else []
+
+
 def run_experiment(
     model_factory: Callable[[], RiskModel],
     df: pl.DataFrame,
@@ -118,6 +142,9 @@ def run_experiment(
     """
     config = config or ExperimentConfig()
     model = model_factory()
+    followup = _min_followup(config)
+    df = with_label_observability(df, followup)
+    censored_played = df.filter(pl.col("played") & ~pl.col(LABEL_OBSERVABLE)).height
     seasons = sorted(df["season_id"].unique().to_list())
     folds = season_folds(seasons, min_train_seasons=config.min_train_seasons)
     if not folds:
@@ -138,11 +165,11 @@ def run_experiment(
         model = model_factory().fit(train, valid)
         p = np.clip(model.predict_proba(test), 1e-6, 1 - 1e-6)
         y = test[config.target_col].to_numpy().astype(float)
-        metrics = evaluate(y, p)
         # Référence M0 (taux global) : Brier skill score vs elle (docs/06 §3.2).
         ref_model = GlobalRateModel(target_col=config.target_col).fit(train)
         ref = np.clip(ref_model.predict_proba(test), 1e-6, 1 - 1e-6)
         pooled_ref.append(ref)
+        metrics = evaluate(y, p, p_reference=ref)
 
         def brier_on(mask: np.ndarray, y: np.ndarray = y, p: np.ndarray = p) -> float:
             return float(evaluate(y[mask], p[mask]).brier)
@@ -186,6 +213,7 @@ def run_experiment(
     curve = calibration_curve(y_all, p_all)
     fig_path = reports / f"{run_id}_calibration.png"
     _calibration_figure(curve, f"{model.name} - calibration pooled", fig_path)
+    figures = [fig_path, *_model_figures(model, reports, run_id)]
     result = ExperimentResult(
         run_id=run_id,
         model_name=model.name,
@@ -200,14 +228,17 @@ def run_experiment(
         extra={
             "params": model.params(),
             "tables": getattr(model, "report_tables", lambda: {})() or {},
+            "figures": [p.name for p in figures],
+            "censored_played_rows": censored_played,
+            "min_label_followup": followup,
         },
     )
     result.report_path.write_text(experiment_markdown(result), encoding="utf-8")
-    _log_mlflow(result, curve, fig_path)
+    _log_mlflow(result, figures)
     return result
 
 
-def _log_mlflow(result: ExperimentResult, curve: dict[str, np.ndarray], fig_path: Path) -> None:
+def _log_mlflow(result: ExperimentResult, figures: list[Path]) -> None:
     """Best-effort MLflow logging; a tracking server failure must not lose the report."""
     import mlflow  # noqa: PLC0415 - import paresseux : MLflow n'est requis qu'au logging
 
@@ -220,6 +251,8 @@ def _log_mlflow(result: ExperimentResult, curve: dict[str, np.ndarray], fig_path
                 "bootstrap_replications": result.config.bootstrap_replications,
                 "seed": result.config.seed,
                 "target_col": result.config.target_col,
+                "censored_played_rows": result.extra["censored_played_rows"],
+                "min_label_followup": result.extra["min_label_followup"],
                 **{f"model_{k}": v for k, v in result.extra["params"].items()},
             }
         )
@@ -243,5 +276,6 @@ def _log_mlflow(result: ExperimentResult, curve: dict[str, np.ndarray], fig_path
             for name, value in fr.metrics.as_dict().items():
                 if isinstance(value, (int, float)) and not np.isnan(value):
                     mlflow.log_metric(f"fold{fr.fold.fold_id}_{name}", value)
-        mlflow.log_artifact(str(fig_path))
+        for path in figures:
+            mlflow.log_artifact(str(path))
         mlflow.log_artifact(str(result.report_path))

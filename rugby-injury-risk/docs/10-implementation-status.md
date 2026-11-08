@@ -21,14 +21,14 @@ Les sources de vérité détaillées restent :
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
 | 2 — Internationaux, coupes, entités | F07 → F11 | ✅ fait |
 | 3 — Labellisation des blessures | F12, F13, F15, F16 ✅ ; F14 (fiche à reprendre, T9) | ✅ fait (sauf annotation humaine) |
-| 4 — Table d'apprentissage et baselines | F17, F18, F19 ✅ ; F20 → F24 | 🟡 en cours |
+| 4 — Table d'apprentissage et baselines | F17, F18, F19, F20 ✅ | ✅ fait |
 | 5 — Modèle de production | F21, F22 | ⬜ à faire |
 | 6 — Challenger et gravité | F23, F24 | ⬜ à faire |
 | 7 — Produit | F25 → F27 | ⬜ à faire |
 | 8 — Exploitation | F28, F29 | ⬜ à faire |
 
-Le dernier `make check` local est vert : ruff, format, mypy strict et pytest 188 tests,
-couverture 88,05 %).
+Le dernier `make check` local est vert : ruff, format, mypy strict (103 fichiers) et pytest
+314 tests, couverture 89,50 %).
 
 Git :
 - une branche `feat/Fxx-*` par feature, avec des commits Conventional Commits ;
@@ -131,6 +131,8 @@ Les détails sont dans les Journaux des fiches.
 | S8 | Les dates de transition des conventions FFR/LNR (2014, 2017, 2018) sont fixées au 1er juillet par convention. | Approximation du régime de protection. | À confirmer avant l'usage analytique (F11, F13). |
 | S9 | Les quotas et la couverture du plan gratuit d'API-Sports ne sont pas vérifiés. Client API-Sports non écrit (F08, pas de clé) ; rang de priorité réservé. | Calendrier sans secours API-Sports. | Lire api-sports.io, puis décision humaine et clé `.env` ; écrire `sources/apisports/` alors. |
 | S10 | L'activation de la LNR repose sur l'exception de fouille de textes et de données, sans réponse de la LNR (contact@lnr.fr). | Risque juridique si la LNR fait opposition. | Respecter un opt-out ; en cas de blocage, appliquer la consigne humaine. |
+| S11 | **Censure du label en fin de saison** (F20) : `y_injury` vient des absences, qui exigent ≥ 2 matchs d'équipe suivants. 0 blessure sur 677 lignes de phase finale. | Faux négatifs dans le train et le test de tous les modèles. | Corrigé : `with_label_observability` (seuil `absence_signal.min_matches_injury_candidate`) exclut 1 977 lignes jouées du fit et de l'évaluation. Censure résiduelle possible à 2 matchs de suivi (taux 1,1 % vs 1,7 %). |
+| S12 | Features constantes ou vides sur le réel 2022-2025 : `age` (100 % NULL, birth_date F09), `surface`, `season_period`, `short_turnaround`, `prior_concussions_365d`. | Termes écartés par `design.py` (listés dans chaque rapport M1). | Compléter birth_date (F09), surfaces (S7), vérifier `short_turnaround` (aucun match à < 6 j ?). |
 
 ### Technique et outillage
 
@@ -159,7 +161,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | **F17** ✅ | Table `ml_player_match` et test anti-fuite | F16 | — | Features `as_of_ts`, `player_key` seul, oracle Python indépendant + test de mutation. |
 | **F18** ✅ | Cadre d'évaluation et MLflow | F17 | — | Rolling origin par saison, métriques de calibration, bootstrap clusterisé joueur, MLflow sqlite, rapport agrégé, CLI `rugby-risk train`. |
 | **F19** ✅ | Baseline Poisson par poste (M0) et priors | F18 | — | `priors.py` (constantes docs/02 centralisées), `baselines.py` (taux par poste lissés gamma-Poisson), Brier skill vs M0 global dans chaque rapport, run réel : taux 8,7–30,8/1000 h par poste. Fix data : positions allrugby résolus via `position_aliases.csv` (loader `reference.position_canonical`). |
-| F20 | Hazard en temps discret | F19 | — | Lien cloglog avec offset, splines, premières courbes h(N). |
+| **F20** ✅ | Hazard en temps discret (M1) | F19 | — | `design.py` (transformations apprises sur le train, termes dégénérés écartés), `hazard.py` (GLM cloglog/logit + offset), `curves.py` + `configs/scenarios.yaml`, bootstrap joueur des courbes. Censure fin de saison exclue (S11). Réel : M1 ne bat pas encore M0 (1 saison de train). |
 | F21 | Sélection et pondération IPW | F20 | — | Correction du biais du « survivant en bonne santé ». |
 | F22 | Modèle hiérarchique bayésien | F21 | Revue du rapport de modèle | PyMC/bambi, intervalles crédibles. |
 | F23 | Challenger LightGBM et SHAP | F20 | — | Gain de log-loss en validation temporelle. |
@@ -170,7 +172,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F20** (hazard en temps discret, lien cloglog avec offset). Écarts connus : la fiche F14 est marquée `done` dans la ROADMAP mais ses
+Prochaine étape immédiate : **F21** (sélection et pondération IPW ; courbes h(N) M1 décroissantes = biais du survivant attendu). Écarts connus : la fiche F14 est marquée `done` dans la ROADMAP mais ses
 cases et son Journal ne sont pas remplis (T9) ; le critère « précision ≥ 0,85 » de F16
 attend l'annotation humaine ; run réel F09 (audit de 100 joueurs) et parseurs
 internationaux à compléter (birth_date). Crawl réel allrugby terminé le 2026-11-06 :

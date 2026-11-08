@@ -52,3 +52,23 @@ def season_folds(
             Fold(fold_id=len(folds), train_seasons=train_rest, valid_season=valid, test_season=test)
         )
     return folds
+
+
+LABEL_OBSERVABLE = "label_observable"
+
+
+def with_label_observability(df: pl.DataFrame, min_followup: int) -> pl.DataFrame:
+    """Flag rows whose label can be observed (docs/06 §3, censure de fin de saison).
+
+    `y_injury` is reconstructed from absences (F13): an injury candidate needs at least
+    `min_followup` later team matches in the same season. With fewer (end of season, playoff
+    elimination, departure) `y_injury = 0` means "not observable", not "no injury". The
+    follow-up count uses every squad row of the player (on_sheet or not), never the target,
+    so the exclusion does not condition on the outcome.
+    """
+    later = pl.len().over("player_key", "season_id") - pl.int_range(pl.len()).over(
+        "player_key", "season_id"
+    )
+    return df.sort("player_key", "kickoff_ts").with_columns(
+        ((later - 1) >= min_followup).alias(LABEL_OBSERVABLE)
+    )
