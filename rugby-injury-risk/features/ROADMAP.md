@@ -54,7 +54,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F21 | [Modèle de sélection et pondération IPW](F21-selection-ipw.md) | F20 | M | todo |
+| **F21** ✅ | [Modèle de sélection et pondération IPW](F21-selection-ipw.md) | F20 | — | Gate de calibration cross-fitté, sensibilité troncature/stabilisation, coefficients de charge à la hausse comme attendu. |
 | F22 | [Modèle hiérarchique bayésien par poste](F22-hierarchical-bayes.md) | F21 | L | todo |
 
 ## Phase 6 — Challenger et gravité

@@ -9,7 +9,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import matplotlib
 
@@ -103,12 +103,36 @@ def _played(df: pl.DataFrame, seasons: tuple[str, ...], config: ExperimentConfig
     )
 
 
+def _eligible(df: pl.DataFrame, seasons: tuple[str, ...]) -> pl.DataFrame:
+    """Toutes les lignes éligibles (jouées ou non) des saisons d'estimation : entraînement
+    du modèle de sélection (F21). La cible blessure n'y est jamais lue ; la colonne `played`
+    est la cible de sélection."""
+    return df.filter(pl.col("season_id").is_in(list(seasons))).drop_nulls(subset=["played"])
+
+
 def _min_followup(config: ExperimentConfig) -> int:
     if config.min_label_followup is not None:
         return config.min_label_followup
     from rugby_risk.injuries.rules import load_rules  # noqa: PLC0415 - source unique du seuil
 
     return load_rules().absence_signal.min_matches_injury_candidate
+
+
+def _fit_fold(
+    model_factory: Callable[[], RiskModel],
+    df: pl.DataFrame,
+    fold: Fold,
+    train: pl.DataFrame,
+    valid: pl.DataFrame,
+) -> RiskModel:
+    """Fit one fold. F21 : a weighted model (M1w) declares `requires_eligible` and receives
+    ALL eligible rows (played or not) of the train seasons — its selection model is trained
+    on them, never on valid/test."""
+    model = model_factory()
+    if getattr(model, "requires_eligible", False):
+        eligible = _eligible(df, fold.train_seasons)
+        return cast(RiskModel, cast(Any, model).fit(train, valid, eligible=eligible))
+    return model.fit(train, valid)
 
 
 def _calibration_figure(curve: dict[str, np.ndarray], title: str, path: Path) -> None:
@@ -162,7 +186,7 @@ def run_experiment(
         train = _played(df, fold.train_seasons, config)
         valid = _played(df, (fold.valid_season,), config)
         test = _played(df, (fold.test_season,), config)
-        model = model_factory().fit(train, valid)
+        model = _fit_fold(model_factory, df, fold, train, valid)
         p = np.clip(model.predict_proba(test), 1e-6, 1 - 1e-6)
         y = test[config.target_col].to_numpy().astype(float)
         # Référence M0 (taux global) : Brier skill score vs elle (docs/06 §3.2).

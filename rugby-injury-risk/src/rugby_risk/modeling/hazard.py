@@ -5,7 +5,12 @@ Binomial GLM on played rows, cloglog link (logit as alternative) with exposure o
 per-full-match rate. Splines and position x load interactions come from `DesignSpec`; every
 transformation is learned on the training fold only (`design.build_design`).
 
-No selection correction (IPW is F21): estimates are conditional on playing.
+Selection correction (IPW, F21): `fit(..., sample_weight=...)` accepts per-row
+stabilized inverse-probability weights (`modeling/selection.py`). They enter the GLM as a
+weighted Bernoulli likelihood via the grouped binomial form `endog = [y*w, (1-y)*w]`: statsmodels
+0.15 `freq_weights` demonstrably leaves Bernoulli coefficients unchanged (checked against
+row duplication, journal F21), so the 2-column form is used instead. Weights follow the rows
+in the player-cluster bootstrap of the curves.
 """
 
 from dataclasses import dataclass, field
@@ -69,8 +74,13 @@ class DiscreteHazardModel:
         self.profiles_: dict[str, dict[str, Any]] = {}
         self.scenarios_: Scenarios = load_scenarios(scenarios_path)
         self._train: pl.DataFrame | None = None
+        self._train_weights: np.ndarray | None = None
         self._bands: _Bands | None = None
         self._check_scenarios()
+
+    @property
+    def weighted_(self) -> bool:
+        return self._train_weights is not None
 
     def _check_scenarios(self) -> None:
         # Contre le registre (pas la spec) : typo détectée, spec réduite tolérée.
@@ -80,16 +90,38 @@ class DiscreteHazardModel:
             if unknown:
                 raise ValueError(f"Scénario {name} : colonnes hors design {unknown}")
 
-    def _glm(self, design: Design) -> Any:
+    def _glm(self, design: Design, sample_weight: np.ndarray | None = None) -> Any:
         family = sm.families.Binomial(link=LINKS[self.link]())
-        return sm.GLM(design.y, design.X, family=family, offset=design.offset).fit()
+        if sample_weight is None:
+            return sm.GLM(design.y, design.X, family=family, offset=design.offset).fit()
+        # Vraisemblance de Bernoulli pondérée via la forme binomiale groupée :
+        # endog = [y*w, (1-y)*w] reproduit exactement le MLE pondéré (statsmodels 0.15
+        # ignore freq_weights pour les coefficients Bernoulli, cf. module docstring).
+        w = np.asarray(sample_weight, dtype=float)
+        y = design.y
+        if y is None:
+            raise ValueError(f"Cible absente du train : {self.spec.target}")
+        endog = np.column_stack([y * w, (1.0 - y) * w])
+        return sm.GLM(endog, design.X, family=family, offset=design.offset).fit()
 
-    def fit(self, train: pl.DataFrame, valid: pl.DataFrame | None = None) -> "DiscreteHazardModel":
+    def fit(
+        self,
+        train: pl.DataFrame,
+        valid: pl.DataFrame | None = None,
+        sample_weight: np.ndarray | None = None,
+    ) -> "DiscreteHazardModel":
         del valid  # pas d'hyperparamètre : la saison de validation n'est pas utilisée
         design = build_design(train, self.spec)
         if design.y is None:
             raise ValueError(f"Cible absente du train : {self.spec.target}")
-        self.result_ = self._glm(design)
+        if sample_weight is not None and len(sample_weight) != len(train):
+            raise ValueError("sample_weight doit avoir une valeur par ligne du train")
+        self.result_ = self._glm(design, sample_weight)
+        self.transform_ = design.transform
+        self.columns_ = design.columns
+        self._train_weights = (
+            None if sample_weight is None else np.asarray(sample_weight, dtype=float)
+        )
         self.transform_ = design.transform
         self.columns_ = design.columns
         source = self.spec.source_columns()
@@ -134,6 +166,7 @@ class DiscreteHazardModel:
             "converged": bool(self.result_.converged) if self.result_ is not None else None,
             "aic": float(self.result_.aic) if self.result_ is not None else None,
             "curve_replications": self.curve_replications,
+            "weighted_ipw": self.weighted_,
         }
 
     # --- rapport -------------------------------------------------------------------------
@@ -144,6 +177,7 @@ class DiscreteHazardModel:
             return self._bands
         bands = _Bands()
         train = self._train
+        weights = self._train_weights
         if train is None or self.curve_replications <= 0:
             self._bands = bands
             return bands
@@ -154,10 +188,11 @@ class DiscreteHazardModel:
         draws: dict[str, list[np.ndarray]] = {code: [] for code in self.profiles_}
         for _ in range(self.curve_replications):
             picked = rng.choice(len(players), size=len(players), replace=True)
-            sample = train[np.concatenate([rows_of[i] for i in picked])]
+            rows = np.concatenate([rows_of[i] for i in picked])
+            sample = train[rows]
             replica = DiscreteHazardModel(self.link, self.spec, 0, self.seed, self.scenarios_path)
             try:
-                replica.fit(sample)
+                replica.fit(sample, sample_weight=None if weights is None else weights[rows])
                 curves = {code: hazard_curve(replica, code) for code in draws}
             except (ValueError, KeyError, np.linalg.LinAlgError):
                 bands.failures += 1  # poste absent du rééchantillon, matrice singulière
@@ -175,8 +210,11 @@ class DiscreteHazardModel:
         return bands
 
     def _alternate_aic(self) -> tuple[str, float] | None:
-        """AIC of the other link on the same training design (in-sample comparison)."""
-        if self._train is None or self.transform_ is None:
+        """AIC of the other link on the same training design (in-sample comparison).
+
+        Indisponible pour le modèle pondéré : l'AIC groupée (log-vraisemblance pondérée)
+        n'est pas comparable à celle d'un fit non pondéré."""
+        if self._train is None or self.transform_ is None or self.weighted_:
             return None
         other = "logit" if self.link == "cloglog" else "cloglog"
         design = build_design(self._train, self.spec)
@@ -230,11 +268,15 @@ class DiscreteHazardModel:
             scenario_lines.append(
                 f"| {code} | " + " | ".join(f"{v:.3f}" for v in per_scenario) + " |"
             )
+        mention = (
+            " Pondération IPW (F21)."
+            if self.weighted_
+            else " Association, pas causalité ; sans correction de sélection (F21)."
+        )
         curve_lines.append(
             f"\nh(N) = P(blessure au match suivant | N matchs consécutifs), 80 min, profil médian"
             f" du poste. IC{int(_CI_LEVEL * 100)} bootstrap joueur"
-            f" ({bands.replications} réplications, {bands.failures} échecs)."
-            " Association, pas causalité ; sans correction de sélection (F21)."
+            f" ({bands.replications} réplications, {bands.failures} échecs)." + mention
         )
         tables = {
             f"M1 ({self.link}) : coefficients": "\n".join(coef_lines),

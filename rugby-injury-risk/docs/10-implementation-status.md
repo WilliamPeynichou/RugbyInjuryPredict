@@ -22,13 +22,13 @@ Les sources de vérité détaillées restent :
 | 2 — Internationaux, coupes, entités | F07 → F11 | ✅ fait |
 | 3 — Labellisation des blessures | F12, F13, F15, F16 ✅ ; F14 (fiche à reprendre, T9) | ✅ fait (sauf annotation humaine) |
 | 4 — Table d'apprentissage et baselines | F17, F18, F19, F20 ✅ | ✅ fait |
-| 5 — Modèle de production | F21, F22 | ⬜ à faire |
+| 5 — Modèle de production | F21 ✅, F22 | 🟡 en cours |
 | 6 — Challenger et gravité | F23, F24 | ⬜ à faire |
 | 7 — Produit | F25 → F27 | ⬜ à faire |
 | 8 — Exploitation | F28, F29 | ⬜ à faire |
 
-Le dernier `make check` local est vert : ruff, format, mypy strict (103 fichiers) et pytest
-314 tests, couverture 89,50 %).
+Le dernier `make check` local est vert : ruff, format, mypy strict (104 fichiers) et pytest
+327 tests, couverture 89,65 %).
 
 Git :
 - une branche `feat/Fxx-*` par feature, avec des commits Conventional Commits ;
@@ -133,6 +133,8 @@ Les détails sont dans les Journaux des fiches.
 | S10 | L'activation de la LNR repose sur l'exception de fouille de textes et de données, sans réponse de la LNR (contact@lnr.fr). | Risque juridique si la LNR fait opposition. | Respecter un opt-out ; en cas de blocage, appliquer la consigne humaine. |
 | S11 | **Censure du label en fin de saison** (F20) : `y_injury` vient des absences, qui exigent ≥ 2 matchs d'équipe suivants. 0 blessure sur 677 lignes de phase finale. | Faux négatifs dans le train et le test de tous les modèles. | Corrigé : `with_label_observability` (seuil `absence_signal.min_matches_injury_candidate`) exclut 1 977 lignes jouées du fit et de l'évaluation. Censure résiduelle possible à 2 matchs de suivi (taux 1,1 % vs 1,7 %). |
 | S12 | Features constantes ou vides sur le réel 2022-2025 : `age` (100 % NULL, birth_date F09), `surface`, `season_period`, `short_turnaround`, `prior_concussions_365d`. | Termes écartés par `design.py` (listés dans chaque rapport M1). | Compléter birth_date (F09), surfaces (S7), vérifier `short_turnaround` (aucun match à < 6 j ?). |
+| S13 | **statsmodels 0.15 ignore `freq_weights`/`var_weights` pour les coefficients d'un GLM Bernoulli** (vérifié contre duplication exacte des lignes, journal F21). | Tout fit pondéré silencieusement non pondéré. | Contourné : forme binomiale groupée `endog = [y·w, (1−y)·w]` (`modeling/hazard.py`). Ne jamais réintroduire `freq_weights` sans re-valider. |
+| S14 | `absence_reason` non matérialisé par match dans le mart ml (`fact_eligibility.absence_reason` = `null::varchar` ; le signalement vit en `int_absence_runs`). | Suspensions et devoir international non distinguables par ligne ; le modèle de sélection (F21) utilise des proxies observés (`intl_window`, `protected_list`). | Matérialiser un `absence_reason` par match (joueur × match) si une version future en a besoin ; jusqu'alors IPW = correction sur observables seulement. |
 
 ### Technique et outillage
 
@@ -162,7 +164,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | **F18** ✅ | Cadre d'évaluation et MLflow | F17 | — | Rolling origin par saison, métriques de calibration, bootstrap clusterisé joueur, MLflow sqlite, rapport agrégé, CLI `rugby-risk train`. |
 | **F19** ✅ | Baseline Poisson par poste (M0) et priors | F18 | — | `priors.py` (constantes docs/02 centralisées), `baselines.py` (taux par poste lissés gamma-Poisson), Brier skill vs M0 global dans chaque rapport, run réel : taux 8,7–30,8/1000 h par poste. Fix data : positions allrugby résolus via `position_aliases.csv` (loader `reference.position_canonical`). |
 | **F20** ✅ | Hazard en temps discret (M1) | F19 | — | `design.py` (transformations apprises sur le train, termes dégénérés écartés), `hazard.py` (GLM cloglog/logit + offset), `curves.py` + `configs/scenarios.yaml`, bootstrap joueur des courbes. Censure fin de saison exclue (S11). Réel : M1 ne bat pas encore M0 (1 saison de train). |
-| F21 | Sélection et pondération IPW | F20 | — | Correction du biais du « survivant en bonne santé ». |
+| **F21** ✅ | Sélection et pondération IPW | F20 | — | `selection.py` (LR L2, gate de calibration cross-fittée pente ∈ [0,8 ; 1,2], poids stabilisés tronqués, ESS), M1w via forme binomiale groupée (statsmodels ignore `freq_weights` Bernoulli, S13), hook `requires_eligible` dans le runner, 3 variantes en sensibilité. Réel : coefficients de charge à la hausse (attendu), métriques prédictives légèrement dégradées (coût variance, 1 saison). |
 | F22 | Modèle hiérarchique bayésien | F21 | Revue du rapport de modèle | PyMC/bambi, intervalles crédibles. |
 | F23 | Challenger LightGBM et SHAP | F20 | — | Gain de log-loss en validation temporelle. |
 | F24 | Modèle de gravité | F18 | — | Jours d'absence (`days_missed`), burden par poste. |
@@ -172,7 +174,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F21** (sélection et pondération IPW ; courbes h(N) M1 décroissantes = biais du survivant attendu). Écarts connus : la fiche F14 est marquée `done` dans la ROADMAP mais ses
+Prochaine étape immédiate : **F22** (modèle hiérarchique bayésien par poste, poids IPW + priors). Écarts connus : la fiche F14 est marquée `done` dans la ROADMAP mais ses
 cases et son Journal ne sont pas remplis (T9) ; le critère « précision ≥ 0,85 » de F16
 attend l'annotation humaine ; run réel F09 (audit de 100 joueurs) et parseurs
 internationaux à compléter (birth_date). Crawl réel allrugby terminé le 2026-11-06 :

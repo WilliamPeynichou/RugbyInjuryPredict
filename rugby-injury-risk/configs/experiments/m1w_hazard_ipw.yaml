@@ -1,0 +1,11 @@
+# M1w — hazard temps discret + IPW de sélection (F21). Modèle : rugby-risk train m1w_hazard_ipw.
+# Poids stabilisés w = P(played|poste)/π̂, troncature 1-99, gate de calibration pente [0,8 ; 1,2]
+# (modeling/selection.py). Variantes de sensibilité : m1w_hazard_ipw_t95, m1w_hazard_ipw_raw
+# (docs/06 §3.3 : avec/sans IPW est couvert par M1 vs M1w).
+# 3 saisons pilotes -> min_train_seasons: 1 (prod : 5, cf. _example.yaml).
+min_train_seasons: 1
+allow_final_test: false
+bootstrap_replications: 200
+seed: 0
+target_col: y_injury
+mlflow_uri: sqlite:///data/mlflow.db

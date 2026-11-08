@@ -46,6 +46,7 @@ def registry() -> dict[str, Callable[[], RiskModel]]:
         PositionRateModel,
     )
     from rugby_risk.modeling.hazard import DiscreteHazardModel  # noqa: PLC0415
+    from rugby_risk.modeling.selection import WeightedHazardModel  # noqa: PLC0415
 
     return {
         ConstantModel.name: lambda: ConstantModel(),  # noqa: PLW0108 - factory standard
@@ -53,4 +54,13 @@ def registry() -> dict[str, Callable[[], RiskModel]]:
         PositionRateModel.name: lambda: PositionRateModel(),  # noqa: PLW0108
         "m1_hazard_cloglog": lambda: DiscreteHazardModel(link="cloglog"),
         "m1_hazard_logit": lambda: DiscreteHazardModel(link="logit"),
+        # F21 : M1 + IPW. Variantes de sensibilité (docs/06 §3.3) : troncature 5-95,
+        # non stabilisée.
+        "m1w_hazard_ipw": WeightedHazardModel,
+        "m1w_hazard_ipw_t95": lambda: WeightedHazardModel(
+            truncate=(0.05, 0.95), name="m1w_hazard_ipw_t95"
+        ),
+        "m1w_hazard_ipw_raw": lambda: WeightedHazardModel(
+            stabilize=False, name="m1w_hazard_ipw_raw"
+        ),
     }
