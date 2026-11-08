@@ -19,6 +19,7 @@ import numpy as np
 import polars as pl
 
 from rugby_risk.modeling.base import RiskModel
+from rugby_risk.modeling.baselines import GlobalRateModel
 from rugby_risk.modeling.bootstrap import cluster_bootstrap, percentile_interval
 from rugby_risk.modeling.metrics import Metrics, calibration_curve, evaluate
 from rugby_risk.modeling.report import experiment_markdown
@@ -82,10 +83,13 @@ def git_sha() -> str | None:
 
 
 def _played(df: pl.DataFrame, seasons: tuple[str, ...], config: ExperimentConfig) -> pl.DataFrame:
+    # Les lignes jouées sans minutes connues (trou de parsing, S7) sont exclues :
+    # l'exposition est l'offset du hazard, sans elle pas de prédiction honnête.
+    # Sur les vraies données ces lignes ont toutes y_injury = 0 (0,8 % des jouées).
     return (
         df.filter(pl.col("season_id").is_in(list(seasons)))
         .filter(pl.col("played"))
-        .drop_nulls(subset=[config.target_col])
+        .drop_nulls(subset=[config.target_col, "minutes_played"])
     )
 
 
@@ -126,6 +130,7 @@ def run_experiment(
     fold_results: list[FoldResult] = []
     pooled_y: list[np.ndarray] = []
     pooled_p: list[np.ndarray] = []
+    pooled_ref: list[np.ndarray] = []
     for fold in folds:
         train = _played(df, fold.train_seasons, config)
         valid = _played(df, (fold.valid_season,), config)
@@ -134,6 +139,10 @@ def run_experiment(
         p = np.clip(model.predict_proba(test), 1e-6, 1 - 1e-6)
         y = test[config.target_col].to_numpy().astype(float)
         metrics = evaluate(y, p)
+        # Référence M0 (taux global) : Brier skill score vs elle (docs/06 §3.2).
+        ref_model = GlobalRateModel(target_col=config.target_col).fit(train)
+        ref = np.clip(ref_model.predict_proba(test), 1e-6, 1 - 1e-6)
+        pooled_ref.append(ref)
 
         def brier_on(mask: np.ndarray, y: np.ndarray = y, p: np.ndarray = p) -> float:
             return float(evaluate(y[mask], p[mask]).brier)
@@ -152,7 +161,7 @@ def run_experiment(
         pooled_p.append(p)
     y_all = np.concatenate(pooled_y)
     p_all = np.concatenate(pooled_p)
-    aggregated = evaluate(y_all, p_all)
+    aggregated = evaluate(y_all, p_all, p_reference=np.concatenate(pooled_ref))
     pooled_keys = np.concatenate(
         [
             _played(df, (fr.fold.test_season,), config)["player_key"].to_numpy()
@@ -188,7 +197,10 @@ def run_experiment(
         brier_boot_high=brier_hi,
         report_path=reports / f"{run_id}.md",
         config=config,
-        extra={"params": model.params()},
+        extra={
+            "params": model.params(),
+            "tables": getattr(model, "report_tables", lambda: {})() or {},
+        },
     )
     result.report_path.write_text(experiment_markdown(result), encoding="utf-8")
     _log_mlflow(result, curve, fig_path)

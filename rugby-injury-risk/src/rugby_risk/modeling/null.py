@@ -1,7 +1,7 @@
 """Null model: predicts the training base rate.
 
-Not a contender (M0 comes in F19): it exists so the F18 runner has a deterministic model
-to prove the protocol end to end.
+Not a contender: M0 (référence à battre) lives in `baselines.py` (F19). ConstantModel
+reste comme sonde déterministe du protocole F18.
 """
 
 from collections.abc import Callable
@@ -40,5 +40,14 @@ class ConstantModel:
 
 
 def registry() -> dict[str, Callable[[], RiskModel]]:
-    """Model factories by name. F19+ register their models here."""
-    return {ConstantModel.name: lambda: ConstantModel()}  # noqa: PLW0108 - factory standard
+    """Model factories by name (CLI `rugby-risk train <model>`)."""
+    from rugby_risk.modeling.baselines import (  # noqa: PLC0415 - évite cycle d'imports
+        GlobalRateModel,
+        PositionRateModel,
+    )
+
+    return {
+        ConstantModel.name: lambda: ConstantModel(),  # noqa: PLW0108 - factory standard
+        GlobalRateModel.name: lambda: GlobalRateModel(),  # noqa: PLW0108
+        PositionRateModel.name: lambda: PositionRateModel(),  # noqa: PLW0108
+    }

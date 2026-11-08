@@ -21,7 +21,7 @@ Les sources de vérité détaillées restent :
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
 | 2 — Internationaux, coupes, entités | F07 → F11 | ✅ fait |
 | 3 — Labellisation des blessures | F12, F13, F15, F16 ✅ ; F14 (fiche à reprendre, T9) | ✅ fait (sauf annotation humaine) |
-| 4 — Table d'apprentissage et baselines | F17, F18 ✅ ; F19 → F20 | 🟡 en cours |
+| 4 — Table d'apprentissage et baselines | F17, F18, F19 ✅ ; F20 → F24 | 🟡 en cours |
 | 5 — Modèle de production | F21, F22 | ⬜ à faire |
 | 6 — Challenger et gravité | F23, F24 | ⬜ à faire |
 | 7 — Produit | F25 → F27 | ⬜ à faire |
@@ -158,7 +158,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | **F16** ✅ | Fusion, annotation, contrôle qualité | F12, F13, F15 | 300 à 500 épisodes annotés à la main ; avis juriste art. 9 | Comparer l'incidence aux priors (PRISP). |
 | **F17** ✅ | Table `ml_player_match` et test anti-fuite | F16 | — | Features `as_of_ts`, `player_key` seul, oracle Python indépendant + test de mutation. |
 | **F18** ✅ | Cadre d'évaluation et MLflow | F17 | — | Rolling origin par saison, métriques de calibration, bootstrap clusterisé joueur, MLflow sqlite, rapport agrégé, CLI `rugby-risk train`. |
-| F19 | Baseline Poisson par poste | F18 | — | Référence M0 et priors. |
+| **F19** ✅ | Baseline Poisson par poste (M0) et priors | F18 | — | `priors.py` (constantes docs/02 centralisées), `baselines.py` (taux par poste lissés gamma-Poisson), Brier skill vs M0 global dans chaque rapport, run réel : taux 8,7–30,8/1000 h par poste. Fix data : positions allrugby résolus via `position_aliases.csv` (loader `reference.position_canonical`). |
 | F20 | Hazard en temps discret | F19 | — | Lien cloglog avec offset, splines, premières courbes h(N). |
 | F21 | Sélection et pondération IPW | F20 | — | Correction du biais du « survivant en bonne santé ». |
 | F22 | Modèle hiérarchique bayésien | F21 | Revue du rapport de modèle | PyMC/bambi, intervalles crédibles. |
@@ -170,7 +170,7 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F19** (baseline Poisson par poste, référence M0). Écarts connus : la fiche F14 est marquée `done` dans la ROADMAP mais ses
+Prochaine étape immédiate : **F20** (hazard en temps discret, lien cloglog avec offset). Écarts connus : la fiche F14 est marquée `done` dans la ROADMAP mais ses
 cases et son Journal ne sont pas remplis (T9) ; le critère « précision ≥ 0,85 » de F16
 attend l'annotation humaine ; run réel F09 (audit de 100 joueurs) et parseurs
 internationaux à compléter (birth_date). Crawl réel allrugby terminé le 2026-11-06 :

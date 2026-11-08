@@ -24,6 +24,7 @@ dependencies = [
     "matplotlib>=3.9",
     "mlflow>=3.18.0",
     "scikit-learn>=1.9.1",
+    "scipy>=1.18",
 ]
 
 [dependency-groups]
@@ -57,7 +58,7 @@ disallow_untyped_defs = false
 disallow_any_generics = false
 
 [[tool.mypy.overrides]]
-module = ["sklearn.*"]
+module = ["sklearn.*", "scipy.*"]
 ignore_missing_imports = true
 
 [tool.mypy]

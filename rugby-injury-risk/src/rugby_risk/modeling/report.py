@@ -54,6 +54,11 @@ def experiment_markdown(result: "ExperimentResult") -> str:
     if agg.alerts:
         lines += ["", "## Alertes", ""]
         lines += [f"- {a}" for a in agg.alerts]
+    tables = result.extra.get("tables", {})
+    if tables:
+        lines.append("")
+        for title, body in tables.items():
+            lines += [f"## {title}", "", body, ""]
     lines += [
         "",
         f"Figure : `reports/experiments/{result.run_id}_calibration.png`.",

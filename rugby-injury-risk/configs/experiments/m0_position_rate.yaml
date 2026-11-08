@@ -1,0 +1,9 @@
+# M0 — baseline Poisson par poste (F19).
+# Référence à battre : taux par position_code, lissé vers le position_group.
+# Vraies données : 3 saisons pilotes -> min_train_seasons: 1. Prod (_example.yaml) : 5.
+min_train_seasons: 1
+allow_final_test: false
+bootstrap_replications: 100
+seed: 0
+target_col: y_injury
+mlflow_uri: sqlite:///data/mlflow.db
