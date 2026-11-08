@@ -146,3 +146,18 @@ def test_loader_rejects_incomplete_positions(isolated_references):
     )
     with pytest.raises(ValueError, match="Expected 9"):
         reference.positions()
+
+
+def test_position_canonical_accepts_code_and_label() -> None:
+    assert reference.position_canonical("PROP", "allrugby") == "PROP"  # code déjà canonique
+    assert reference.position_canonical("pilier", "allrugby") == "PROP"  # label source
+    assert reference.position_canonical("Talonneur", "lnr") == "HOOKER"
+    assert reference.position_canonical(None, "allrugby") is None
+    assert reference.position_canonical("inconnu", "allrugby") is None
+
+
+def test_position_aliases_valid() -> None:
+    frame = reference._load("position_aliases")
+    assert frame.height >= 18  # 9 lnr + 9 allrugby
+    codes = set(reference.positions()["position_code"].to_list())
+    assert set(frame["position_code"].to_list()) <= codes

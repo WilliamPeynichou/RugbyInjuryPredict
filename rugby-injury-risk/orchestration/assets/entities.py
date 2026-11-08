@@ -28,7 +28,7 @@ from rugby_risk.entity_resolution.resolve import resolve_entities
 from rugby_risk.entity_resolution.review import write_review_queue
 from rugby_risk.entity_resolution.splink_model import AUTO_LINK, REVIEW, score_pairs
 from rugby_risk.privacy import player_key
-from rugby_risk.reference import positions
+from rugby_risk.reference import position_canonical, positions
 from rugby_risk.settings import get_settings
 from rugby_risk.warehouse import connect
 
@@ -168,13 +168,15 @@ def _dim_player(xref: pl.DataFrame, records: pl.DataFrame, profiles: pl.DataFram
     players = players.with_columns(
         pl.col("player_id").map_elements(player_key, return_dtype=pl.String).alias("player_key")
     )
-    known = set(positions()["position_code"])
 
-    def first_position(raw: str | None) -> str | None:
+    def first_position(raw: str | None, source: str) -> str | None:
         if raw is None:
             return None
         tokens = (t.strip() for t in raw.replace(";", ",").split(","))
-        return next((t for t in tokens if t in known), None)
+        return next(
+            (code for t in tokens if (code := position_canonical(t, source)) is not None),
+            None,
+        )
 
     primary = (
         profiles.with_columns(
@@ -182,13 +184,16 @@ def _dim_player(xref: pl.DataFrame, records: pl.DataFrame, profiles: pl.DataFram
         )
         .join(xref.select("key", "player_id"), on="key")
         .filter(pl.col("positions_raw").is_not_null())
-        .group_by("player_id")
-        .agg(pl.col("positions_raw").first().alias("positions_raw"))
         .with_columns(
-            pl.col("positions_raw")
-            .map_elements(first_position, return_dtype=pl.String)
+            pl.struct(["positions_raw", "source"])
+            .map_elements(
+                lambda r: first_position(r["positions_raw"], r["source"]),
+                return_dtype=pl.String,
+            )
             .alias("primary_position")
         )
+        .group_by("player_id")
+        .agg(pl.col("primary_position").drop_nulls().first().alias("primary_position"))
         .select("player_id", "primary_position")
     )
     players = players.join(primary, on="player_id", how="left").join(

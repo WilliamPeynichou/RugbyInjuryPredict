@@ -92,6 +92,11 @@ def _schema(name: str) -> pa.DataFrameSchema:
             "raw_name": pa.Column(pl.String, unique=True),
             "venue_id": pa.Column(pl.Int64),
         },
+        "position_aliases": {
+            "raw_label": text(),
+            "source": text(),
+            "position_code": text(),
+        },
     }
     return pa.DataFrameSchema(schemas[name], strict=True, coerce=True)
 
@@ -107,6 +112,11 @@ def _check_aliases(name: str, frame: pl.DataFrame) -> None:
             raise ValueError("Inconsistent team identity")
     if name == "venue_aliases" and not set(frame["venue_id"]).issubset(venues()["venue_id"]):
         raise ValueError("Unknown venue in aliases")
+    if name == "position_aliases":
+        if frame.select("raw_label", "source").is_duplicated().any():
+            raise ValueError("Duplicate position alias")
+        if not set(frame["position_code"]).issubset(positions()["position_code"]):
+            raise ValueError("Unknown position_code in aliases")
 
 
 @lru_cache
@@ -194,6 +204,32 @@ def team_aliases() -> pl.DataFrame:
 
 def venue_aliases() -> pl.DataFrame:
     return _load("venue_aliases").clone()
+
+
+@lru_cache
+def _position_index() -> dict[tuple[str, str], str]:
+    frame = _load("position_aliases")
+    return dict(
+        zip(
+            zip(frame["source"], frame["raw_label"], strict=True),
+            frame["position_code"],
+            strict=True,
+        )
+    )
+
+
+def position_canonical(raw: str | None, source: str) -> str | None:
+    """Label brut (ou code) -> position_code ; alias source-spécifique puis `*`.
+
+    Accepte aussi un code déjà canonique (membership direct), ce qui rend le
+    lookup idempotent sur les données déjà normalisées.
+    """
+    if raw is None:
+        return None
+    if raw in set(positions()["position_code"]):
+        return raw
+    index = _position_index()
+    return index.get((source, raw)) or index.get(("*", raw))
 
 
 @lru_cache
