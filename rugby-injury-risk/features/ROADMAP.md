@@ -62,7 +62,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F23 | [Challenger gradient boosting et SHAP](F23-gbm-challenger.md) | F20 | M | todo |
+| **F23** ✅ | [Challenger gradient boosting et SHAP](F23-gbm-challenger.md) | F20 | M | HistGradientBoosting (libomp absent), exposition en offset monotone (fuite AUC 0,90 corrigée), meilleur log-loss 0,0845 vs M2 0,0997 mais pente 0,77 : non promu ; aucun effet d'enchaînement (ALE). |
 | F24 | [Modèle de gravité](F24-severity.md) | F18 | M | todo |
 
 ## Phase 7 — Produit

@@ -3,7 +3,11 @@
 Role: check whether a non-parametric model finds interactions missed by M1/M2 — not a public
 model unless a documented human decision says so. Exposure enters as the feature
 `log_exposure = log(minutes_played/80)` (documented choice: a single channel keeps SHAP and
-the isotone calibration consistent; `init_score` would bypass calibration). Hyperparameters
+the isotone calibration consistent; `init_score` would bypass calibration), under a forced
+non-decreasing monotone constraint: the tree analogue of the offset of docs/06 §2. Without it
+the trees learn reverse causation (an injured player is replaced early, and the label itself
+uses early exits, F12) — real run of 2026-11-09: ROC AUC 0.90, exposure first in SHAP, h(N)
+at 80 minutes collapsed to 0. Hyperparameters
 are selected on the validation season only (reduced grid, log-loss); the isotonic calibration
 is fit on validation predictions of the final model and applied to the test season. Trees
 handle missing values natively (sentinel 999 stays a split, never imputed).
@@ -34,6 +38,8 @@ from rugby_risk.modeling.curves import (
 )
 
 EXPOSURE_FEATURE: Final = "log_exposure"
+# Offset arbre (docs/06 §2) : risque non décroissant avec l'exposition, jamais désactivable.
+EXPOSURE_MONOTONE: Final = 1
 CATEGORICAL_FEATURES: Final = ("position_code",)
 # Grille réduite (docs/06 §2, ≤ 30 essais) : réglée sur la saison de validation uniquement.
 _PARAM_GRID: Final = tuple(
@@ -73,6 +79,8 @@ class GBMRiskModel:
         monotone: dict[str, int] | None = None,
         scenarios_path: Path = SCENARIOS_PATH,
     ) -> None:
+        if monotone and monotone.get(EXPOSURE_FEATURE, EXPOSURE_MONOTONE) != EXPOSURE_MONOTONE:
+            raise ValueError(f"{EXPOSURE_FEATURE} : contrainte croissante imposée (offset)")
         self.seed = seed
         self.monotone = monotone or {}
         self.scenarios_: Scenarios = load_scenarios(scenarios_path)
@@ -140,10 +148,16 @@ class GBMRiskModel:
             x_train[col] = pd.Categorical(x_train[col].astype(str), categories=cats)
             x_valid[col] = pd.Categorical(x_valid[col].astype(str), categories=cats)
 
+        # Mêmes contraintes pour la grille et le modèle final (sinon réglage incohérent).
+        cst = {**self.monotone, EXPOSURE_FEATURE: EXPOSURE_MONOTONE}
+        constraints = [cst.get(c, 0) for c in x_train.columns]
         best_params = dict(_PARAM_GRID[0])
         for params in _PARAM_GRID:
             candidate = HistGradientBoostingClassifier(
-                random_state=self.seed, categorical_features=list(CATEGORICAL_FEATURES), **params
+                random_state=self.seed,
+                categorical_features=list(CATEGORICAL_FEATURES),
+                monotonic_cst=constraints,
+                **params,
             )
             candidate.fit(x_train, y_train)
             loss = float(log_loss(y_valid, candidate.predict_proba(x_valid)[:, 1]))
@@ -151,11 +165,10 @@ class GBMRiskModel:
                 self.best_loss_, best_params = loss, dict(params)
 
         self.best_params_ = best_params
-        constraints = [self.monotone.get(c, 0) for c in x_train.columns]
         self.clf_ = HistGradientBoostingClassifier(
             random_state=self.seed,
             categorical_features=list(CATEGORICAL_FEATURES),
-            monotonic_cst=constraints if any(constraints) else None,
+            monotonic_cst=constraints,
             **cast(dict[str, Any], self.best_params_),
         )
         self.clf_.fit(x_train, y_train)
@@ -182,7 +195,7 @@ class GBMRiskModel:
         return {
             "objective": "binary",
             "features": ",".join([*self.features_, EXPOSURE_FEATURE, *CATEGORICAL_FEATURES]),
-            "exposure": "log_exposure = log(minutes_played/80) (feature unique, cf. module)",
+            "exposure": "log_exposure = log(minutes_played/80), monotone croissante (offset)",
             "grid_size": len(_PARAM_GRID),
             "best_params": jsonable(self.best_params_),
             "best_valid_log_loss": self.best_loss_,

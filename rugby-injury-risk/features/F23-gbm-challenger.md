@@ -17,14 +17,14 @@ M3 n'est pas destiné à la production publique sauf gain clair et calibration c
 
 ## Périmètre
 
-- [ ] Ajouter `lightgbm`, `shap`.
-- [ ] `modeling/gbm.py` : `GBMRiskModel` (objectif `binary`, exposition intégrée en feature `log_exposure` **et** via `init_score` en option, choix documenté) ; `position_code` en catégorielle native.
-- [ ] Contraintes de monotonie optionnelles (config) sur `days_since_last_match` (non croissante après 60 j…) — désactivées par défaut.
-- [ ] Réglage des hyperparamètres sur la saison de validation de chaque fold (Optuna léger ou grille réduite, 30 essais max), métrique log-loss.
-- [ ] Calibration isotone sur la saison de validation, appliquée au test.
-- [ ] Interprétabilité : SHAP TreeExplainer (valeurs globales, dépendance de `consecutive_matches` par `position_group`), ALE par groupe (implémentation simple dans `modeling/ale.py`).
-- [ ] Courbes h(N) par poste via `curves.py` (profil de scénario) pour comparaison avec M2.
-- [ ] Rapport : M3 vs M2 vs M1w (log-loss, Brier, calibration), avis sur les interactions manquées par M1/M2.
+- [x] Ajouter `lightgbm`, `shap`.
+- [x] `modeling/gbm.py` : `GBMRiskModel` (objectif `binary`, exposition intégrée en feature `log_exposure` **et** via `init_score` en option, choix documenté) ; `position_code` en catégorielle native.
+- [x] Contraintes de monotonie optionnelles (config) sur `days_since_last_match` (non croissante après 60 j…) — désactivées par défaut.
+- [x] Réglage des hyperparamètres sur la saison de validation de chaque fold (Optuna léger ou grille réduite, 30 essais max), métrique log-loss.
+- [x] Calibration isotone sur la saison de validation, appliquée au test.
+- [x] Interprétabilité : SHAP TreeExplainer (valeurs globales, dépendance de `consecutive_matches` par `position_group`), ALE par groupe (implémentation simple dans `modeling/ale.py`).
+- [x] Courbes h(N) par poste via `curves.py` (profil de scénario) pour comparaison avec M2.
+- [x] Rapport : M3 vs M2 vs M1w (log-loss, Brier, calibration), avis sur les interactions manquées par M1/M2.
 
 ## Hors périmètre
 
@@ -45,9 +45,9 @@ M3 n'est pas destiné à la production publique sauf gain clair et calibration c
 
 ## Critères d'acceptation
 
-- [ ] Run M3 complet avec rapport comparatif.
-- [ ] Alerte automatique si AUC > 0,75 (héritée de F18) traitée dans le journal.
-- [ ] `make check` vert.
+- [x] Run M3 complet avec rapport comparatif.
+- [x] Alerte automatique si AUC > 0,75 (héritée de F18) traitée dans le journal.
+- [x] `make check` vert.
 
 ## Journal
 
@@ -72,7 +72,40 @@ M3 n'est pas destiné à la production publique sauf gain clair et calibration c
   intégration (run complet via le runner F18 + SHAP retrouve l'interaction unit x
   consecutive simulée — DGP hazard_frame avec pente avants 0,15 / arrières 0). 3 saisons
   synthétiques -> 1 fold, comme le réel.
-- **Reste à faire** : run M3 réel (`rugby-risk train m3_gbm --config
-  configs/experiments/m3_gbm.yaml`), tableau comparatif M3 vs M2 vs M1w dans ce journal,
-  puis F27 (front).
+- **Run réel n°1 (2026-11-09, `m3_gbm-20261109T182710Z`) — alerte AUC traitée** : ROC AUC
+  0,90 (alerte F18 > 0,75), `log_exposure` premier en SHAP, courbes h(N) à 80 min toutes à 0.
+  Diagnostic : causalité inverse. Un joueur blessé est remplacé tôt et le label s'appuie en
+  partie sur la sortie précoce (F12) : l'exposition libre apprend « peu de minutes =
+  blessure ». Le doc de recherche impose l'exposition en **offset** (docs/06 §2) et autorise
+  des contraintes de monotonie pour le GBM. Correctif : `log_exposure` sous contrainte
+  **monotone croissante imposée** (non désactivable, appliquée aussi pendant la grille ;
+  avant, la grille tournait sans contrainte → réglage incohérent). Tests :
+  `test_exposure_never_decreases_risk`, `test_exposure_constraint_cannot_be_disabled`.
+- **Run réel n°2 (référence F23) `m3_gbm-20261109T182944Z`**, dataset_version
+  `7d004d9a146715b139e501738e58620a`, git `ac3bd9b` + correctif, fold unique test 2024-2025
+  (7 819 lignes jouées, prévalence 1,71 %) :
+
+  | Modèle | Log-loss | Brier | Brier skill | ROC AUC | Pente calib. |
+  |---|---|---|---|---|---|
+  | M0 poste (Poisson offset) | 0,0979 | 0,01716 | 0,0001 | 0,35 | −0,69 |
+  | M1 hazard cloglog | 0,0983 | 0,01704 | 0,0071 | 0,49 | −0,01 |
+  | M1w (IPW) | 0,1043 | 0,01726 | −0,0055 | 0,50 | 0,08 |
+  | M2 hiérarchique (revue F22) | 0,0997 | 0,01769 | −0,0307 | 0,48 | −0,04 |
+  | **M3 GBM (offset monotone)** | **0,0845** | **0,01655** | **0,0358** | 0,63 | 0,77 |
+
+  Brier IC90 bootstrap joueur M3 : [0,01498 ; 0,01857]. Alerte restante : pente 0,77 hors
+  [0,8 ; 1,2] ; pente par groupe hors bornes pour back_row (0,18), centre (0,67), lock (−0,01)
+  (14 à 28 blessures par groupe : très bruité).
+- **Lecture** : M3 est le seul modèle qui bat la référence en log-loss et Brier. Le gain vient
+  des features **hors** M1/M2 (SHAP : `days_since_last_injury`, `days_since_last_match`,
+  `season_minutes`, `recent_return_8w`, puis `height_missing`/`weight_missing`), pas d'une
+  interaction poste x enchaînement : ALE de `consecutive_matches` par groupe dans ±0,003
+  sans tendance, courbes h(N) M3 plates ou légèrement décroissantes (0,8 % talonneur à
+  4,4 % arrière). Interactions manquées par M1/M2 : **historique de blessure** (réblessure)
+  et **indicateurs de profil manquant** — ces derniers sont un artefact de couverture
+  (joueurs peu documentés = effectifs de rotation), à ne pas interpréter. Conclusion
+  identique à M2 : aucune hausse établie du risque avec l'enchaînement sur 3 saisons.
+- **Décision** : M3 non promu (1 fold, pente hors bornes, pas de correction de sélection).
+  Piste pour M2 (décision humaine) : ajouter `days_since_last_injury` au design hiérarchique.
+  Aucune exposition publique de M3 (hors périmètre).
 

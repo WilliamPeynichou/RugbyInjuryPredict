@@ -74,3 +74,18 @@ def test_monotone_constraints_reported(split) -> None:
     assert model.params()["monotone"] == {"days_since_last_match": -1}
     plain = GBMRiskModel(seed=0).fit(*split)
     assert plain.params()["monotone"] is None
+
+
+def test_exposure_never_decreases_risk(model, split) -> None:
+    # Offset arbre : un joueur remplaçé tôt (blessé) ne doit pas faire « peu de minutes = risque ».
+    rows = split[1].head(200)
+    probs = [
+        model.predict_proba(rows.with_columns(pl.lit(float(m)).alias("minutes_played")))
+        for m in (10, 40, 80)
+    ]
+    assert (np.diff(np.vstack(probs), axis=0) >= -1e-12).all()
+
+
+def test_exposure_constraint_cannot_be_disabled() -> None:
+    with pytest.raises(ValueError, match="offset"):
+        GBMRiskModel(monotone={EXPOSURE_FEATURE: 0})
