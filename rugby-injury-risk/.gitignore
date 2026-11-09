@@ -32,3 +32,5 @@ dbt/target/
 reports/experiments/
 data/mlflow.db
 data/ml/
+data/models/
+reports/profiles/

@@ -24,6 +24,7 @@ from rugby_risk.modeling.bootstrap import cluster_bootstrap, percentile_interval
 from rugby_risk.modeling.metrics import Metrics, calibration_curve, evaluate
 from rugby_risk.modeling.report import experiment_markdown
 from rugby_risk.modeling.validation import (
+    FINAL_TEST_SEASON,
     LABEL_OBSERVABLE,
     Fold,
     season_folds,
@@ -315,6 +316,48 @@ def run_experiment(
     result.report_path.write_text(experiment_markdown(result), encoding="utf-8")
     _log_mlflow(result, [*figures, *artifacts])
     return result
+
+
+@dataclass(frozen=True)
+class FinalFit:
+    """A model refitted on every validated season (F30), with its provenance."""
+
+    model: RiskModel
+    train: pl.DataFrame  # lignes d'estimation (identifiants inclus : ne quitte pas data/)
+    seasons: tuple[str, ...]
+    dataset_version: str
+    git_sha: str | None
+
+
+def fit_final(
+    model_factory: Callable[[], RiskModel],
+    df: pl.DataFrame,
+    config: ExperimentConfig | None = None,
+) -> FinalFit:
+    """Refit on all seasons except the frozen final test (F30, after rolling-origin review).
+
+    Same filters as the folds (played, label observable, minutes known; eligible rows for
+    IPW). Evaluation stays `run_experiment`'s job: this fit is never scored on its own rows.
+    """
+    config = config or ExperimentConfig()
+    df = with_label_observability(df, _min_followup(config))
+    all_seasons = sorted(df["season_id"].unique().to_list())
+    seasons = tuple(s for s in all_seasons if s != FINAL_TEST_SEASON)
+    if not seasons:
+        raise ValueError("Aucune saison d'estimation hors test final gelé")
+    train = _played(df, seasons, config)
+    model = model_factory()
+    if getattr(model, "requires_eligible", False):
+        model = cast(Any, model).fit(train, None, eligible=_eligible(df, seasons))
+    else:
+        model = model.fit(train, None)
+    return FinalFit(
+        model=model,
+        train=train,
+        seasons=seasons,
+        dataset_version=str(df["dataset_version"][0]),
+        git_sha=git_sha(),
+    )
 
 
 def _log_mlflow(result: ExperimentResult, figures: list[Path]) -> None:

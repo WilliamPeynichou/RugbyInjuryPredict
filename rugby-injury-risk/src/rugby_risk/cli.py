@@ -65,6 +65,67 @@ def _review(config_path: Path, *, fast: bool, sensitivities: bool) -> int:
     return 0
 
 
+def _fit_final(model_name: str, config_path: Path) -> int:
+    """F30: refit M2 on every validated season, persist it locally (data/models/)."""
+    from rugby_risk.modeling.artifact import save_hierarchical  # noqa: PLC0415
+    from rugby_risk.modeling.hierarchical import HierarchicalHazardModel  # noqa: PLC0415
+    from rugby_risk.modeling.runner import fit_final  # noqa: PLC0415
+
+    factories, config, df = _experiment_inputs(config_path)
+    if model_name not in factories:
+        raise SystemExit(f"Modèle inconnu: {model_name} (disponibles: {sorted(factories)})")
+    final = fit_final(factories[model_name], df, config)
+    if not isinstance(final.model, HierarchicalHazardModel):
+        raise SystemExit("fit-final ne persiste que les modèles M2 (hiérarchiques)")
+    path = save_hierarchical(
+        final.model,
+        final.train,
+        seasons=final.seasons,
+        dataset_version=final.dataset_version,
+        git_sha=final.git_sha,
+    )
+    print(f"Artefact : {path} (MCMC {final.model.status}, saisons {', '.join(final.seasons)})")
+    return 0 if final.model.status == "ok" else 1
+
+
+def _profile(args: Any) -> int:
+    """F30: risk per chained match for a typed load profile (by position, never by name)."""
+    from datetime import UTC, datetime  # noqa: PLC0415
+
+    from rugby_risk.modeling.artifact import (  # noqa: PLC0415
+        is_promoted,
+        latest_artifact,
+        load_hierarchical,
+    )
+    from rugby_risk.modeling.profile import (  # noqa: PLC0415
+        PositionProfile,
+        profile_markdown,
+        simulate,
+    )
+
+    directory = Path(args.model_dir) if args.model_dir else latest_artifact()
+    model, meta = load_hierarchical(directory)
+    profile = PositionProfile(
+        position_code=args.position.upper(),
+        minutes_per_match=args.minutes,
+        apps_20min_365d=args.apps_365d,
+        min_28d=args.min_28d,
+        intl_window=args.intl_window,
+        days_since_last_match=args.rest_days,
+        start_consecutive=args.start,
+        horizon=args.horizon,
+    )
+    md = profile_markdown(simulate(model, profile), model, meta, promoted=is_promoted(directory))
+    out = Path("reports/profiles")
+    out.mkdir(parents=True, exist_ok=True)
+    stamp = datetime.now(UTC).strftime("%Y%m%dT%H%M%SZ")
+    path = out / f"profile-{profile.position_code}-{stamp}.md"
+    path.write_text(md, encoding="utf-8")
+    print(md)
+    print(f"Rapport : {path}")
+    return 0
+
+
 def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0911, PLR0912, PLR0915
     parser = argparse.ArgumentParser(prog="rugby-risk")
     sub = parser.add_subparsers(dest="group", required=True)
@@ -93,6 +154,23 @@ def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0911, PLR0912, P
     review_model.add_argument("--config", default="configs/experiments/m2_hierarchical.yaml")
     review_model.add_argument("--fast", action="store_true", help="M2 --fast (exploration)")
     review_model.add_argument("--no-sensitivities", action="store_true")
+    final = sub.add_parser(
+        "fit-final", help="ajuste M2 sur toutes les saisons validées -> data/models/ (F30)"
+    )
+    final.add_argument("model_name", nargs="?", default="m2_hierarchical")
+    final.add_argument("--config", default="configs/experiments/m2_hierarchical.yaml")
+    prof = sub.add_parser(
+        "profile", help="risque par match enchaîné pour un profil de charge par poste (F30)"
+    )
+    prof.add_argument("--position", required=True, help="code poste, ex. FLY_HALF")
+    prof.add_argument("--minutes", type=float, default=80.0, help="minutes par match")
+    prof.add_argument("--apps-365d", type=float, help="matchs >= 20 min sur 365 j")
+    prof.add_argument("--min-28d", type=float, help="minutes jouées sur 28 j")
+    prof.add_argument("--intl-window", action="store_true")
+    prof.add_argument("--rest-days", type=float, default=7.0)
+    prof.add_argument("--start", type=int, default=0, help="matchs consécutifs déjà joués")
+    prof.add_argument("--horizon", type=int, default=6)
+    prof.add_argument("--model-dir", help="artefact (défaut : le plus récent de data/models)")
     annotate = sub.add_parser(
         "annotate", help="échantillon d'annotation humaine des épisodes (F16)"
     )
@@ -152,6 +230,10 @@ def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0911, PLR0912, P
         return _train(args.model_name, Path(args.config), fast=args.fast)
     if args.group == "review-model":
         return _review(Path(args.config), fast=args.fast, sensitivities=not args.no_sensitivities)
+    if args.group == "fit-final":
+        return _fit_final(args.model_name, Path(args.config))
+    if args.group == "profile":
+        return _profile(args)
     if args.group == "er":
         if args.cmd == "review":
             queue = read_review_queue()
