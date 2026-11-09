@@ -1,0 +1,11 @@
+# M3 — challenger gradient boosting (F23, docs/06 §2). Modèle :
+#   rugby-risk train m3_gbm --config configs/experiments/m3_gbm.yaml
+# Hyperparamètres réglés sur la saison de validation (grille réduite), calibration isotone
+# sur la validation. Rôle : vérifier les interactions manquées par M1/M2 — pas de production
+# publique sans décision humaine documentée.
+min_train_seasons: 1
+allow_final_test: false
+bootstrap_replications: 200
+seed: 0
+target_col: y_injury
+mlflow_uri: sqlite:///data/mlflow.db

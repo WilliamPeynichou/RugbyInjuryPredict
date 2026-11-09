@@ -51,3 +51,28 @@ M3 n'est pas destiné à la production publique sauf gain clair et calibration c
 
 ## Journal
 
+- **Implémentation** : LightGBM envisagé mais écarté : la bibliothèque native exige
+  `libomp`, une dépendance système absente de la machine de développement (x86_64). Choix
+  documenté : `sklearn.ensemble.HistGradientBoostingClassifier` — même famille d'algorithme
+  (gradient boosting par histogrammes), déjà en dépendance du projet, `uv sync` suffit.
+  `shap` ajouté (TreeExplainer supporte ce modèle).
+- **Exposition** : `log_exposure = log(minutes_played/80)` en feature unique — un canal unique
+  garde SHAP et la calibration isotone cohérents ; `init_score` contournerait la calibration.
+- **Features** : colonnes du registre FEATURES, numériques/booléennes uniquement
+  (arbres : NaN natifs, sentineles 999 conservées) ; `position_code` en catégorielle native
+  sklearn ; `position_group`/`unit`/`surface`/`competition_code` écartés (redondants ou
+  textuels) ; colonnes 100 % nulles au train écartées (terme dégénéré).
+- **Protocole** : grille réduite de 8 combinaisons (learning_rate, max_leaf_nodes,
+  min_samples_leaf), réglée sur la saison de validation par log-loss ; calibration isotone
+  apprise sur la validation du modèle final, appliquée au test. SHAP (moyenne |valeur|) et
+  ALE de `consecutive_matches` par groupe calculés sur la validation, dans le rapport
+  d'expérience via `report_tables`. SHAP reçoit une matrice numérique (catégorielles en
+  codes) car l'backend arrow de pandas refuse les strings.
+- **Tests** : unitaires (calibration sur validation uniquement, courbes, garde-fous) et
+  intégration (run complet via le runner F18 + SHAP retrouve l'interaction unit x
+  consecutive simulée — DGP hazard_frame avec pente avants 0,15 / arrières 0). 3 saisons
+  synthétiques -> 1 fold, comme le réel.
+- **Reste à faire** : run M3 réel (`rugby-risk train m3_gbm --config
+  configs/experiments/m3_gbm.yaml`), tableau comparatif M3 vs M2 vs M1w dans ce journal,
+  puis F27 (front).
+

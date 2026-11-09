@@ -29,6 +29,7 @@ dependencies = [
     "patsy>=1.0",
     "pymc>=5.26.1",
     "arviz>=0.22,<1",
+    "shap>=0.54.1",
 ]
 
 [dependency-groups]

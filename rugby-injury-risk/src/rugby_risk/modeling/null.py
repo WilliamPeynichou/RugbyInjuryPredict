@@ -45,6 +45,7 @@ def registry() -> dict[str, Callable[[], RiskModel]]:
         GlobalRateModel,
         PositionRateModel,
     )
+    from rugby_risk.modeling.gbm import GBMRiskModel  # noqa: PLC0415
     from rugby_risk.modeling.hazard import DiscreteHazardModel  # noqa: PLC0415
     from rugby_risk.modeling.hierarchical import (  # noqa: PLC0415
         FAST_SAMPLER,
@@ -67,6 +68,8 @@ def registry() -> dict[str, Callable[[], RiskModel]]:
         "m1w_hazard_ipw_raw": lambda: WeightedHazardModel(
             stabilize=False, name="m1w_hazard_ipw_raw"
         ),
+        # F23 : M3 challenger LightGBM calibré (exploration, docs/06 §2).
+        "m3_gbm": GBMRiskModel,
         # F22 : M2 hiérarchique bayésien (production). _fast = exploration (sous-échantillon
         # joueurs, 2 chaînes x 500), _noipw = sensibilité docs/06 §3.3.
         "m2_hierarchical": HierarchicalHazardModel,
