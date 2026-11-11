@@ -19,10 +19,15 @@ class _Recorder(ConstantModel):
         return self
 
 
-def test_final_test_season_excluded() -> None:
+def test_final_test_season_excluded(tmp_path) -> None:
     df = hazard_frame(players=30, seasons=6, matches=6, seed=1)
     assert FINAL_TEST_SEASON in df["season_id"].to_list()
-    final = fit_final(_Recorder, df, ExperimentConfig(min_label_followup=1))
+    config = ExperimentConfig(
+        min_label_followup=1,
+        reports_dir=tmp_path / "experiments",
+        mlflow_uri=f"sqlite:///{tmp_path}/mlflow.db",
+    )
+    final = fit_final(_Recorder, df, config)
     assert FINAL_TEST_SEASON not in final.seasons
     assert _Recorder.seen is not None
     assert FINAL_TEST_SEASON not in _Recorder.seen["season_id"].to_list()

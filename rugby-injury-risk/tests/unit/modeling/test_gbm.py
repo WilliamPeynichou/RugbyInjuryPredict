@@ -89,3 +89,22 @@ def test_exposure_never_decreases_risk(model, split) -> None:
 def test_exposure_constraint_cannot_be_disabled() -> None:
     with pytest.raises(ValueError, match="offset"):
         GBMRiskModel(monotone={EXPOSURE_FEATURE: 0})
+
+
+def test_missing_indicators_never_retained(split) -> None:
+    # Indicateurs de couverture : écartés même quand ils varient (EXCLUDED_SUFFIXES).
+    train, valid = (
+        frame.with_columns((pl.col("min_28d") > 0).cast(pl.Int8).alias("age_missing"))
+        for frame in split
+    )
+    model = GBMRiskModel(seed=0).fit(train, valid)
+    assert not [c for c in model.features_ if c.endswith("_missing")]
+    assert "age_missing" in model.excluded_
+    assert "age_missing" in model.params()["excluded_features"].split(",")
+    assert "age_missing" not in model.params()["features"].split(",")
+
+
+def test_excluded_features_reported(model) -> None:
+    # Textes et redondances (EXCLUDED_FEATURES) : listés, jamais utilisés par les arbres.
+    assert set(model.excluded_) <= {"position_group", "unit", "competition_code", "surface"}
+    assert "position_group" in model.params()["excluded_features"]

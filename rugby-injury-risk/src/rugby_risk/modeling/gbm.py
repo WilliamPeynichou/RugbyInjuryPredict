@@ -10,7 +10,8 @@ uses early exits, F12) — real run of 2026-11-09: ROC AUC 0.90, exposure first 
 at 80 minutes collapsed to 0. Hyperparameters
 are selected on the validation season only (reduced grid, log-loss); the isotonic calibration
 is fit on validation predictions of the final model and applied to the test season. Trees
-handle missing values natively (sentinel 999 stays a split, never imputed).
+handle missing values natively (sentinel 999 stays a split, never imputed). Indicators
+`*_missing` are excluded (`EXCLUDED_SUFFIXES`): source-coverage artefacts, not a signal.
 
 Implémentation : `sklearn.ensemble.HistGradientBoostingClassifier` (gradient boosting par
 histogrammes, même famille que LightGBM). LightGBM exige `libomp`, une dépendance système
@@ -41,6 +42,12 @@ EXPOSURE_FEATURE: Final = "log_exposure"
 # Offset arbre (docs/06 §2) : risque non décroissant avec l'exposition, jamais désactivable.
 EXPOSURE_MONOTONE: Final = 1
 CATEGORICAL_FEATURES: Final = ("position_code",)
+# Indicateurs de valeur manquante : couverture des sources (joueurs peu documentés), pas un
+# signal physiologique. Les mesures brutes (height_cm, weight_kg) ne sont PAS exclues : elles
+# ont 0 % de nuls sur ml_player_match (seuls les indicateurs touchent 0,4 % des lignes).
+EXCLUDED_SUFFIXES: Final = ("_missing",)
+# Colonnes textuelles ou redondantes, écartées des arbres (numériques/booléennes seulement).
+EXCLUDED_FEATURES: Final = ("position_group", "unit", "competition_code", "surface")
 # Grille réduite (docs/06 §2, ≤ 30 essais) : réglée sur la saison de validation uniquement.
 _PARAM_GRID: Final = tuple(
     {"learning_rate": lr, "max_leaf_nodes": leaves, "min_samples_leaf": child, "max_iter": it}
@@ -85,6 +92,7 @@ class GBMRiskModel:
         self.monotone = monotone or {}
         self.scenarios_: Scenarios = load_scenarios(scenarios_path)
         self.features_: list[str] = []
+        self.excluded_: list[str] = []
         self.best_params_: dict[str, Any] = {}
         self.best_loss_: float = np.inf
         self.iso_: Any = None
@@ -129,11 +137,17 @@ class GBMRiskModel:
         if valid is None or len(valid) == 0:
             raise ValueError("M3 exige la saison de validation (calibration isotone, docs/06)")
         schema = train.schema
+        self.excluded_ = [
+            c
+            for c in _feature_columns(train)
+            if c.endswith(EXCLUDED_SUFFIXES) or c in EXCLUDED_FEATURES
+        ]
         self.features_ = [
             c
             for c in _feature_columns(train)
-            # position_code en catégorielle native ; codes/labels textuels écartés
-            if c not in ("position_code", "position_group", "unit", "competition_code", "surface")
+            # position_code en catégorielle native (hors de cette liste)
+            if c not in self.excluded_
+            and c not in CATEGORICAL_FEATURES
             # colonnes 100 % nulles au train : rien à apprendre (cf. design.py, termes dégénérés)
             and train[c].null_count() < len(train)
             # arbres : numériques et booléens uniquement (NaN natifs)
@@ -202,6 +216,7 @@ class GBMRiskModel:
             "calibration": "isotone sur validation (IsotonicRegression)",
             "monotone": jsonable(self.monotone) or None,
             "categorical_native": ",".join(CATEGORICAL_FEATURES),
+            "excluded_features": ",".join(self.excluded_),
         }
 
     # --- interprétabilité (docs/06 §4) -------------------------------------------------------

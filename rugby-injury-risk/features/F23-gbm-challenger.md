@@ -109,3 +109,15 @@ M3 n'est pas destiné à la production publique sauf gain clair et calibration c
   Piste pour M2 (décision humaine) : ajouter `days_since_last_injury` au design hiérarchique.
   Aucune exposition publique de M3 (hors périmètre).
 
+
+- **Run M3 sans indicateurs `*_missing` (2026-11-11, `m3_gbm-20261111T161235Z`)** : métriques
+  **identiques** à la référence (log-loss 0,0845, Brier 0,01655, skill +0,0358, AUC 0,6314,
+  pente 0,773). Retirer les `*_missing` ne change rien : le gain de M3 ne vient pas d'eux.
+  SHAP : `days_since_last_injury` (2,33), `days_since_last_match` (1,23), `recent_return_8w`,
+  `season_minutes`, puis `weight_kg` (0,69, nouveau en tête : possible proxy de poste ou de
+  rotation, à surveiller), `bmi_rel_position`. Conclusion inchangée : gain réel mais pente
+  hors bornes, M3 non promu.
+- **Variante M2 `m2_hierarchical_injhist`** : code, config et tests (sans fit). Run réel non
+  lancé : `uv run rugby-risk train m2_hierarchical_injhist --config
+  configs/experiments/m2_hierarchical_injhist.yaml` (~20 min). Critère fixé à l'avance :
+  intéressante seulement si log-loss < 0,0979 (M0) ET pente dans [0,8 ; 1,2].

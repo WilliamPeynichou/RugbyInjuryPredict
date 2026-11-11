@@ -49,6 +49,7 @@ def registry() -> dict[str, Callable[[], RiskModel]]:
     from rugby_risk.modeling.hazard import DiscreteHazardModel  # noqa: PLC0415
     from rugby_risk.modeling.hierarchical import (  # noqa: PLC0415
         FAST_SAMPLER,
+        INJHIST_SPEC,
         HierarchicalHazardModel,
     )
     from rugby_risk.modeling.selection import WeightedHazardModel  # noqa: PLC0415
@@ -81,5 +82,12 @@ def registry() -> dict[str, Callable[[], RiskModel]]:
         ),
         "m2_hierarchical_noipw_fast": lambda: HierarchicalHazardModel(
             ipw=False, sampler=FAST_SAMPLER, name="m2_hierarchical_noipw_fast"
+        ),
+        # Variante injhist (exploration) : même M2 + historique de blessure (ever-injured +
+        # log1p plafonné). registry_name distinct : pas de confusion avec le M2 de production.
+        "m2_hierarchical_injhist": lambda: HierarchicalHazardModel(
+            spec=INJHIST_SPEC,
+            name="m2_hierarchical_injhist",
+            registry_name="rugby-risk-m2-injhist",
         ),
     }

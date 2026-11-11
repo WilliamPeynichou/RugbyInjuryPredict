@@ -27,6 +27,12 @@ from rugby_risk.features.registry import (
 
 EXPOSURE_REF_MINUTES: Final = 80.0  # offset log(minutes/80) : hazard par match complet
 DAYS_CAP: Final = 60.0  # days_since_last_match plafonné (999 = pas d'historique)
+# days_since_last_injury : 999 = sentinelle « jamais blessé » (coalesce dbt, int_ml_feat_
+# injury_history). Elle n'est JAMAIS lue comme un nombre de jours : un indicateur porte le
+# « jamais blessé », et log1p(jours) n'existe que pour les blessés (0 sinon).
+INJURY_NEVER_SENTINEL: Final = 999.0
+# Plafond des jours avant log1p : au-delà d'un an, l'effet d'une blessure ancienne est sature.
+INJURY_LOG_CAP_DAYS: Final = 365.0
 _MIN_STD: Final = 1e-12
 
 
@@ -77,12 +83,33 @@ class DesignSpec:
         return tuple(dict.fromkeys(cols))
 
 
+def _ever_injured(s: pl.Expr) -> pl.Expr:
+    """1 si un antécédent de blessure existe (sentinelle exacte 999 = jamais), 0 sinon."""
+    days = s.cast(pl.Float64)
+    return (
+        pl.when(days.is_null())
+        .then(None)
+        .otherwise((days != INJURY_NEVER_SENTINEL).cast(pl.Float64))
+    )
+
+
+def _log_days_since_injury(s: pl.Expr) -> pl.Expr:
+    """log1p(jours, plafonnés) pour un blessé ; 0 pour « jamais blessé » (sentinelle)."""
+    days = s.cast(pl.Float64)
+    capped = days.clip(lower_bound=0.0, upper_bound=INJURY_LOG_CAP_DAYS).log1p()
+    injured = days != INJURY_NEVER_SENTINEL
+    return pl.when(days.is_null()).then(None).when(injured).then(capped).otherwise(0.0)
+
+
 # derived column -> (source column, transformation)
 _DERIVED: Final[dict[str, tuple[str, Callable[[pl.Expr], pl.Expr]]]] = {
     "days_since_last_match_capped": (
         "days_since_last_match",
         lambda s: s.cast(pl.Float64).clip(upper_bound=DAYS_CAP),
     ),
+    # Variante injhist (M2) : historique de blessure, sentinelle jamais lue en jours.
+    "ever_injured": ("days_since_last_injury", _ever_injured),
+    "log1p_days_since_injury": ("days_since_last_injury", _log_days_since_injury),
 }
 
 

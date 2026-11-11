@@ -1,0 +1,20 @@
+# M2 variante « historique de blessure » (injhist) — exploration, NON production.
+#   rugby-risk train m2_hierarchical_injhist --config configs/experiments/m2_hierarchical_injhist.yaml
+#
+# Hypothèse testée : le risque dépend de la blessure récente / passée du joueur. Terme ajouté au
+# design fixe : ever_injured (indicateur d'un antécédent) + log1p(jours depuis la dernière
+# blessure, plafonné à 365). La sentinelle 999 (« jamais blessé ») n'est jamais lue comme une
+# durée : elle est portée par l'indicateur, et log1p vaut 0 pour ces lignes.
+# Tout le reste est identique à m2_hierarchical.yaml (priors, sampler, IPW, seed, diagnostics).
+# Critère de lecture fixé À L'AVANCE : intéressant seulement si log-loss < 0,0979 (M0) ET pente
+# de calibration dans [0,8 ; 1,2]. Sinon : pas d'amélioration retenue.
+#
+# Priors : modeling/priors.py (docs/06 §2). Diagnostics exigés : R-hat <= 1,01, ESS >= 400,
+# 0 divergence, sinon run `failed` (tag MLflow run_status, version de registre non promouvable).
+# 3 saisons pilotes -> min_train_seasons: 1 (prod : 5, cf. _example.yaml).
+min_train_seasons: 1
+allow_final_test: false
+bootstrap_replications: 200
+seed: 0
+target_col: y_injury
+mlflow_uri: sqlite:///data/mlflow.db

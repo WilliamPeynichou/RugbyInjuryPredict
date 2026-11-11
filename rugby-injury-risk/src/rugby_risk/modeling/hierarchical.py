@@ -69,6 +69,16 @@ FIXED_SPEC: Final = DesignSpec(
     ),
     interactions=(),
 )
+# Variante « historique de blessure » (exploration, F22 journal) : même modèle, priors et
+# sampler ; seul le design fixe gagne deux termes dérivés de days_since_last_injury.
+# La sentinelle 999 (« jamais blessé ») n'est jamais lue comme une durée : elle est portée par
+# `ever_injured`, et log1p_days_since_injury vaut 0 pour ces lignes.
+INJHIST_SPEC: Final = DesignSpec(
+    categorical=FIXED_SPEC.categorical,
+    splines=FIXED_SPEC.splines,
+    linear=(*FIXED_SPEC.linear, "ever_injured", "log1p_days_since_injury"),
+    interactions=FIXED_SPEC.interactions,
+)
 POSITION_LEVELS: Final = ("unit", "position_group", "position_code")
 R_HAT_MAX: Final = 1.01
 ESS_MIN: Final = 400.0
@@ -270,14 +280,17 @@ class HierarchicalHazardModel:
         seed: int = 0,
         scenarios_path: Path = SCENARIOS_PATH,
         name: str | None = None,
+        spec: DesignSpec = FIXED_SPEC,
+        registry_name: str = "rugby-risk-m2",
     ) -> None:
         self.sampler = sampler or SamplerConfig()
         self.ipw = ipw
         self.truncate = truncate
         self.seed = seed
+        self.spec = spec
         self.name = name or "m2_hierarchical"
         self.requires_eligible = ipw
-        self.registry_name = "rugby-risk-m2"
+        self.registry_name = registry_name
         self.scenarios_: Scenarios = load_scenarios(scenarios_path)
         self.profiles_: dict[str, dict[str, Any]] = {}
         self.transform_: FittedTransform | None = None
@@ -314,7 +327,7 @@ class HierarchicalHazardModel:
         index = self.index_
         if index is None:
             raise RuntimeError("fit() doit être appelé avant la prédiction")
-        design = build_design(df, FIXED_SPEC, self.transform_)
+        design = build_design(df, self.spec, self.transform_)
         i_cons, i_load, keep = _split_design(design.columns)
         codes = df.get_column("position_code").cast(pl.String).to_list()
         unknown = sorted(set(codes) - set(index.codes))
@@ -332,7 +345,7 @@ class HierarchicalHazardModel:
             if known_teams is not None
             else [-1] * len(df)
         )
-        minutes = df.get_column(FIXED_SPEC.exposure).cast(pl.Float64).to_numpy()
+        minutes = df.get_column(self.spec.exposure).cast(pl.Float64).to_numpy()
         return _Data(
             code=code,
             group=index.group_of_code[code],
@@ -348,9 +361,9 @@ class HierarchicalHazardModel:
 
     def _prepare(self, train: pl.DataFrame) -> _Data:
         """Learn every transform on the training fold, then encode it."""
-        design = build_design(train, FIXED_SPEC)
+        design = build_design(train, self.spec)
         if design.y is None:
-            raise ValueError(f"Cible absente du train : {FIXED_SPEC.target}")
+            raise ValueError(f"Cible absente du train : {self.spec.target}")
         self.transform_ = design.transform
         self.index_ = _learn_index(train)
         _, i_load, keep = _split_design(design.columns)
@@ -543,11 +556,11 @@ class HierarchicalHazardModel:
         self.posterior_ = _Posterior(
             _stack(self.idata_.posterior, _DRAW_NAMES, self.sampler.max_prediction_draws, self.seed)
         )
-        source = FIXED_SPEC.source_columns()
+        source = self.spec.source_columns()
         self.profiles_ = scenario_profiles(
             train,
-            [c for c in source if c not in FIXED_SPEC.categorical],
-            [c for c in source if c in FIXED_SPEC.categorical],
+            [c for c in source if c not in self.spec.categorical],
+            [c for c in source if c in self.spec.categorical],
         )
         return self
 
