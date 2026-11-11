@@ -1,0 +1,92 @@
+/* Direction artistique « Vert Noisette » — variables issues de da-vert-noisette.md */
+:root {
+  --brand: #6b7c5c;
+  --brand-light: #8a9b78;
+  --brand-dark: #4e5c42;
+
+  --warm-white: #faf9f5;
+  --cream: #f3f0e8;
+  --stone-100: #e8e4d8;
+  --stone-200: #d4cfc0;
+  --stone-400: #a09a8a;
+  --stone-600: #6b6558;
+  --stone-800: #3a3730;
+  --stone-900: #1e1c18;
+
+  --dark-bg: #1a1916;
+  --dark-text: #e8e4d8;
+  --dark-muted: #8a8578;
+
+  --font-display: var(--font-dm-serif), Georgia, serif;
+  --font-body: var(--font-dm-sans), system-ui, sans-serif;
+
+  --text-xs: clamp(0.7rem, 0.8vw, 0.75rem);
+  --text-sm: clamp(0.8rem, 0.9vw, 0.875rem);
+  --text-base: clamp(0.95rem, 1.1vw, 1rem);
+  --text-xl: clamp(1.2rem, 1.6vw, 1.5rem);
+  --text-3xl: clamp(1.8rem, 3vw, 2.8rem);
+  --text-4xl: clamp(2.4rem, 4.5vw, 4rem);
+
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.7;
+  --tracking-wide: 0.05em;
+  --tracking-caps: 0.12em;
+
+  --container-max: 1200px;
+  --gutter: clamp(1.5rem, 3vw, 4rem);
+  --section-spacing: clamp(4rem, 9vh, 8rem);
+
+  --ease-out-expo: cubic-bezier(0.16, 1, 0.3, 1);
+  --duration-slow: 800ms;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  background: var(--warm-white);
+  color: var(--stone-800);
+  font-family: var(--font-body);
+  font-size: var(--text-base);
+  line-height: var(--leading-relaxed);
+  font-weight: 400;
+}
+
+a {
+  color: var(--brand);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand-dark);
+  outline-offset: 3px;
+}
+
+/* Apparition douce au défilement ; désactivée si l'utilisateur réduit les animations. */
+.reveal {
+  opacity: 0;
+  transform: translateY(24px);
+  transition:
+    opacity var(--duration-slow) var(--ease-out-expo),
+    transform var(--duration-slow) var(--ease-out-expo);
+}
+
+.reveal.visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal.visible {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+}

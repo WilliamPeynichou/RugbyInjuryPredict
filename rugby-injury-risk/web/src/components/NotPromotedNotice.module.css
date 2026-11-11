@@ -1,0 +1,12 @@
+.notice {
+  background: var(--cream);
+  border: 1px solid var(--stone-100);
+  border-left: 3px solid var(--brand);
+  padding: 1rem 1.25rem;
+  max-width: 65ch;
+}
+.notice p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--stone-800);
+}
