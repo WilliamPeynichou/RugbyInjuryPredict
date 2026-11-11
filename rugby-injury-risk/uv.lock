@@ -2517,6 +2517,7 @@ dependencies = [
     { name = "dbt-core" },
     { name = "dbt-duckdb" },
     { name = "duckdb" },
+    { name = "fastapi" },
     { name = "httpx" },
     { name = "matplotlib" },
     { name = "mlflow" },
@@ -2536,6 +2537,7 @@ dependencies = [
     { name = "splink" },
     { name = "statsmodels" },
     { name = "structlog" },
+    { name = "uvicorn" },
     { name = "zstandard" },
 ]
 
@@ -2559,6 +2561,7 @@ requires-dist = [
     { name = "dbt-core", specifier = ">=1.12.6" },
     { name = "dbt-duckdb", specifier = ">=1.11.1" },
     { name = "duckdb" },
+    { name = "fastapi", specifier = ">=0.162.2" },
     { name = "httpx" },
     { name = "matplotlib", specifier = ">=3.9" },
     { name = "mlflow", specifier = ">=3.18.0" },
@@ -2578,6 +2581,7 @@ requires-dist = [
     { name = "splink", specifier = ">=5.0.0" },
     { name = "statsmodels", specifier = ">=0.14" },
     { name = "structlog" },
+    { name = "uvicorn", specifier = ">=0.54.0" },
     { name = "zstandard", specifier = ">=0.25.0" },
 ]
 
