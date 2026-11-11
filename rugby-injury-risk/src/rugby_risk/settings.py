@@ -19,6 +19,8 @@ class Settings(BaseSettings):
     llm_max_retries_json: int = 2
     supabase_url: str = ""
     supabase_service_key: SecretStr = SecretStr("")
+    supabase_anon_key: SecretStr = SecretStr("")
+    front_origin: str = "http://localhost:3000"
     mlflow_tracking_uri: str = "./mlruns"
     offline: bool = False
 

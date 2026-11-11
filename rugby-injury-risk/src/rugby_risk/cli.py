@@ -88,6 +88,46 @@ def _fit_final(model_name: str, config_path: Path) -> int:
     return 0 if final.model.status == "ok" else 1
 
 
+def _publish_public(args: Any) -> int:
+    """F25: aggregated public tables -> dry-run files, or Supabase if promoted."""
+    from pathlib import Path  # noqa: PLC0415
+
+    import polars as pl  # noqa: PLC0415
+
+    from rugby_risk.modeling.artifact import is_promoted, latest_artifact  # noqa: PLC0415
+    from rugby_risk.serving.batch import build_public_tables  # noqa: PLC0415
+    from rugby_risk.serving.export import DryRunSink, SupabaseSink, publish  # noqa: PLC0415
+    from rugby_risk.settings import get_settings  # noqa: PLC0415
+
+    directory = Path(args.model_dir) if args.model_dir else latest_artifact()
+    export_path = Path("data/ml/ml_player_match.parquet")
+    if not export_path.exists():
+        raise SystemExit("Export introuvable: data/ml/ml_player_match.parquet")
+    public = build_public_tables(directory, pl.read_parquet(export_path))
+    if args.mode == "supabase":
+        if not is_promoted(directory):
+            raise SystemExit(
+                "Export Supabase refusé : artefact non promu (docs/06 §5, décision humaine)."
+            )
+        settings = get_settings()
+        if not settings.supabase_url or not settings.supabase_service_key.get_secret_value():
+            raise SystemExit("SUPABASE_URL / SUPABASE_SERVICE_KEY requis.")
+        publish(
+            public,
+            SupabaseSink(settings.supabase_url, settings.supabase_service_key.get_secret_value()),
+        )
+        print("Tables publiées dans Supabase.")
+        return 0
+    out = Path(args.out) if args.out else None
+    publish(public, DryRunSink(directory=out) if out else DryRunSink())
+    print(
+        f"Dry-run : {len(public.tables)} tables dans "
+        f"{(out if out else Path('reports/public_preview'))} "
+        f"(modèle {public.model_version}, promu={public.promoted})"
+    )
+    return 0
+
+
 def _profile(args: Any) -> int:
     """F30: risk per chained match for a typed load profile (by position, never by name)."""
     from datetime import UTC, datetime  # noqa: PLC0415
@@ -171,6 +211,17 @@ def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0911, PLR0912, P
     prof.add_argument("--start", type=int, default=0, help="matchs consécutifs déjà joués")
     prof.add_argument("--horizon", type=int, default=6)
     prof.add_argument("--model-dir", help="artefact (défaut : le plus récent de data/models)")
+    publish = sub.add_parser(
+        "publish-public", help="calcule et publie les tables publiques agrégées (F25)"
+    )
+    publish.add_argument("--model-dir", help="artefact (défaut : le plus récent)")
+    publish.add_argument(
+        "--mode",
+        choices=["dry-run", "supabase"],
+        default="dry-run",
+        help="dry-run -> reports/public_preview/ ; supabase exige un artefact promu",
+    )
+    publish.add_argument("--out", help="dossier du dry-run (défaut reports/public_preview)")
     annotate = sub.add_parser(
         "annotate", help="échantillon d'annotation humaine des épisodes (F16)"
     )
@@ -234,6 +285,8 @@ def main(argv: Sequence[str] | None = None) -> int:  # noqa: PLR0911, PLR0912, P
         return _fit_final(args.model_name, Path(args.config))
     if args.group == "profile":
         return _profile(args)
+    if args.group == "publish-public":
+        return _publish_public(args)
     if args.group == "er":
         if args.cmd == "review":
             queue = read_review_queue()

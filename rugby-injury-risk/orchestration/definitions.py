@@ -24,6 +24,7 @@ from orchestration.assets.internationals import (
 )
 from orchestration.assets.lnr import lnr_staging_lineups, lnr_vs_allrugby
 from orchestration.assets.ml import ml_table
+from orchestration.assets.publish import public_predictions
 
 defs = Definitions(
     assets=[
@@ -43,6 +44,7 @@ defs = Definitions(
         injury_mentions,
         injury_episodes,
         ml_table,
+        public_predictions,
     ],
     asset_checks=[
         er_unique_source_id,

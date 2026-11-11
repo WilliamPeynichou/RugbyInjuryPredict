@@ -4,6 +4,7 @@ Every model (F19+) goes through `run_experiment`; this is the only training entr
 makes random k-fold structurally impossible (folds come from `season_folds` only).
 """
 
+import json
 import subprocess
 from collections.abc import Callable
 from dataclasses import dataclass, field
@@ -45,6 +46,13 @@ class ExperimentConfig:
     # Suivi minimal (matchs d'équipe suivants dans la saison) pour que y soit observable.
     # None = absence_signal.min_matches_injury_candidate de config/injury_rules.yaml.
     min_label_followup: int | None = None
+    # Dossier des rapports d'expérience. Les tests doivent pointer vers tmp_path : rien ne
+    # doit s'écrire dans le dépôt pendant une suite de tests.
+    reports_dir: Path = Path("reports/experiments")
+
+    def __post_init__(self) -> None:
+        # Accepte str (YAML via cli.py) ou Path ; le dataclass est gelé, d'où object.__setattr__.
+        object.__setattr__(self, "reports_dir", Path(self.reports_dir))
 
 
 @dataclass(frozen=True)
@@ -194,6 +202,82 @@ def _calibration_artifact(
     return fig_path
 
 
+def estimation_rows(
+    df: pl.DataFrame, seasons: tuple[str, ...], config: ExperimentConfig | None = None
+) -> pl.DataFrame:
+    """Rows a model of `seasons` is estimated on (played, label observable, minutes known).
+
+    Same filters as the folds and `fit_final`: the public export (F25) aggregates exactly the
+    population the model saw."""
+    config = config or ExperimentConfig()
+    return _played(with_label_observability(df, _min_followup(config)), seasons, config)
+
+
+def calibration_bins(
+    y: np.ndarray, p: np.ndarray, keys: np.ndarray, n_bins: int
+) -> list[dict[str, float | int]]:
+    """Quantile bins of predicted risk with distinct players per bin (k-anonymity, F25)."""
+    edges = np.quantile(p, np.linspace(0, 1, n_bins + 1))
+    edges[0], edges[-1] = -np.inf, np.inf
+    idx = np.digitize(p, edges[1:-1])
+    out: list[dict[str, float | int]] = []
+    for b in range(n_bins):
+        mask = idx == b
+        if mask.any():
+            out.append(
+                {
+                    "bin": b,
+                    "p_pred_mean": float(p[mask].mean()),
+                    "p_obs": float(y[mask].mean()),
+                    "n": int(mask.sum()),
+                    "n_players_support": len(set(keys[mask].tolist())),
+                }
+            )
+    return out
+
+
+def _summary_json(  # noqa: PLR0913 - agrégats d'un run, sans identifiant
+    result: ExperimentResult,
+    y: np.ndarray,
+    p: np.ndarray,
+    *,
+    keys: np.ndarray,
+    groups: np.ndarray,
+    path: Path,
+) -> Path:
+    """Aggregated, identifier-free summary of a run: input of the public export (F25)."""
+    calibration = [{"position_group": "all", **b} for b in calibration_bins(y, p, keys, 10)]
+    for group in sorted(set(groups.tolist())):
+        mask = groups == group
+        calibration += [
+            {"position_group": str(group), **b}
+            for b in calibration_bins(y[mask], p[mask], keys[mask], 5)
+        ]
+    summary = {
+        "run_id": result.run_id,
+        "model_name": result.model_name,
+        "dataset_version": result.dataset_version,
+        "git_sha": result.git_sha,
+        "created_at": datetime.now(UTC).isoformat(),
+        "run_status": result.extra.get("run_status", "ok"),
+        "folds": [
+            {
+                "train_seasons": list(fr.fold.train_seasons),
+                "valid_season": fr.fold.valid_season,
+                "test_season": fr.fold.test_season,
+                **fr.metrics.as_dict(),
+            }
+            for fr in result.folds
+        ],
+        "aggregated": result.aggregated.as_dict(),
+        "brier_boot_low": result.brier_boot_low,
+        "brier_boot_high": result.brier_boot_high,
+        "calibration": calibration,
+    }
+    path.write_text(json.dumps(summary, indent=2, default=float), encoding="utf-8")
+    return path
+
+
 def _pooled_test_arrays(
     df: pl.DataFrame,
     fold_results: list[FoldResult],
@@ -285,7 +369,7 @@ def run_experiment(
     brier_lo, brier_hi = percentile_interval(boot_pooled)
 
     run_id = f"{model.name}-{datetime.now(UTC).strftime('%Y%m%dT%H%M%SZ')}"
-    reports = Path("reports") / "experiments"
+    reports = config.reports_dir
     fig_path = _calibration_artifact(run_id, model.name, y_all, p_all, reports)
     figures = [fig_path, *_model_figures(model, reports, run_id)]
     artifacts = _model_artifacts(model, reports, run_id)
@@ -314,7 +398,15 @@ def run_experiment(
         },
     )
     result.report_path.write_text(experiment_markdown(result), encoding="utf-8")
-    _log_mlflow(result, [*figures, *artifacts])
+    summary = _summary_json(
+        result,
+        y_all,
+        p_all,
+        keys=pooled_keys,
+        groups=pooled_groups,
+        path=reports / f"{run_id}_summary.json",
+    )
+    _log_mlflow(result, [*figures, *artifacts, summary])
     return result
 
 
