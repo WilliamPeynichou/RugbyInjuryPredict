@@ -11,5 +11,9 @@ def test_sensitive_patterns_are_ignored():
         ".env",
         "mlruns/",
         ".tmp_dagster_home_*/",
+        "data/*.log",
+        "data/*.sh",
+        "data/warehouse.lock",
+        ".scratch_*/",
     ):
         assert pattern in text.splitlines()

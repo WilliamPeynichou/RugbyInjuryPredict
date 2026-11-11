@@ -20,6 +20,7 @@ def _config(tmp: Path) -> ExperimentConfig:
         bootstrap_replications=30,
         seed=0,
         mlflow_uri=f"sqlite:///{tmp}/mlflow.db",
+        reports_dir=tmp / "experiments",
         min_label_followup=2,
     )
 

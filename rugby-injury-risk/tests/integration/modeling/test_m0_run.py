@@ -35,6 +35,7 @@ def result(tmp_path_factory):
         bootstrap_replications=50,
         seed=0,
         mlflow_uri=f"sqlite:///{tmp_path_factory.mktemp('mlflow')}/mlflow.db",
+        reports_dir=tmp_path_factory.mktemp("experiments"),
     )
     return run_experiment(lambda: PositionRateModel(), df, config)  # noqa: PLW0108 - factory
 

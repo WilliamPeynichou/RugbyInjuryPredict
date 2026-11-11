@@ -8,7 +8,7 @@ from rugby_risk.modeling.hierarchical import FAST_SAMPLER, HierarchicalHazardMod
 from rugby_risk.modeling.runner import ExperimentConfig, run_experiment
 from tests.hazard_factory import hierarchical_frame
 
-pytestmark = pytest.mark.integration
+pytestmark = [pytest.mark.integration, pytest.mark.slow]
 
 
 def _config(tmp: Path) -> ExperimentConfig:
@@ -17,6 +17,7 @@ def _config(tmp: Path) -> ExperimentConfig:
         bootstrap_replications=30,
         seed=0,
         mlflow_uri=f"sqlite:///{tmp}/mlflow.db",
+        reports_dir=tmp / "experiments",
         min_label_followup=2,
     )
 

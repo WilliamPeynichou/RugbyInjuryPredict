@@ -14,7 +14,7 @@ from rugby_risk.staging_schemas import SCHEMAS
 
 REPO = Path(__file__).resolve().parent.parent.parent
 
-pytestmark = pytest.mark.integration
+pytestmark = [pytest.mark.integration, pytest.mark.slow]
 FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "allrugby"
 SEASON_URL = "https://www.allrugby.com/saison-2023-2024/matchs"
 

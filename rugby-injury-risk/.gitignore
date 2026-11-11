@@ -34,3 +34,7 @@ data/mlflow.db
 data/ml/
 data/models/
 reports/profiles/
+data/*.log
+data/*.sh
+data/warehouse.lock
+.scratch_*/

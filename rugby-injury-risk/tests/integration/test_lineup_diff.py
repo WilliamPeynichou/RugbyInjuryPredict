@@ -11,7 +11,7 @@ import pytest
 from rugby_risk.http.store import FetchResult, RawStore
 from rugby_risk.http.urls import canonicalize_url
 
-pytestmark = pytest.mark.integration
+pytestmark = [pytest.mark.integration, pytest.mark.slow]
 REPO = Path(__file__).resolve().parent.parent.parent
 LNR_FIXTURES = Path(__file__).resolve().parent.parent / "fixtures" / "lnr"
 
