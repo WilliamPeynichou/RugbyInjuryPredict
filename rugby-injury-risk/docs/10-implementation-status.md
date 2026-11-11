@@ -20,11 +20,11 @@ Les sources de vérité détaillées restent :
 | 0 — Socle | F00 bootstrap, F01 registre des sources, F02 données de référence | ✅ fait |
 | 1 — Collecte et entrepôt | F03 HTTP et lac brut, F04 DuckDB/dbt, F05 allrugby, F06 LNR | ✅ fait |
 | 2 — Internationaux, coupes, entités | F07 → F11 | ✅ fait |
-| 3 — Labellisation des blessures | F12, F13, F15, F16 ✅ ; F14 (fiche à reprendre, T9) | ✅ fait (sauf annotation humaine) |
+| 3 — Labellisation des blessures | F12, F13, F15, F16 ✅ ; F14 repassée en `todo` (T9, 2026-11-10) | 🚧 F14 à faire (sauf annotation humaine) |
 | 4 — Table d'apprentissage et baselines | F17, F18, F19, F20 ✅ | ✅ fait |
 | 5 — Modèle de production | F21, F22 ✅ | ✅ fait |
 | 6 — Challenger et gravité | F23 ✅, F24 | 🚧 en cours |
-| 7 — Produit | F25 → F27 | ⬜ à faire |
+| 7 — Produit | F25 ✅, F26 ✅, F27 🚧 (version simple) | 🚧 en cours |
 | 8 — Exploitation | F28, F29 | ⬜ à faire |
 
 Le dernier `make check` local est vert (F22) : ruff, format, mypy strict (106 fichiers) et
@@ -156,6 +156,43 @@ Les détails sont dans les Journaux des fiches.
 | T11 | `nutpie`/`llvmlite >= 0.46` : pas de wheel macOS **x86_64** (machine de développement) ; arviz **1.x incompatible avec pymc 5.26** (`ImportError: concat`). | Pas de sampler nutpie ; pin `arviz>=0.22,<1` dans `pyproject.toml`. | Rouvrir si la machine passe en arm64 ou si pymc est monté de version. |
 | T8 | Les branches sont empilées et il n'y a pas de `main`. | Revue difficile. | Créer `main` depuis F00 et fusionner dans l'ordre, ou ouvrir des PR empilées (décision humaine). |
 
+### Audit du 2026-11-10
+
+Constats chiffrés, mesurés dans le dépôt le 2026-11-10. Les valeurs de modèle viennent des journaux F22/F23 ; elles ne sont pas refittées pour cet audit.
+
+**Modèles (test 2024-2025, 7 819 lignes, 1 seul fold)**
+
+| Modèle | Log-loss | AUC | Pente de calibration | Statut |
+|---|---|---|---|---|
+| M0 poste | 0,0979 | 0,35 | — | référence |
+| M1 hazard | 0,0983 | 0,49 | — | ne bat pas M0 |
+| M1w IPW | 0,1043 | 0,50 | — | dégradé |
+| M2 hiérarchique | 0,0997 | 0,48 | −0,04 | **rejeté** (calibration nulle) |
+| M3 GBM | 0,0845 | 0,63 | 0,77 | **non promu** (pente hors [0,8 ; 1,2]) |
+
+- M3 a le meilleur log-loss mais dépend de ses indicateurs `*_missing` (gain = indicateurs de profil manquant, F23) : son gain n'est pas un signal de risque propre. Correctif en cours (sans `*_missing`, voir journal F23).
+- **Un seul fold** : pas d'intervalle inter-saisons. Toute comparaison repose sur 2024-2025.
+- **Aucun effet d'enchaînement détecté** : h(N) plates pour les modèles, ALE ±0,003 pour M3.
+- **Label** : 395 événements au seuil 0,6 (S16), blessures avec arrêt ≥ 2 matchs, sous-déclarées. Jamais validé par annotation humaine (F16 : 300 à 500 épisodes requis).
+- Résultat solide : l'**incidence observée par poste** (ex. 2022-2023 : centre 29,0 /1000 h, talonneur 8,6 /1000 h), pas la prédiction.
+
+**Dette**
+
+- 28 branches locales empilées, **aucune `main`** (T8).
+- `make check` : 16 min annoncées par le swarm (mesure à confirmer ; T4 indiquait 2 min 15 sur un état antérieur).
+- **89 lignes contiennent `noqa`** dans `src/`, `orchestration/` et `tests/` (le brief annonçait 75 : mesure faite le 2026-11-10). À revoir au cas par cas (RUF100 à surveiller).
+- Fichiers > 500 lignes : `src/rugby_risk/modeling/hierarchical.py` (755), `src/rugby_risk/modeling/runner.py` (522, mesuré avec les modifications F25 en cours ; 515 avant).
+- Fiches marquées `done` sans preuve (T9, F14) : d'autres fiches peuvent avoir le même problème ; la ROADMAP doit être vérifiée contre les cases cochées.
+
+**Décisions humaines en attente (non prises par l'agent)**
+
+1. **Annotation F16** : 300 à 500 épisodes à annoter à la main (≈ 6–10 h) et avis juriste art. 9. Sans elle, le label reste non validé.
+2. **Promotion d'un modèle** : recommandation de l'agent : **ne pas promouvoir** (aucun modèle ne passe les critères de calibration). Décision humaine, fichier `PROMOTION.md` non créé.
+3. **Création de `main` et stratégie de fusion** (empilées, PR empilées ou fusion ordonnée) : non décidé.
+4. **Périmètre de publication du front** : local uniquement ou public (Vercel + Supabase). Conditionne le déblocage de l'upsert Supabase réel.
+5. **Rester à 3 saisons ou crawler l'historique** : décision de l'humain (2022-2025 retenu à ce stade, sans ajout).
+6. **F14 (flux presse)** : choix des flux autorisés ; `news` reste `false`.
+
 ## 4. Ce qui reste à faire
 
 Ordre imposé par `features/ROADMAP.md` : la première feature `todo` dont toutes les
@@ -175,13 +212,13 @@ Le développement et les tests sur fixtures restent toujours possibles.
 | F23 ✅ | Challenger gradient boosting et SHAP | F20 | — | **Fait** : `HistGradientBoostingClassifier` (LightGBM écarté, `libomp` absent), grille 8 essais sur validation, isotone sur validation, SHAP + ALE par groupe. Run réel n°1 : AUC 0,90 = causalité inverse (joueur blessé remplacé tôt, label basé sur la sortie précoce) → exposition sous contrainte **monotone croissante imposée** (offset arbre, docs/06 §2). Run de référence `m3_gbm-20261109T182944Z` : log-loss 0,0845 (M0 0,0979, M2 0,0997), Brier skill +0,036, pente 0,77 (hors bornes) → **non promu**. Gain = historique de blessure et indicateurs de profil manquant, pas l'enchaînement (ALE ±0,003, h(N) plates). |
 | F30 ✅ | Simulateur de profil de charge par poste | F22 | Promotion pour lever la mention « non promu » | **Fait** : `runner.fit_final` (toutes saisons hors test gelé, mêmes filtres que les folds), artefact local `data/models/<run_id>/` (tirages de population, colonnes de features sans identifiant ni cible, transform reconstruit et vérifié car patsy n'est pas sérialisable), `rugby-risk fit-final` et `rugby-risk profile --position ...` (risque par match enchaîné et cumulé avec IC90, facteur par match, avertissement). Promotion = fichier `PROMOTION.md` écrit par un humain. |
 | F24 | Modèle de gravité | F18 | — | Jours d'absence (`days_missed`), burden par poste. |
-| F25 | Prédictions batch et export Supabase | F22 | Promotion manuelle du modèle | Garde-fou d'agrégation : jamais de valeur nominative. |
-| F26 | API FastAPI | F25 | — | Lecture seule, agrégats uniquement. |
-| F27 | Front Next.js | F26 | Compte Vercel et projet Supabase | Pédagogie, limites, scénarios. |
+| F25 ✅ | Prédictions batch et export Supabase | F22 | Promotion manuelle du modèle | **Fait** : `serving/{guard,batch,export}.py`, migration SQL (RLS, k≥10), asset Dagster `public_predictions`, CLI `publish-public`, dry-run réel dans `reports/public_preview/`. Supabase réel : refusé sans `PROMOTION.md`. |
+| F26 ✅ | API FastAPI | F25 | — | **Fait** : 9 routes (`/health`, `/v1/{models,positions,scenarios,curves,curves/compare,cumulative,incidence,calibration}`), lecture seule, clé anonyme, garde de réponse (clé interdite → 500), Cache-Control, CORS, OpenAPI `web/openapi.json`, Dockerfile (non construit : daemon Docker absent). Codes de poste lus depuis le référentiel. |
+| F27 🚧 | Front Next.js | F26 | Compte Vercel et projet Supabase | **Version simplifiée livrée** : 2 pages (tableau de bord, méthodologie), Recharts, DA Vert Noisette, données lues depuis les CSV publics (`pnpm build:data`), encadré « non promu » piloté par les données, `check:privacy`. Reste : branchement sur l'API, pages poste/simulateur/comparateur, Lighthouse, rendu navigateur. |
 | F28 | Orchestration et monitoring | F10, F25 | — | Jobs hebdomadaires, dérive, calibration. |
 | F29 | Model card, data card, AIPD, réentraînement | F22, F27 | Juriste | Purge des données de santé (`make purge-health`). |
 
-Prochaine étape immédiate : **F25 → F26 → F27** (export public dry-run, API, front), avancées avant F24 sur demande humaine du 2026-11-09 (« un front data analysé avec graphiques universitaires »). Aucun modèle n'est promu : le front affiche un **aperçu non promu** (bandeau explicite). Écarts connus : la fiche F14 est marquée `done` dans la ROADMAP mais ses
+Prochaine étape immédiate : décisions humaines (annotation F16, promotion, `main`), run MCMC de `m2_hierarchical_injhist`, puis suite de F27. [historique :] réparer le check de F25, puis **F26 (API) et F27 (front)**, avancées avant F24 sur demande humaine du 2026-11-09 (« un front data analysé avec graphiques universitaires »). Aucun modèle n'est promu : le front affiche un **aperçu non promu** (bandeau explicite). Écarts connus : la fiche F14 est marquée `done` dans la ROADMAP mais ses
 cases et son Journal ne sont pas remplis (T9) ; le critère « précision ≥ 0,85 » de F16
 attend l'annotation humaine ; run réel F09 (audit de 100 joueurs) et parseurs
 internationaux à compléter (birth_date). Crawl réel allrugby terminé le 2026-11-06 :

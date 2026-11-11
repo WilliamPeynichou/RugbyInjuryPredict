@@ -37,7 +37,7 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 |---|---|---|---|---|
 | F12 | [Signal « sortie précoce »](F12-signal-exits.md) | F10 | M | done |
 | F13 | [Signal « absence » et motifs non-blessure](F13-signal-absences.md) | F10 | M | done |
-| F14 | [Collecte presse et points médicaux](F14-ingest-news.md) | F03, F04 | M | done |
+| F14 | [Collecte presse et points médicaux](F14-ingest-news.md) | F03, F04 | M | todo (statut corrigé le 2026-11-10 : jamais réalisée feature par feature ; `news` reste désactivé sans décision humaine) |
 | F15 | [Extraction LLM des blessures](F15-llm-injury-extraction.md) | F14, F09 | L | done |
 | F16 | [Fusion des signaux, annotation et contrôle qualité](F16-injury-fusion-annotation.md) | F12, F13, F15 | L | done |
 
@@ -69,9 +69,9 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F25 | [Prédictions batch et export Supabase agrégé](F25-batch-export-supabase.md) | F22 | M | todo |
-| F26 | [API FastAPI](F26-api-fastapi.md) | F25 | M | todo |
-| F27 | [Front Next.js](F27-web-nextjs.md) | F26 | L | todo |
+| **F25** ✅ | [Prédictions batch et export Supabase agrégé](F25-batch-export-supabase.md) | F22 | M | Garde k>=10 (colonnes + joueurs distincts, revérifiée au sink), courbes h(N) IC90 par tirage, incidence Poisson exact, résumés d'expérience par run ; dry-run réel ; Supabase refusé sans PROMOTION.md humain ; check vert. |
+| **F26** ✅ | [API FastAPI](F26-api-fastapi.md) | F25 | M | 9 routes lecture seule, middleware anti-clé-interdite, clé anonyme seule, 50+ tests, couverture api 99 %. Dockerfile non construit (daemon absent). |
+| **F27** 🚧 | [Front Next.js](F27-web-nextjs.md) | F26 | L | Version simplifiée (2 pages, Recharts, données = CSV publics) : lint/typecheck/20 tests/build/privacy verts. Reste : Lighthouse, rendu navigateur, simulateur/comparateur/postes, branchement API. |
 
 ## Phase 8 — Exploitation
 
