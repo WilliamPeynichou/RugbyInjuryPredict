@@ -1,0 +1,423 @@
+{
+ "header": {
+  "id": "910003",
+  "league": {
+   "name": "Investec Champions Cup"
+  },
+  "week": {
+   "number": 2
+  },
+  "competitions": [
+   {
+    "date": "2024-01-14T15:00Z",
+    "competitors": [
+     {
+      "homeAway": "home",
+      "team": {
+       "displayName": "Leinster"
+      },
+      "score": "27"
+     },
+     {
+      "homeAway": "away",
+      "team": {
+       "displayName": "Harlequins"
+      },
+      "score": "13"
+     }
+    ]
+   }
+  ]
+ },
+ "gameInfo": {
+  "venue": {
+   "fullName": "Stade Fictif"
+  }
+ },
+ "rosters": [
+  {
+   "homeAway": "home",
+   "team": {
+    "displayName": "Leinster"
+   },
+   "roster": [
+    {
+     "jersey": "1",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-1",
+      "displayName": "Joueur Leinster 1"
+     }
+    },
+    {
+     "jersey": "2",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-2",
+      "displayName": "Joueur Leinster 2"
+     }
+    },
+    {
+     "jersey": "3",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-3",
+      "displayName": "Joueur Leinster 3"
+     }
+    },
+    {
+     "jersey": "4",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-4",
+      "displayName": "Joueur Leinster 4"
+     }
+    },
+    {
+     "jersey": "5",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-5",
+      "displayName": "Joueur Leinster 5"
+     }
+    },
+    {
+     "jersey": "6",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-6",
+      "displayName": "Joueur Leinster 6"
+     }
+    },
+    {
+     "jersey": "7",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-7",
+      "displayName": "Joueur Leinster 7"
+     }
+    },
+    {
+     "jersey": "8",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-8",
+      "displayName": "Joueur Leinster 8"
+     }
+    },
+    {
+     "jersey": "9",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-9",
+      "displayName": "Joueur Leinster 9"
+     }
+    },
+    {
+     "jersey": "10",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-10",
+      "displayName": "Joueur Leinster 10"
+     }
+    },
+    {
+     "jersey": "11",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-11",
+      "displayName": "Joueur Leinster 11"
+     }
+    },
+    {
+     "jersey": "12",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-12",
+      "displayName": "Joueur Leinster 12"
+     }
+    },
+    {
+     "jersey": "13",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-13",
+      "displayName": "Joueur Leinster 13"
+     }
+    },
+    {
+     "jersey": "14",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-14",
+      "displayName": "Joueur Leinster 14"
+     }
+    },
+    {
+     "jersey": "15",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-15",
+      "displayName": "Joueur Leinster 15"
+     }
+    },
+    {
+     "jersey": "16",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-16",
+      "displayName": "Joueur Leinster 16"
+     }
+    },
+    {
+     "jersey": "17",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-17",
+      "displayName": "Joueur Leinster 17"
+     }
+    },
+    {
+     "jersey": "18",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-18",
+      "displayName": "Joueur Leinster 18"
+     }
+    },
+    {
+     "jersey": "19",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-19",
+      "displayName": "Joueur Leinster 19"
+     }
+    },
+    {
+     "jersey": "20",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-20",
+      "displayName": "Joueur Leinster 20"
+     }
+    },
+    {
+     "jersey": "21",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-21",
+      "displayName": "Joueur Leinster 21"
+     }
+    },
+    {
+     "jersey": "22",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-22",
+      "displayName": "Joueur Leinster 22"
+     }
+    },
+    {
+     "jersey": "23",
+     "starter": false,
+     "athlete": {
+      "id": "e-lei-23",
+      "displayName": "Joueur Leinster 23"
+     }
+    }
+   ]
+  },
+  {
+   "homeAway": "away",
+   "team": {
+    "displayName": "Harlequins"
+   },
+   "roster": [
+    {
+     "jersey": "1",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-1",
+      "displayName": "Joueur Harlequins 1"
+     }
+    },
+    {
+     "jersey": "2",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-2",
+      "displayName": "Joueur Harlequins 2"
+     }
+    },
+    {
+     "jersey": "3",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-3",
+      "displayName": "Joueur Harlequins 3"
+     }
+    },
+    {
+     "jersey": "4",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-4",
+      "displayName": "Joueur Harlequins 4"
+     }
+    },
+    {
+     "jersey": "5",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-5",
+      "displayName": "Joueur Harlequins 5"
+     }
+    },
+    {
+     "jersey": "6",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-6",
+      "displayName": "Joueur Harlequins 6"
+     }
+    },
+    {
+     "jersey": "7",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-7",
+      "displayName": "Joueur Harlequins 7"
+     }
+    },
+    {
+     "jersey": "8",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-8",
+      "displayName": "Joueur Harlequins 8"
+     }
+    },
+    {
+     "jersey": "9",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-9",
+      "displayName": "Joueur Harlequins 9"
+     }
+    },
+    {
+     "jersey": "10",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-10",
+      "displayName": "Joueur Harlequins 10"
+     }
+    },
+    {
+     "jersey": "11",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-11",
+      "displayName": "Joueur Harlequins 11"
+     }
+    },
+    {
+     "jersey": "12",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-12",
+      "displayName": "Joueur Harlequins 12"
+     }
+    },
+    {
+     "jersey": "13",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-13",
+      "displayName": "Joueur Harlequins 13"
+     }
+    },
+    {
+     "jersey": "14",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-14",
+      "displayName": "Joueur Harlequins 14"
+     }
+    },
+    {
+     "jersey": "15",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-15",
+      "displayName": "Joueur Harlequins 15"
+     }
+    },
+    {
+     "jersey": "16",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-16",
+      "displayName": "Joueur Harlequins 16"
+     }
+    },
+    {
+     "jersey": "17",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-17",
+      "displayName": "Joueur Harlequins 17"
+     }
+    },
+    {
+     "jersey": "18",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-18",
+      "displayName": "Joueur Harlequins 18"
+     }
+    },
+    {
+     "jersey": "19",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-19",
+      "displayName": "Joueur Harlequins 19"
+     }
+    },
+    {
+     "jersey": "20",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-20",
+      "displayName": "Joueur Harlequins 20"
+     }
+    },
+    {
+     "jersey": "21",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-21",
+      "displayName": "Joueur Harlequins 21"
+     }
+    },
+    {
+     "jersey": "22",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-22",
+      "displayName": "Joueur Harlequins 22"
+     }
+    },
+    {
+     "jersey": "23",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-23",
+      "displayName": "Joueur Harlequins 23"
+     }
+    }
+   ]
+  }
+ ]
+}

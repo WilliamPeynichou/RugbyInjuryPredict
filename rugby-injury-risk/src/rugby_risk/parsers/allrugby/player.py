@@ -1,72 +1,59 @@
 """Parse an allrugby player page into a StagingPlayerProfile.
 
-PARSER_VERSION = allrugby-1
-Assumptions (see tests/fixtures/allrugby/README.md): `h1[itemprop=name]`,
-`ul.fiche li` lines `label : value` with labels Naissance / Taille / Poids /
-Nationalité / JIFF / Sélections.
+PARSER_VERSION = allrugby-2 (markup checked on real pages, 2026-11-06):
+- JSON-LD `Person`: `name`, `nationality`, `birthDate` (year only: not a date, so
+  `birth_date` stays null);
+- `div.bio p`: `il mesure 196 cm pour 108 kg`, `au poste de 3ème ligne`,
+  `est <b>JIFF</b>` (absent for non-JIFF players).
 """
 
+import json
 import re
-from datetime import date, datetime
 
 from selectolax.lexbor import LexborHTMLParser
 
 from rugby_risk.staging_schemas import StagingPlayerProfile
 from rugby_risk.warehouse import staging_frame
 
-PARSER_VERSION = "allrugby-1"
-PLAYER_ID_PATTERN = re.compile(r"-(\d+)\.html$")
+PARSER_VERSION = "allrugby-2"
 
 
 class PlayerParseError(Exception):
     """A player page has no usable profile."""
 
 
+def _person(page: LexborHTMLParser) -> dict[str, object]:
+    for node in page.css('script[type="application/ld+json"]'):
+        try:
+            data = json.loads(node.text())
+        except ValueError:
+            continue
+        for item in data.get("@graph", [data]) if isinstance(data, dict) else []:
+            if isinstance(item, dict) and item.get("@type") == "Person":
+                return item
+    raise PlayerParseError("JSON-LD Person absent")
+
+
 def parse_player(html: str, source_player_id: str) -> dict[str, object]:
     page = LexborHTMLParser(html)
-    name_node = page.css_first("h1[itemprop=name]")
-    if name_node is None:
-        raise PlayerParseError("h1[itemprop=name] absent")
-    fields = {}
-    for li in page.css("ul.fiche li"):
-        text = li.text(strip=True)
-        if " : " in text:
-            label, value = text.split(" : ", 1)
-            fields[label.strip()] = value.strip()
-    birth = fields.get("Naissance", "")
+    person = _person(page)
+    if not person.get("name"):
+        raise PlayerParseError("Nom absent")
+    bio_node = page.css_first("div.bio p")
+    bio = " ".join(bio_node.text().split()) if bio_node else ""
+    height = re.search(r"mesure (\d{3})\s*cm", bio)
+    weight = re.search(r"pour (\d{2,3})\s*kg", bio)
+    position = re.search(r"au poste de ([^.,]+)", bio)
     profile: dict[str, object] = {
         "source": "allrugby",
         "source_player_id": source_player_id,
-        "full_name": name_node.text(strip=True),
-        "birth_date": _parse_birth(birth),
-        "height_cm": _parse_cm(fields.get("Taille", "")),
-        "weight_kg": _parse_int(fields.get("Poids", "")),
-        "nationality": fields.get("Nationalité") or None,
-        "jiff": _parse_jiff(fields.get("JIFF", "")),
-        "positions_raw": fields.get("Postes") or None,
+        "full_name": str(person["name"]),
+        "birth_date": None,
+        "height_cm": int(height.group(1)) if height else None,
+        "weight_kg": int(weight.group(1)) if weight else None,
+        "nationality": person.get("nationality") or None,
+        "jiff": ("est JIFF" in bio) if bio else None,
+        "positions_raw": position.group(1).strip() if position else None,
     }
     StagingPlayerProfile.validate(staging_frame("player_profile", [profile]))
     return profile
-
-
-def _parse_birth(value: str) -> date | None:
-    match = re.search(r"(\d{2}/\d{2}/\d{4})", value)
-    if not match:
-        return None
-    return datetime.strptime(match.group(1), "%d/%m/%Y").date()
-
-
-def _parse_cm(value: str) -> int | None:
-    match = re.search(r"(\d+(?:[.,]\d+)?)\s*m", value)
-    return round(float(match.group(1).replace(",", ".")) * 100) if match else None
-
-
-def _parse_int(value: str) -> int | None:
-    match = re.search(r"(\d+)", value)
-    return int(match.group(1)) if match else None
-
-
-def _parse_jiff(value: str) -> bool | None:
-    if not value:
-        return None
-    return "oui" in value.lower()

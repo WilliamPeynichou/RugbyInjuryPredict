@@ -11,3 +11,4 @@ models:
     intermediate: {+materialized: view}
     marts: {+materialized: table}
     ml: {+materialized: table}
+    analysis: {+materialized: table}

@@ -1,16 +1,8 @@
 BASE_URL = "https://www.allrugby.com"
 
 
-# URL forms verified in docs/01-data-sources.md: `joueurs/{slug}-{id}.html`.
-# Competition/match URL slugs are NOT publicly documented: the patterns below
-# shortcut: are assumptions to confirm on the first authorized crawl (journal).
+# Checked on the live site (2026-11-06): the Top 14 calendar of season 2023-2024 is
+# `/competitions/top-14-2024/calendrier.html` (end year); match and player pages are
+# linked as `/saison-2023-2024/matchs/{slug}-{id}.html` and `/joueurs/{slug}-{id}.html`.
 def season_page_url(season_id: str) -> str:
-    return f"{BASE_URL}/competition/{season_id.replace('-', '-')}"
-
-
-def match_page_url(match_id: str) -> str:
-    return f"{BASE_URL}/matches/{match_id}"
-
-
-def player_page_url(player_id: str) -> str:
-    return f"{BASE_URL}/joueurs/x-{player_id}.html"
+    return f"{BASE_URL}/competitions/top-14-{season_id.split('-')[1]}/calendrier.html"

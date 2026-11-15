@@ -1,0 +1,18 @@
+# Scénarios des courbes h(N) (F20, docs/06 §2).
+# Profil de base = médianes du poste calculées sur le TRAIN du modèle (modalité la plus
+# fréquente pour les catégories). Chaque scénario remplace quelques valeurs ; N =
+# consecutive_matches varie de n_min à n_max, tout le reste est figé (ceteris paribus :
+# min_28d ne suit pas N, lecture « effet de l'enchaînement à charge récente égale »).
+minutes_played: 80
+n_min: 0
+n_max: 15
+scenarios:
+  median: {}
+  international_november:
+    intl_window: true
+  return_from_injury:
+    recent_return_8w: true
+    n_prior_injuries_365d: 1
+  short_turnaround_block:
+    short_turnaround: true
+    days_since_last_match: 6

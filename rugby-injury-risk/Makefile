@@ -16,11 +16,14 @@ dagster:
 seeds:
 	uv run python scripts/export_seeds.py
 dbt: seeds
-	uv run dbt build --project-dir dbt --profiles-dir dbt --log-path data/dbt_logs --target-path ../data/dbt_target
+	uv run dbt build --project-dir dbt --profiles-dir dbt --log-path data/dbt_logs --target-path ../data/dbt_target \
+		--vars "$$(uv run python -m rugby_risk.injuries.rules)"
 mlflow:
 	@echo "Disponible après F18"
-api openapi:
-	@echo "Disponible après F26"
+api:
+	uv run uvicorn rugby_risk.api.main:app --reload --port 8000
+openapi:
+	uv run python scripts/export_openapi.py
 web check-web:
 	@echo "Disponible après F27"
 purge-health:

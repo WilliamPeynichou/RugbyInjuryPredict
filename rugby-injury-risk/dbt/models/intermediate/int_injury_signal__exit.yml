@@ -1,0 +1,8 @@
+version: 2
+models:
+  - name: int_injury_signal__exit
+    columns:
+      - {name: match_id, data_tests: [not_null, {relationships: {to: ref('fact_match'), field: match_id}}]}
+      - {name: player_id, data_tests: [not_null]}
+      - {name: signal_strength, data_tests: [not_null]}
+      - {name: off_reason_derived, data_tests: [{accepted_values: {values: [injury_suspected, tactical, injury, hia, unknown]}}]}

@@ -12,3 +12,12 @@ Demi d'ouverture,lnr,FLY_HALF
 Centre,lnr,CENTRE
 Ailier,lnr,WING
 Arrière,lnr,FULLBACK
+pilier,allrugby,PROP
+talonneur,allrugby,HOOKER
+2ème ligne,allrugby,LOCK
+3ème ligne,allrugby,BACK_ROW
+mêlée,allrugby,SCRUM_HALF
+ouverture,allrugby,FLY_HALF
+centre,allrugby,CENTRE
+ailier,allrugby,WING
+arrière,allrugby,FULLBACK

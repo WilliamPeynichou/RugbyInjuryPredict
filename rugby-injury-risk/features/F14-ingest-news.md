@@ -57,3 +57,5 @@ Détection des clubs : dictionnaire depuis `team_aliases.csv` (F08), corresponda
 
 ## Journal
 
+- **Statut corrigé le 2026-11-10** : fiche repassée en `todo`. Jamais réalisée feature par feature ; les cases ci-dessus sont vides et le code de collecte presse est hérité de F03 sans relecture. `news` reste désactivé (`authorized: false`) sans décision humaine.
+

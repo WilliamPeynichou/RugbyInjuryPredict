@@ -1,7 +1,7 @@
 """ESPN hidden JSON API: scoreboard per league/year, then `summary?event=` per match.
 
 Live-only: PoliteClient raises SourceNotAuthorizedError until `espn` is authorized.
-Also meant for F08 (European cups, calendar).
+F08: European cups (summaries) and calendar (scoreboard pages).
 """
 
 import json
@@ -16,6 +16,8 @@ LEAGUES = {
     "SIX_NATIONS": "180659",
     "RWC": "164205",
     "TESTS": "289234",
+    "CHAMPIONS_CUP": "271937",
+    "CHALLENGE_CUP": "272073",
 }
 
 

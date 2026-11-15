@@ -1,0 +1,93 @@
+"""Null model: predicts the training base rate.
+
+Not a contender: M0 (référence à battre) lives in `baselines.py` (F19). ConstantModel
+reste comme sonde déterministe du protocole F18.
+"""
+
+from collections.abc import Callable
+from typing import Any
+
+import numpy as np
+import polars as pl
+
+from rugby_risk.modeling.base import RiskModel
+
+
+class ConstantModel:
+    """P(injury) = prevalence of the target on the training folds."""
+
+    name = "constant"
+
+    def __init__(self, target_col: str = "y_injury") -> None:
+        self.target_col = target_col
+        self.rate_: float | None = None
+
+    def fit(self, train: pl.DataFrame, valid: pl.DataFrame | None = None) -> "ConstantModel":
+        del valid
+        col = train.get_column(self.target_col).to_numpy()
+        if col.size == 0:
+            raise ValueError(f"Colonne cible vide: {self.target_col}")
+        self.rate_ = float(np.mean(col))
+        return self
+
+    def predict_proba(self, df: pl.DataFrame) -> np.ndarray:
+        if self.rate_ is None:
+            raise RuntimeError("fit() doit être appelé avant predict_proba()")
+        return np.full(len(df), self.rate_, dtype=float)
+
+    def params(self) -> dict[str, Any]:
+        return {"target_col": self.target_col, "base_rate": self.rate_}
+
+
+def registry() -> dict[str, Callable[[], RiskModel]]:
+    """Model factories by name (CLI `rugby-risk train <model>`)."""
+    from rugby_risk.modeling.baselines import (  # noqa: PLC0415 - évite cycle d'imports
+        GlobalRateModel,
+        PositionRateModel,
+    )
+    from rugby_risk.modeling.gbm import GBMRiskModel  # noqa: PLC0415
+    from rugby_risk.modeling.hazard import DiscreteHazardModel  # noqa: PLC0415
+    from rugby_risk.modeling.hierarchical import (  # noqa: PLC0415
+        FAST_SAMPLER,
+        INJHIST_SPEC,
+        HierarchicalHazardModel,
+    )
+    from rugby_risk.modeling.selection import WeightedHazardModel  # noqa: PLC0415
+
+    return {
+        ConstantModel.name: lambda: ConstantModel(),  # noqa: PLW0108 - factory standard
+        GlobalRateModel.name: lambda: GlobalRateModel(),  # noqa: PLW0108
+        PositionRateModel.name: lambda: PositionRateModel(),  # noqa: PLW0108
+        "m1_hazard_cloglog": lambda: DiscreteHazardModel(link="cloglog"),
+        "m1_hazard_logit": lambda: DiscreteHazardModel(link="logit"),
+        # F21 : M1 + IPW. Variantes de sensibilité (docs/06 §3.3) : troncature 5-95,
+        # non stabilisée.
+        "m1w_hazard_ipw": WeightedHazardModel,
+        "m1w_hazard_ipw_t95": lambda: WeightedHazardModel(
+            truncate=(0.05, 0.95), name="m1w_hazard_ipw_t95"
+        ),
+        "m1w_hazard_ipw_raw": lambda: WeightedHazardModel(
+            stabilize=False, name="m1w_hazard_ipw_raw"
+        ),
+        # F23 : M3 challenger LightGBM calibré (exploration, docs/06 §2).
+        "m3_gbm": GBMRiskModel,
+        # F22 : M2 hiérarchique bayésien (production). _fast = exploration (sous-échantillon
+        # joueurs, 2 chaînes x 500), _noipw = sensibilité docs/06 §3.3.
+        "m2_hierarchical": HierarchicalHazardModel,
+        "m2_hierarchical_fast": lambda: HierarchicalHazardModel(
+            sampler=FAST_SAMPLER, name="m2_hierarchical_fast"
+        ),
+        "m2_hierarchical_noipw": lambda: HierarchicalHazardModel(
+            ipw=False, name="m2_hierarchical_noipw"
+        ),
+        "m2_hierarchical_noipw_fast": lambda: HierarchicalHazardModel(
+            ipw=False, sampler=FAST_SAMPLER, name="m2_hierarchical_noipw_fast"
+        ),
+        # Variante injhist (exploration) : même M2 + historique de blessure (ever-injured +
+        # log1p plafonné). registry_name distinct : pas de confusion avec le M2 de production.
+        "m2_hierarchical_injhist": lambda: HierarchicalHazardModel(
+            spec=INJHIST_SPEC,
+            name="m2_hierarchical_injhist",
+            registry_name="rugby-risk-m2-injhist",
+        ),
+    }

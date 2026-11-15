@@ -11,6 +11,7 @@ from rugby_risk.http import RawStore
 from rugby_risk.parsers.espn import parse_summary
 from rugby_risk.parsers.intl import IntlParseError
 from rugby_risk.parsers.worldrugby import parse_match
+from rugby_risk.reference import competitions
 from rugby_risk.settings import get_settings
 from rugby_risk.warehouse import staging_frame, write_staging
 
@@ -58,14 +59,18 @@ def intl_staging_worldrugby(context: AssetExecutionContext) -> Output:
 def intl_staging_espn(context: AssetExecutionContext) -> Output:
     """Parse ESPN summaries from the raw lake into staging (lineups, no minutes)."""
     store = RawStore()
+    intl = set(competitions().filter(pl.col("level") == "international")["competition_code"])
     parsed, quarantined = [], []
     for row in store.iter_manifest("espn"):
         if "/summary?" not in row.url_canonical:
             continue
         try:
-            parsed.append(parse_summary(_content(store, row.url_canonical, "espn")))
+            match, rows = parse_summary(_content(store, row.url_canonical, "espn"))
         except IntlParseError as error:
             quarantined.append({"url": row.url_canonical, "reason": str(error)})
+            continue
+        if match["competition_code"] in intl:  # clubs (Top 14, coupes d'Europe) : autres assets
+            parsed.append((match, rows))
     return _write(context, "espn", parsed, quarantined)
 
 

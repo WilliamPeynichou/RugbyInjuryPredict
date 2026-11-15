@@ -1,0 +1,1011 @@
+{
+  "openapi": "3.1.0",
+  "info": {
+    "title": "Rugby injury risk — agrégats publics (Top 14, par poste)",
+    "description": "Ordres de grandeur agrégés par poste. Association statistique, non causale ; cible : blessures avec arrêt d'au moins 2 matchs (sous-déclarées). Aucune donnée nominative, aucune prédiction individuelle.",
+    "version": "1.0.0"
+  },
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "Health",
+        "operationId": "health_health_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Health"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/models": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "List Models",
+        "operationId": "list_models_v1_models_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/ModelRow"
+                  },
+                  "type": "array",
+                  "title": "Response List Models V1 Models Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/positions": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "List Positions",
+        "operationId": "list_positions_v1_positions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Position"
+                  },
+                  "type": "array",
+                  "title": "Response List Positions V1 Positions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/scenarios": {
+      "get": {
+        "tags": [
+          "meta"
+        ],
+        "summary": "List Scenarios",
+        "operationId": "list_scenarios_v1_scenarios_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/Scenario"
+                  },
+                  "type": "array",
+                  "title": "Response List Scenarios V1 Scenarios Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/curves": {
+      "get": {
+        "tags": [
+          "courbes"
+        ],
+        "summary": "Get Curve",
+        "operationId": "get_curve_v1_curves_get",
+        "parameters": [
+          {
+            "name": "position",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "BACK_ROW",
+                "CENTRE",
+                "FLY_HALF",
+                "FULLBACK",
+                "HOOKER",
+                "LOCK",
+                "PROP",
+                "SCRUM_HALF",
+                "WING"
+              ],
+              "type": "string",
+              "title": "Position"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "median",
+                "international_november",
+                "return_from_injury",
+                "short_turnaround_block"
+              ],
+              "type": "string",
+              "default": "median",
+              "title": "Scenario"
+            }
+          },
+          {
+            "name": "model_version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Model Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Curve"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/curves/compare": {
+      "get": {
+        "tags": [
+          "courbes"
+        ],
+        "summary": "Compare Curves",
+        "operationId": "compare_curves_v1_curves_compare_get",
+        "parameters": [
+          {
+            "name": "positions",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "description": "codes séparés par des virgules, 2 à 4",
+              "title": "Positions"
+            },
+            "description": "codes séparés par des virgules, 2 à 4"
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "median",
+                "international_november",
+                "return_from_injury",
+                "short_turnaround_block"
+              ],
+              "type": "string",
+              "default": "median",
+              "title": "Scenario"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Curve"
+                  },
+                  "title": "Response Compare Curves V1 Curves Compare Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/cumulative": {
+      "get": {
+        "tags": [
+          "courbes"
+        ],
+        "summary": "Cumulative",
+        "description": "Risque cumulé sur k matchs consécutifs : lit cum_* au point n_consecutive = k - 1.",
+        "operationId": "cumulative_v1_cumulative_get",
+        "parameters": [
+          {
+            "name": "position",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "enum": [
+                "BACK_ROW",
+                "CENTRE",
+                "FLY_HALF",
+                "FULLBACK",
+                "HOOKER",
+                "LOCK",
+                "PROP",
+                "SCRUM_HALF",
+                "WING"
+              ],
+              "type": "string",
+              "title": "Position"
+            }
+          },
+          {
+            "name": "k",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "maximum": 16,
+              "minimum": 1,
+              "title": "K"
+            }
+          },
+          {
+            "name": "scenario",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "enum": [
+                "median",
+                "international_november",
+                "return_from_injury",
+                "short_turnaround_block"
+              ],
+              "type": "string",
+              "default": "median",
+              "title": "Scenario"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Cumulative"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/incidence": {
+      "get": {
+        "tags": [
+          "incidence"
+        ],
+        "summary": "Incidence",
+        "operationId": "incidence_v1_incidence_get",
+        "parameters": [
+          {
+            "name": "season",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Season"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/IncidenceRow"
+                  },
+                  "title": "Response Incidence V1 Incidence Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/calibration": {
+      "get": {
+        "tags": [
+          "incidence"
+        ],
+        "summary": "Calibration",
+        "operationId": "calibration_v1_calibration_get",
+        "parameters": [
+          {
+            "name": "model_version",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Model Version"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CalibrationRow"
+                  },
+                  "title": "Response Calibration V1 Calibration Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "CalibrationRow": {
+        "properties": {
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "test_season": {
+            "type": "string",
+            "title": "Test Season"
+          },
+          "position_group": {
+            "type": "string",
+            "title": "Position Group"
+          },
+          "bin": {
+            "type": "integer",
+            "title": "Bin"
+          },
+          "p_pred_mean": {
+            "type": "number",
+            "title": "P Pred Mean"
+          },
+          "p_obs": {
+            "type": "number",
+            "title": "P Obs"
+          },
+          "n": {
+            "type": "integer",
+            "title": "N"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_version",
+          "test_season",
+          "position_group",
+          "bin",
+          "p_pred_mean",
+          "p_obs",
+          "n"
+        ],
+        "title": "CalibrationRow"
+      },
+      "Cumulative": {
+        "properties": {
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "position_code": {
+            "type": "string",
+            "enum": [
+              "BACK_ROW",
+              "CENTRE",
+              "FLY_HALF",
+              "FULLBACK",
+              "HOOKER",
+              "LOCK",
+              "PROP",
+              "SCRUM_HALF",
+              "WING"
+            ],
+            "title": "Position Code"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "median",
+              "international_november",
+              "return_from_injury",
+              "short_turnaround_block"
+            ],
+            "title": "Scenario"
+          },
+          "k_matches": {
+            "type": "integer",
+            "maximum": 16.0,
+            "minimum": 1.0,
+            "title": "K Matches"
+          },
+          "risk_mean": {
+            "type": "number",
+            "title": "Risk Mean"
+          },
+          "risk_low90": {
+            "type": "number",
+            "title": "Risk Low90"
+          },
+          "risk_high90": {
+            "type": "number",
+            "title": "Risk High90"
+          },
+          "warning": {
+            "type": "string",
+            "title": "Warning"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_version",
+          "position_code",
+          "scenario",
+          "k_matches",
+          "risk_mean",
+          "risk_low90",
+          "risk_high90",
+          "warning"
+        ],
+        "title": "Cumulative"
+      },
+      "Curve": {
+        "properties": {
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "position_code": {
+            "type": "string",
+            "enum": [
+              "BACK_ROW",
+              "CENTRE",
+              "FLY_HALF",
+              "FULLBACK",
+              "HOOKER",
+              "LOCK",
+              "PROP",
+              "SCRUM_HALF",
+              "WING"
+            ],
+            "title": "Position Code"
+          },
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "median",
+              "international_november",
+              "return_from_injury",
+              "short_turnaround_block"
+            ],
+            "title": "Scenario"
+          },
+          "n_players_support": {
+            "type": "integer",
+            "title": "N Players Support"
+          },
+          "points": {
+            "items": {
+              "$ref": "#/components/schemas/CurvePoint"
+            },
+            "type": "array",
+            "title": "Points"
+          },
+          "warning": {
+            "type": "string",
+            "title": "Warning"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_version",
+          "position_code",
+          "scenario",
+          "n_players_support",
+          "points",
+          "warning"
+        ],
+        "title": "Curve"
+      },
+      "CurvePoint": {
+        "properties": {
+          "n_consecutive": {
+            "type": "integer",
+            "maximum": 15.0,
+            "minimum": 0.0,
+            "title": "N Consecutive"
+          },
+          "p_mean": {
+            "type": "number",
+            "title": "P Mean"
+          },
+          "p_low90": {
+            "type": "number",
+            "title": "P Low90"
+          },
+          "p_high90": {
+            "type": "number",
+            "title": "P High90"
+          },
+          "cum_mean": {
+            "type": "number",
+            "title": "Cum Mean"
+          },
+          "cum_low90": {
+            "type": "number",
+            "title": "Cum Low90"
+          },
+          "cum_high90": {
+            "type": "number",
+            "title": "Cum High90"
+          }
+        },
+        "type": "object",
+        "required": [
+          "n_consecutive",
+          "p_mean",
+          "p_low90",
+          "p_high90",
+          "cum_mean",
+          "cum_low90",
+          "cum_high90"
+        ],
+        "title": "CurvePoint"
+      },
+      "HTTPValidationError": {
+        "properties": {
+          "detail": {
+            "items": {
+              "$ref": "#/components/schemas/ValidationError"
+            },
+            "type": "array",
+            "title": "Detail"
+          }
+        },
+        "type": "object",
+        "title": "HTTPValidationError"
+      },
+      "Health": {
+        "properties": {
+          "status": {
+            "type": "string",
+            "const": "ok",
+            "title": "Status",
+            "default": "ok"
+          }
+        },
+        "type": "object",
+        "title": "Health"
+      },
+      "IncidenceRow": {
+        "properties": {
+          "season_id": {
+            "type": "string",
+            "title": "Season Id"
+          },
+          "position_code": {
+            "type": "string",
+            "enum": [
+              "BACK_ROW",
+              "CENTRE",
+              "FLY_HALF",
+              "FULLBACK",
+              "HOOKER",
+              "LOCK",
+              "PROP",
+              "SCRUM_HALF",
+              "WING"
+            ],
+            "title": "Position Code"
+          },
+          "position_group": {
+            "type": "string",
+            "title": "Position Group"
+          },
+          "incidence_per_1000h": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incidence Per 1000H"
+          },
+          "incidence_low90": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incidence Low90"
+          },
+          "incidence_high90": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Incidence High90"
+          },
+          "injuries_count_bucket": {
+            "type": "string",
+            "title": "Injuries Count Bucket"
+          },
+          "exposure_hours": {
+            "type": "number",
+            "title": "Exposure Hours"
+          },
+          "n_players_support": {
+            "type": "integer",
+            "title": "N Players Support"
+          }
+        },
+        "type": "object",
+        "required": [
+          "season_id",
+          "position_code",
+          "position_group",
+          "incidence_per_1000h",
+          "incidence_low90",
+          "incidence_high90",
+          "injuries_count_bucket",
+          "exposure_hours",
+          "n_players_support"
+        ],
+        "title": "IncidenceRow"
+      },
+      "ModelRow": {
+        "properties": {
+          "model_version": {
+            "type": "string",
+            "title": "Model Version"
+          },
+          "model_name": {
+            "type": "string",
+            "title": "Model Name"
+          },
+          "role": {
+            "type": "string",
+            "title": "Role"
+          },
+          "promoted": {
+            "type": "boolean",
+            "title": "Promoted"
+          },
+          "train_seasons": {
+            "type": "string",
+            "title": "Train Seasons"
+          },
+          "test_season": {
+            "type": "string",
+            "title": "Test Season"
+          },
+          "dataset_version": {
+            "type": "string",
+            "title": "Dataset Version"
+          },
+          "brier": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brier"
+          },
+          "brier_low90": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brier Low90"
+          },
+          "brier_high90": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brier High90"
+          },
+          "brier_skill": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Brier Skill"
+          },
+          "logloss": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Logloss"
+          },
+          "auc_roc": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Auc Roc"
+          },
+          "calib_slope": {
+            "anyOf": [
+              {
+                "type": "number"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Calib Slope"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "model_version",
+          "model_name",
+          "role",
+          "promoted",
+          "train_seasons",
+          "test_season",
+          "dataset_version",
+          "brier",
+          "brier_low90",
+          "brier_high90",
+          "brier_skill",
+          "logloss",
+          "auc_roc",
+          "calib_slope",
+          "notes"
+        ],
+        "title": "ModelRow"
+      },
+      "Position": {
+        "properties": {
+          "position_code": {
+            "type": "string",
+            "enum": [
+              "BACK_ROW",
+              "CENTRE",
+              "FLY_HALF",
+              "FULLBACK",
+              "HOOKER",
+              "LOCK",
+              "PROP",
+              "SCRUM_HALF",
+              "WING"
+            ],
+            "title": "Position Code"
+          },
+          "position_label_fr": {
+            "type": "string",
+            "title": "Position Label Fr"
+          },
+          "position_group": {
+            "type": "string",
+            "title": "Position Group"
+          },
+          "unit": {
+            "type": "string",
+            "title": "Unit"
+          }
+        },
+        "type": "object",
+        "required": [
+          "position_code",
+          "position_label_fr",
+          "position_group",
+          "unit"
+        ],
+        "title": "Position"
+      },
+      "Scenario": {
+        "properties": {
+          "scenario": {
+            "type": "string",
+            "enum": [
+              "median",
+              "international_november",
+              "return_from_injury",
+              "short_turnaround_block"
+            ],
+            "title": "Scenario"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "scenario",
+          "description"
+        ],
+        "title": "Scenario"
+      },
+      "ValidationError": {
+        "properties": {
+          "loc": {
+            "items": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "integer"
+                }
+              ]
+            },
+            "type": "array",
+            "title": "Location"
+          },
+          "msg": {
+            "type": "string",
+            "title": "Message"
+          },
+          "type": {
+            "type": "string",
+            "title": "Error Type"
+          },
+          "input": {
+            "title": "Input"
+          },
+          "ctx": {
+            "type": "object",
+            "title": "Context"
+          }
+        },
+        "type": "object",
+        "required": [
+          "loc",
+          "msg",
+          "type"
+        ],
+        "title": "ValidationError"
+      }
+    }
+  }
+}

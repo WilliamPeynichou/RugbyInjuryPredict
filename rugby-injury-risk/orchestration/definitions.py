@@ -6,12 +6,25 @@ from orchestration.assets.allrugby import (
     allrugby_staging_matches,
     allrugby_staging_profiles,
 )
+from orchestration.assets.calendar import calendar_staging
+from orchestration.assets.dbt_assets import participation_marts, top14_minutes_quality
+from orchestration.assets.entities import (
+    er_no_double_sheet_same_day,
+    er_stable_ids,
+    er_unique_source_id,
+    player_entities,
+)
+from orchestration.assets.europe import europe_staging_espn
+from orchestration.assets.injuries import injury_episodes, injury_incidence_prior_check
+from orchestration.assets.injury_mentions import injury_mentions
 from orchestration.assets.internationals import (
     intl_minutes_check,
     intl_staging_espn,
     intl_staging_worldrugby,
 )
 from orchestration.assets.lnr import lnr_staging_lineups, lnr_vs_allrugby
+from orchestration.assets.ml import ml_table
+from orchestration.assets.publish import public_predictions
 
 defs = Definitions(
     assets=[
@@ -24,5 +37,20 @@ defs = Definitions(
         intl_staging_worldrugby,
         intl_staging_espn,
         intl_minutes_check,
-    ]
+        europe_staging_espn,
+        calendar_staging,
+        player_entities,
+        participation_marts,
+        injury_mentions,
+        injury_episodes,
+        ml_table,
+        public_predictions,
+    ],
+    asset_checks=[
+        er_unique_source_id,
+        er_no_double_sheet_same_day,
+        er_stable_ids,
+        top14_minutes_quality,
+        injury_incidence_prior_check,
+    ],
 )

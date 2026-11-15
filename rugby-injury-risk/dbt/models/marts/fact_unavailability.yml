@@ -1,0 +1,7 @@
+version: 2
+models:
+  - name: fact_unavailability
+    columns:
+      - {name: player_id, data_tests: [not_null, {relationships: {to: ref('dim_player'), field: player_id}}]}
+      - {name: start_date, data_tests: [not_null]}
+      - {name: reason, data_tests: [{accepted_values: {values: [international_duty, suspension, protected_rest, rotation, unknown]}}]}

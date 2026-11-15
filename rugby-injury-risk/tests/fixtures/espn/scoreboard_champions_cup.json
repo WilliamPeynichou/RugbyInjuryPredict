@@ -1,0 +1,75 @@
+{
+ "leagues": [
+  {
+   "name": "Investec Champions Cup"
+  }
+ ],
+ "events": [
+  {
+   "id": "910001",
+   "date": "2024-01-13T17:30Z",
+   "week": {
+    "number": 2
+   },
+   "status": {
+    "type": {
+     "completed": false
+    }
+   },
+   "competitions": [
+    {
+     "venue": {
+      "fullName": "Stade Ernest Wallon"
+     },
+     "competitors": [
+      {
+       "homeAway": "home",
+       "team": {
+        "displayName": "Toulouse"
+       }
+      },
+      {
+       "homeAway": "away",
+       "team": {
+        "displayName": "Harlequins"
+       }
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "id": "910004",
+   "date": "2024-04-06T14:00Z",
+   "week": {
+    "number": 5
+   },
+   "status": {
+    "type": {
+     "completed": false
+    }
+   },
+   "competitions": [
+    {
+     "venue": {
+      "fullName": "Stade Marcel Deflandre"
+     },
+     "competitors": [
+      {
+       "homeAway": "home",
+       "team": {
+        "displayName": "La Rochelle"
+       }
+      },
+      {
+       "homeAway": "away",
+       "team": {
+        "displayName": "Leinster"
+       }
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}

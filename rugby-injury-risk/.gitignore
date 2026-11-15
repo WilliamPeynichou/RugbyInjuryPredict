@@ -17,12 +17,27 @@ data/review/
 *.duckdb
 *.duckdb.*
 mlruns/
+.tmp_dagster_home_*/
 web/node_modules/
 web/.next/
 
 dbt/seeds/ref_*.csv
+dbt/data/
 data/dbt_target/
 data/dbt_logs/
 dbt/.user.yml
 dbt/logs/
 dbt/target/
+.dagster_home/
+reports/experiments/
+data/mlflow.db
+data/ml/
+data/models/
+reports/profiles/
+data/*.log
+data/*.sh
+data/warehouse.lock
+.scratch_*/
+data/.pytensor_cache/
+data/.mpl/
+data/.chrome/

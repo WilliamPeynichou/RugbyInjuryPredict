@@ -1,0 +1,423 @@
+{
+ "header": {
+  "id": "910001",
+  "league": {
+   "name": "Investec Champions Cup"
+  },
+  "week": {
+   "number": 2
+  },
+  "competitions": [
+   {
+    "date": "2024-01-13T17:30Z",
+    "competitors": [
+     {
+      "homeAway": "home",
+      "team": {
+       "displayName": "Toulouse"
+      },
+      "score": "27"
+     },
+     {
+      "homeAway": "away",
+      "team": {
+       "displayName": "Harlequins"
+      },
+      "score": "13"
+     }
+    ]
+   }
+  ]
+ },
+ "gameInfo": {
+  "venue": {
+   "fullName": "Stade Fictif"
+  }
+ },
+ "rosters": [
+  {
+   "homeAway": "home",
+   "team": {
+    "displayName": "Toulouse"
+   },
+   "roster": [
+    {
+     "jersey": "1",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-1",
+      "displayName": "Joueur Toulouse 1"
+     }
+    },
+    {
+     "jersey": "2",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-2",
+      "displayName": "Joueur Toulouse 2"
+     }
+    },
+    {
+     "jersey": "3",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-3",
+      "displayName": "Joueur Toulouse 3"
+     }
+    },
+    {
+     "jersey": "4",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-4",
+      "displayName": "Joueur Toulouse 4"
+     }
+    },
+    {
+     "jersey": "5",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-5",
+      "displayName": "Joueur Toulouse 5"
+     }
+    },
+    {
+     "jersey": "6",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-6",
+      "displayName": "Joueur Toulouse 6"
+     }
+    },
+    {
+     "jersey": "7",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-7",
+      "displayName": "Joueur Toulouse 7"
+     }
+    },
+    {
+     "jersey": "8",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-8",
+      "displayName": "Joueur Toulouse 8"
+     }
+    },
+    {
+     "jersey": "9",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-9",
+      "displayName": "Joueur Toulouse 9"
+     }
+    },
+    {
+     "jersey": "10",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-10",
+      "displayName": "Joueur Toulouse 10"
+     }
+    },
+    {
+     "jersey": "11",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-11",
+      "displayName": "Joueur Toulouse 11"
+     }
+    },
+    {
+     "jersey": "12",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-12",
+      "displayName": "Joueur Toulouse 12"
+     }
+    },
+    {
+     "jersey": "13",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-13",
+      "displayName": "Joueur Toulouse 13"
+     }
+    },
+    {
+     "jersey": "14",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-14",
+      "displayName": "Joueur Toulouse 14"
+     }
+    },
+    {
+     "jersey": "15",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-15",
+      "displayName": "Joueur Toulouse 15"
+     }
+    },
+    {
+     "jersey": "16",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-16",
+      "displayName": "Joueur Toulouse 16"
+     }
+    },
+    {
+     "jersey": "17",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-17",
+      "displayName": "Joueur Toulouse 17"
+     }
+    },
+    {
+     "jersey": "18",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-18",
+      "displayName": "Joueur Toulouse 18"
+     }
+    },
+    {
+     "jersey": "19",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-19",
+      "displayName": "Joueur Toulouse 19"
+     }
+    },
+    {
+     "jersey": "20",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-20",
+      "displayName": "Joueur Toulouse 20"
+     }
+    },
+    {
+     "jersey": "21",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-21",
+      "displayName": "Joueur Toulouse 21"
+     }
+    },
+    {
+     "jersey": "22",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-22",
+      "displayName": "Joueur Toulouse 22"
+     }
+    },
+    {
+     "jersey": "23",
+     "starter": false,
+     "athlete": {
+      "id": "e-tou-23",
+      "displayName": "Joueur Toulouse 23"
+     }
+    }
+   ]
+  },
+  {
+   "homeAway": "away",
+   "team": {
+    "displayName": "Harlequins"
+   },
+   "roster": [
+    {
+     "jersey": "1",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-1",
+      "displayName": "Joueur Harlequins 1"
+     }
+    },
+    {
+     "jersey": "2",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-2",
+      "displayName": "Joueur Harlequins 2"
+     }
+    },
+    {
+     "jersey": "3",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-3",
+      "displayName": "Joueur Harlequins 3"
+     }
+    },
+    {
+     "jersey": "4",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-4",
+      "displayName": "Joueur Harlequins 4"
+     }
+    },
+    {
+     "jersey": "5",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-5",
+      "displayName": "Joueur Harlequins 5"
+     }
+    },
+    {
+     "jersey": "6",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-6",
+      "displayName": "Joueur Harlequins 6"
+     }
+    },
+    {
+     "jersey": "7",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-7",
+      "displayName": "Joueur Harlequins 7"
+     }
+    },
+    {
+     "jersey": "8",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-8",
+      "displayName": "Joueur Harlequins 8"
+     }
+    },
+    {
+     "jersey": "9",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-9",
+      "displayName": "Joueur Harlequins 9"
+     }
+    },
+    {
+     "jersey": "10",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-10",
+      "displayName": "Joueur Harlequins 10"
+     }
+    },
+    {
+     "jersey": "11",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-11",
+      "displayName": "Joueur Harlequins 11"
+     }
+    },
+    {
+     "jersey": "12",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-12",
+      "displayName": "Joueur Harlequins 12"
+     }
+    },
+    {
+     "jersey": "13",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-13",
+      "displayName": "Joueur Harlequins 13"
+     }
+    },
+    {
+     "jersey": "14",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-14",
+      "displayName": "Joueur Harlequins 14"
+     }
+    },
+    {
+     "jersey": "15",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-15",
+      "displayName": "Joueur Harlequins 15"
+     }
+    },
+    {
+     "jersey": "16",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-16",
+      "displayName": "Joueur Harlequins 16"
+     }
+    },
+    {
+     "jersey": "17",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-17",
+      "displayName": "Joueur Harlequins 17"
+     }
+    },
+    {
+     "jersey": "18",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-18",
+      "displayName": "Joueur Harlequins 18"
+     }
+    },
+    {
+     "jersey": "19",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-19",
+      "displayName": "Joueur Harlequins 19"
+     }
+    },
+    {
+     "jersey": "20",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-20",
+      "displayName": "Joueur Harlequins 20"
+     }
+    },
+    {
+     "jersey": "21",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-21",
+      "displayName": "Joueur Harlequins 21"
+     }
+    },
+    {
+     "jersey": "22",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-22",
+      "displayName": "Joueur Harlequins 22"
+     }
+    },
+    {
+     "jersey": "23",
+     "starter": false,
+     "athlete": {
+      "id": "e-har-23",
+      "displayName": "Joueur Harlequins 23"
+     }
+    }
+   ]
+  }
+ ]
+}

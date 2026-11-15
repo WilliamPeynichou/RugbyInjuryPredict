@@ -65,7 +65,8 @@ CREATE TABLE dim_team (
 );
 
 CREATE TABLE dim_competition (competition_code TEXT PRIMARY KEY, name TEXT, level TEXT);
-CREATE TABLE dim_season (season_id TEXT PRIMARY KEY, start_date DATE, end_date DATE, is_covid_disrupted BOOLEAN);
+CREATE TABLE dim_season (season_id TEXT PRIMARY KEY, start_date DATE, end_date DATE, is_covid_disrupted BOOLEAN,
+  pct_minutes_ok DOUBLE, quality_flag TEXT);  -- quality_flag = 'low' si < 98 % des matchs Top 14 passent le contrôle des minutes (F10)
 CREATE TABLE dim_venue (venue_id INTEGER PRIMARY KEY, name TEXT, city TEXT, country TEXT, lat DOUBLE, lon DOUBLE);
 CREATE TABLE venue_surface (venue_id INTEGER, season_id TEXT, surface TEXT, PRIMARY KEY (venue_id, season_id)); -- natural | hybrid | synthetic
 ```
@@ -96,7 +97,7 @@ CREATE TABLE fact_appearance (
   shirt_number     INTEGER,
   is_starter       BOOLEAN NOT NULL,
   position_played  TEXT,                    -- position_code
-  minutes_played   INTEGER NOT NULL,        -- 0 si banc non entré
+  minutes_played   INTEGER,                 -- 0 si banc non entré ; NULL si aucune source ne donne les minutes (F10)
   minute_on        INTEGER,                 -- 0 si titulaire
   minute_off       INTEGER,                 -- NULL si a fini le match
   off_reason       TEXT NOT NULL DEFAULT 'unknown', -- tactical | injury | hia | card | unknown
@@ -112,7 +113,7 @@ CREATE TABLE fact_eligibility (
   player_id     BIGINT NOT NULL,
   team_id       INTEGER NOT NULL,
   on_sheet      BOOLEAN NOT NULL,
-  played        BOOLEAN NOT NULL,           -- minutes_played > 0
+  played        BOOLEAN,                    -- minutes_played > 0 ; titulaire sans minutes = true, remplaçant sans minutes = NULL (F10)
   absence_reason TEXT,                      -- NULL si on_sheet ; sinon injury | international_duty | suspension | protected_rest | rotation | unknown
   PRIMARY KEY (match_id, player_id)
 );

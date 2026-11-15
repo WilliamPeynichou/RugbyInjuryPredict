@@ -1,0 +1,72 @@
+[
+  {
+    "model_name": "m2_hierarchical_noipw",
+    "role": "principale",
+    "promoted": false,
+    "test_season": "2024-2025",
+    "dataset_version": "7d004d9a146715b139e501738e58620a",
+    "brier": 0.024894677015082543,
+    "brier_low90": 0.022090152459976073,
+    "brier_high90": 0.027184440765272558,
+    "brier_skill": 0.015634344549622592,
+    "logloss": 0.1159629104529939,
+    "auc_roc": 0.6508477825966762,
+    "calib_slope": 0.8835721976320057
+  },
+  {
+    "model_name": "m2_hierarchical",
+    "role": "hiérarchique avec IPW",
+    "promoted": false,
+    "test_season": "2024-2025",
+    "dataset_version": "7d004d9a146715b139e501738e58620a",
+    "brier": 0.025410055368330024,
+    "brier_low90": 0.022539937500166314,
+    "brier_high90": 0.027616168744849047,
+    "brier_skill": -0.004744339222495827,
+    "logloss": 0.12102416222083198,
+    "auc_roc": 0.6244928018739205,
+    "calib_slope": 0.5177616538844569
+  },
+  {
+    "model_name": "m0_position",
+    "role": "référence",
+    "promoted": false,
+    "test_season": "2024-2025",
+    "dataset_version": "7d004d9a146715b139e501738e58620a",
+    "brier": 0.02528885771504634,
+    "brier_low90": 0.022608698839296396,
+    "brier_high90": 0.027657342876808853,
+    "brier_skill": 0.000047962655586831735,
+    "logloss": 0.11972637384270007,
+    "auc_roc": 0.5629059442877229,
+    "calib_slope": 0.7727901131745464
+  },
+  {
+    "model_name": "m1_hazard_cloglog",
+    "role": "challenger paramétrique",
+    "promoted": false,
+    "test_season": "2024-2025",
+    "dataset_version": "7d004d9a146715b139e501738e58620a",
+    "brier": 0.024890264448774513,
+    "brier_low90": 0.022002926007125036,
+    "brier_high90": 0.027135778977987537,
+    "brier_skill": 0.015808822761305803,
+    "logloss": 0.11988604838734675,
+    "auc_roc": 0.6229336785500896,
+    "calib_slope": 0.5604595011468204
+  },
+  {
+    "model_name": "m3_gbm",
+    "role": "challenger non paramétrique",
+    "promoted": false,
+    "test_season": "2024-2025",
+    "dataset_version": "7d004d9a146715b139e501738e58620a",
+    "brier": 0.024783253329366404,
+    "brier_low90": 0.021823367319845993,
+    "brier_high90": 0.027192708120840545,
+    "brier_skill": 0.020040171922125295,
+    "logloss": 0.12226709587615008,
+    "auc_roc": 0.5984112994081573,
+    "calib_slope": 0.32168362974634235
+  }
+]

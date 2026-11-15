@@ -5,9 +5,10 @@ defaults:
   max_retries: 3
 sources:
   allrugby:
-    authorized: false
+    authorized: true
     base_url: https://www.allrugby.com
-    notes_legal: Accord ou validation juridique requis, non confirmé.
+    notes_legal: >-
+      Activation humaine (décision utilisateur, 2026-11-06). Recherche non commerciale, sans redistribution, fouille de textes et de données (art. L.122-5-3 CPI), robots.txt respecté, UA identifiable ; arrêt sans contournement en cas de blocage ou d'opt-out. Minutes jouées uniquement.
   lnr:
     authorized: true
     base_url: https://top14.lnr.fr
@@ -25,27 +26,36 @@ sources:
     base_url: https://itsrugby.fr
     notes_legal: Extraction substantielle interdite sans accord.
   espn:
-    authorized: false
+    authorized: true
     base_url: https://site.api.espn.com
     min_delay_seconds: 2.0
-    notes_legal: API non documentée, validation requise.
+    notes_legal: >-
+      Activation humaine (décision utilisateur, 2026-11-06). Recherche non commerciale, sans redistribution, fouille de textes et de données (art. L.122-5-3 CPI), robots.txt respecté, UA identifiable ; arrêt sans contournement en cas de blocage ou d'opt-out. API non documentée : calendrier et résultats.
   worldrugby:
-    authorized: false
+    authorized: true
     base_url: https://api.wr-rims-prod.pulselive.com
-    notes_legal: API non documentée, validation requise.
+    notes_legal: >-
+      Activation humaine (décision utilisateur, 2026-11-06). Recherche non commerciale, sans redistribution, fouille de textes et de données (art. L.122-5-3 CPI), robots.txt respecté, UA identifiable ; arrêt sans contournement en cas de blocage ou d'opt-out. API non documentée : matchs internationaux et minutes.
   apisports:
-    authorized: false
+    authorized: true
     base_url: https://v1.rugby.api-sports.io
     requires_api_key: true
+    notes_legal: >-
+      Activation humaine (décision utilisateur, 2026-11-06). Recherche non commerciale, sans redistribution, fouille de textes et de données (art. L.122-5-3 CPI), robots.txt respecté, UA identifiable ; arrêt sans contournement en cas de blocage ou d'opt-out. Plan gratuit, clé APISPORTS_KEY hors dépôt (.env).
   sportradar:
     authorized: false
     base_url: https://api.sportradar.com
     requires_api_key: true
   wikipedia:
-    authorized: false
+    authorized: true
     base_url: https://fr.wikipedia.org
-    notes_legal: CC BY-SA ; activation réservée à une validation humaine.
+    notes_legal: >-
+      Activation humaine (décision utilisateur, 2026-11-06). Recherche non commerciale, sans redistribution, fouille de textes et de données (art. L.122-5-3 CPI), robots.txt respecté, UA identifiable ; arrêt sans contournement en cas de blocage ou d'opt-out. Licence CC BY-SA, attribution conservée.
   news:
-    authorized: false
-    feeds: []
-    notes_legal: Flux à renseigner et autoriser par un humain en F14.
+    authorized: true
+    feeds:
+      - https://www.rugbyrama.fr/rss.xml
+    notes_legal: >-
+      Activation humaine (décision utilisateur, 2026-11-06). Recherche non commerciale, sans redistribution, fouille de textes et de données (art. L.122-5-3 CPI), robots.txt respecté, UA identifiable ; arrêt sans contournement en cas de blocage ou d'opt-out. Flux RSS public (Midi Olympique redirige vers Rugbyrama ; L'Équipe
+      renvoie 403, exclu). Données de santé : art. 9 RGPD, recherche
+      pseudonymisée, sorties agrégées, avis juriste attendu.

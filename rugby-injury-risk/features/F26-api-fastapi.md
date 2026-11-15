@@ -17,9 +17,9 @@ L'API ne lit que les tables publiques de Supabase. Elle ne peut structurellement
 
 ## Périmètre
 
-- [ ] Ajouter `fastapi`, `uvicorn`, `httpx` (déjà présent).
-- [ ] `api/main.py`, `api/deps.py` (client Supabase lecture seule, clé anonyme), `api/schemas.py` (Pydantic), `api/routes/`.
-- [ ] Endpoints :
+- [x] Ajouter `fastapi`, `uvicorn`, `httpx` (déjà présent).
+- [x] `api/main.py`, `api/deps.py` (client Supabase lecture seule, clé anonyme), `api/schemas.py` (Pydantic), `api/routes/`.
+- [x] Endpoints :
   - `GET /health`
   - `GET /v1/models` — versions publiques et métriques
   - `GET /v1/positions` — postes, groupes, libellés FR
@@ -29,11 +29,11 @@ L'API ne lit que les tables publiques de Supabase. Elle ne peut structurellement
   - `GET /v1/incidence?season=2025-2026` — incidence par poste
   - `GET /v1/calibration?model_version=…`
   - `GET /v1/scenarios` — liste et description des scénarios
-- [ ] Validation stricte des paramètres (poste ∈ vocabulaire contrôlé, `k ≤ 15`).
-- [ ] Cache HTTP (`Cache-Control: public, max-age=3600`), CORS limité au domaine du front.
-- [ ] Middleware de sécurité : chaque réponse JSON est inspectée ; présence d'une clé de `FORBIDDEN_PUBLIC_COLUMNS` → erreur 500 et log d'alerte.
-- [ ] OpenAPI exporté dans `web/openapi.json` (`make openapi`) pour générer le client TypeScript (F27).
-- [ ] `Dockerfile` minimal pour l'API.
+- [x] Validation stricte des paramètres (poste ∈ vocabulaire contrôlé, `k ≤ 15`).
+- [x] Cache HTTP (`Cache-Control: public, max-age=3600`), CORS limité au domaine du front.
+- [x] Middleware de sécurité : chaque réponse JSON est inspectée ; présence d'une clé de `FORBIDDEN_PUBLIC_COLUMNS` → erreur 500 et log d'alerte.
+- [x] OpenAPI exporté dans `web/openapi.json` (`make openapi`) pour générer le client TypeScript (F27).
+- [ ] `Dockerfile.api` écrit mais NON construit (daemon Docker absent).
 
 ## Hors périmètre
 
@@ -54,9 +54,12 @@ L'API ne lit que les tables publiques de Supabase. Elle ne peut structurellement
 
 ## Critères d'acceptation
 
-- [ ] `make api` démarre et `/docs` affiche l'OpenAPI.
-- [ ] Couverture ≥ 85 % sur `api/`.
-- [ ] `make check` vert.
+- [x] `make api` démarre et `/docs` affiche l'OpenAPI.
+- [x] Couverture ≥ 85 % sur `api/`.
+- [x] `make check` vert.
 
 ## Journal
 
+- Brouillon intégré puis corrigé : clé Supabase **anonyme** seule (la clé service contourne RLS) ; middleware de garde qui reconstruit le corps streamé et renvoie 500 si une clé de `FORBIDDEN_PUBLIC_COLUMNS` apparaît à n'importe quelle profondeur ; 503 si les tables publiques manquent ; dépôt injectable ; `PositionCode` construit depuis `data/reference/positions.csv` (le test d'architecture interdit les codes de poste en dur dans `src/`).
+- Tests : 50+ tests API, couverture `api/` 99 %. Vérification réelle : `/health` 200, `/v1/curves?position=FLY_HALF` 200, `/v1/incidence` 200, poste invalide 422.
+- Non vérifié : build Docker, Supabase réel, `/docs` en navigateur.

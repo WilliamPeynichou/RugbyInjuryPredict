@@ -7,3 +7,7 @@ seeds:
   - name: ref_rules_protection
     config:
       column_types: {list_size: integer, max_matches: integer, min_minutes: integer, offseason_weeks: integer, rest_rule: varchar, max_tests: integer}
+
+  - name: ref_protected_players
+    config:
+      column_types: {season_id: varchar, player_name: varchar, source_url: varchar}

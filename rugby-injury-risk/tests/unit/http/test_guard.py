@@ -16,7 +16,7 @@ async def test_unauthorized_source_emits_no_call(tmp_path):
         return httpx.Response(200)
 
     client = PoliteClient(
-        "allrugby", Settings(), RawStore(tmp_path), transport=httpx.MockTransport(handler)
+        "itsrugby", Settings(), RawStore(tmp_path), transport=httpx.MockTransport(handler)
     )
     with pytest.raises(SourceNotAuthorizedError):
         async with client:

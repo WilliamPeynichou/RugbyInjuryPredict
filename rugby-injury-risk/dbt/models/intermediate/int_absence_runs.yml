@@ -1,0 +1,7 @@
+version: 2
+models:
+  - name: int_absence_runs
+    columns:
+      - {name: player_id, data_tests: [not_null]}
+      - {name: n_matches, data_tests: [not_null]}
+      - {name: absence_reason, data_tests: [{accepted_values: {values: [international_duty, suspension, protected_rest, injury_candidate, rotation, unknown]}}]}

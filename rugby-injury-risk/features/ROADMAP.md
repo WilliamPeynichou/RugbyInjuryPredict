@@ -26,51 +26,52 @@ Estimation : S ≤ ½ jour · M 1–2 jours · L 3–5 jours.
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
 | F07 | [Ingestion des matchs internationaux](F07-ingest-internationals.md) | F03, F04 | M | done |
-| F08 | [Ingestion coupes d'Europe et calendrier](F08-ingest-europe-calendar.md) | F03, F04 | M | todo |
-| F09 | [Résolution d'entités joueurs](F09-entity-resolution.md) | F05, F06, F07 | L | todo |
-| F10 | [Marts de participation et éligibilité](F10-participation-marts.md) | F08, F09 | L | todo |
-| F11 | [Analyse descriptive des séquences par poste](F11-descriptive-sequences.md) | F10 | M | todo |
+| F08 | [Ingestion coupes d'Europe et calendrier](F08-ingest-europe-calendar.md) | F03, F04 | M | done |
+| F09 | [Résolution d'entités joueurs](F09-entity-resolution.md) | F05, F06, F07 | L | done |
+| F10 | [Marts de participation et éligibilité](F10-participation-marts.md) | F08, F09 | L | done |
+| F11 | [Analyse descriptive des séquences par poste](F11-descriptive-sequences.md) | F10 | M | done |
 
 ## Phase 3 — Labellisation des blessures
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F12 | [Signal « sortie précoce »](F12-signal-exits.md) | F10 | M | todo |
-| F13 | [Signal « absence » et motifs non-blessure](F13-signal-absences.md) | F10 | M | todo |
-| F14 | [Collecte presse et points médicaux](F14-ingest-news.md) | F03, F04 | M | todo |
-| F15 | [Extraction LLM des blessures](F15-llm-injury-extraction.md) | F14, F09 | L | todo |
-| F16 | [Fusion des signaux, annotation et contrôle qualité](F16-injury-fusion-annotation.md) | F12, F13, F15 | L | todo |
+| F12 | [Signal « sortie précoce »](F12-signal-exits.md) | F10 | M | done |
+| F13 | [Signal « absence » et motifs non-blessure](F13-signal-absences.md) | F10 | M | done |
+| F14 | [Collecte presse et points médicaux](F14-ingest-news.md) | F03, F04 | M | todo (statut corrigé le 2026-11-10 : jamais réalisée feature par feature ; `news` reste désactivé sans décision humaine) |
+| F15 | [Extraction LLM des blessures](F15-llm-injury-extraction.md) | F14, F09 | L | done |
+| F16 | [Fusion des signaux, annotation et contrôle qualité](F16-injury-fusion-annotation.md) | F12, F13, F15 | L | done |
 
 ## Phase 4 — Table d'apprentissage et baselines
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F17 | [Table ml_player_match et test anti-fuite](F17-ml-table-leakage.md) | F16 | L | todo |
-| F18 | [Cadre d'évaluation temporelle et MLflow](F18-evaluation-framework.md) | F17 | M | todo |
-| F19 | [Baseline Poisson par poste et priors](F19-baseline-poisson.md) | F18 | S | todo |
-| F20 | [Hazard en temps discret](F20-discrete-hazard.md) | F19 | M | todo |
+| F17 | [Table ml_player_match et test anti-fuite](F17-ml-table-leakage.md) | F16 | L | done |
+| F18 | [Cadre d'évaluation temporelle et MLflow](F18-evaluation-framework.md) | F17 | M | done |
+| F19 | [Baseline Poisson par poste et priors](F19-baseline-poisson.md) | F18 | S | done |
+| F20 | [Hazard en temps discret](F20-discrete-hazard.md) | F19 | M | done |
 
 ## Phase 5 — Modèle de production
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F21 | [Modèle de sélection et pondération IPW](F21-selection-ipw.md) | F20 | M | todo |
-| F22 | [Modèle hiérarchique bayésien par poste](F22-hierarchical-bayes.md) | F21 | L | todo |
+| **F21** ✅ | [Modèle de sélection et pondération IPW](F21-selection-ipw.md) | F20 | — | Gate de calibration cross-fitté, sensibilité troncature/stabilisation, coefficients de charge à la hausse comme attendu. |
+| **F22** ✅ | [Modèle hiérarchique bayésien par poste](F22-hierarchical-bayes.md) | F21 | L | PyMC hiérarchique non centré, IPW par `pm.Potential`, Gauss-Hermite pour joueurs/équipe-saisons nouveaux, prior predictive 9/9 dans la bande, run de référence conforme §6 (R̂ 1,0064, 0 divergence), revue M2 vs M0/M1/M1w + sensibilités. |
+| **F30** ✅ | [Simulateur de profil de charge par poste](F30-position-profile.md) | F22 | M | Demande humaine du 2026-11-08 : ajustement final hors test gelé, artefact M2 local (sans identifiant), `rugby-risk profile` (risque par match enchaîné, IC90, avertissement, refus si MCMC en échec). |
 
 ## Phase 6 — Challenger et gravité
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F23 | [Challenger gradient boosting et SHAP](F23-gbm-challenger.md) | F20 | M | todo |
+| **F23** ✅ | [Challenger gradient boosting et SHAP](F23-gbm-challenger.md) | F20 | M | HistGradientBoosting (libomp absent), exposition en offset monotone (fuite AUC 0,90 corrigée), meilleur log-loss 0,0845 vs M2 0,0997 mais pente 0,77 : non promu ; aucun effet d'enchaînement (ALE). |
 | F24 | [Modèle de gravité](F24-severity.md) | F18 | M | todo |
 
 ## Phase 7 — Produit
 
 | ID | Feature | Dépend de | Est. | Statut |
 |---|---|---|---|---|
-| F25 | [Prédictions batch et export Supabase agrégé](F25-batch-export-supabase.md) | F22 | M | todo |
-| F26 | [API FastAPI](F26-api-fastapi.md) | F25 | M | todo |
-| F27 | [Front Next.js](F27-web-nextjs.md) | F26 | L | todo |
+| **F25** ✅ | [Prédictions batch et export Supabase agrégé](F25-batch-export-supabase.md) | F22 | M | Garde k>=10 (colonnes + joueurs distincts, revérifiée au sink), courbes h(N) IC90 par tirage, incidence Poisson exact, résumés d'expérience par run ; dry-run réel ; Supabase refusé sans PROMOTION.md humain ; check vert. |
+| **F26** ✅ | [API FastAPI](F26-api-fastapi.md) | F25 | M | 9 routes lecture seule, middleware anti-clé-interdite, clé anonyme seule, 50+ tests, couverture api 99 %. Dockerfile non construit (daemon absent). |
+| **F27** 🚧 | [Front Next.js](F27-web-nextjs.md) | F26 | L | Version simplifiée (2 pages, Recharts, données = CSV publics) : lint/typecheck/20 tests/build/privacy verts. Reste : Lighthouse, rendu navigateur, simulateur/comparateur/postes, branchement API. |
 
 ## Phase 8 — Exploitation
 

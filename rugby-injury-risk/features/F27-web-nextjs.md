@@ -57,3 +57,7 @@ Livrable visible du projet (portfolio, échanges avec la LNR / des staffs). Le m
 
 ## Journal
 
+- **Version simplifiée (demande humaine du 2026-11-11)** : 2 pages (`/`, `/methodologie`), Next.js 16 + TypeScript strict + pnpm, **Recharts** (la fiche laissait le choix ; Visx écarté pour la simplicité), CSS Modules (pas de Tailwind : la DA impose palette en variables, angles droits, sans ombre). Données lues depuis les CSV publics (`pnpm build:data` -> `web/src/data/*.json`), pas d'appel API. Figures : incidence observée par poste (barres d'erreur IC90), h(N) avec bande 90 %, calibration ; tableaux de données alternatifs ; encadré « modèle exploratoire, non promu » piloté par `promoted`.
+- Vérifié : lint, typecheck, 20 tests Vitest, build, `check:privacy` (232 fichiers).
+- Réglages pnpm : `allowBuilds: esbuild` et `minimumReleaseAgeExclude` limité à Next 16.4.6 (versions épinglées).
+- Non fait / non vérifié : pages poste, simulateur, comparateur, à-propos ; branchement API ; Lighthouse ; rendu navigateur et mobile ; Playwright.
