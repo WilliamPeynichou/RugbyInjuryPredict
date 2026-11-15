@@ -98,3 +98,9 @@ Rapport : `reports/model_review_m2_hierarchical-20261108T185750Z.md` (non versio
 - Sensibilité « seuil de confiance 0,8 » : marquée infaisable après plantage initial (« exposition nulle » = zéro épisode ≥ 0,8 ; la confiance max de l'export vaut 0,75). Comportement verrouillé par `tests/unit/modeling/test_review_sensitivities.py`.
 - Le rapport de revue et la décision de promotion humaine restent dans `reports/` non versionné ; la promotion n'a pas été demandée et n'est pas automatique.
 
+- **2026-11-15 — périmètre corrigé (S18)** : l'offset `log(minutes/80)` était faux (minutes
+  raccourcies par la blessure). Sur les titulaires, sans minutes du match : M2 sans IPW
+  log-loss 0,1160, AUC 0,65, pente 0,88 (M0 : 0,1197 / 0,56 / 0,77) ; M2 avec IPW 0,1210 /
+  0,62 / 0,52 ; variante historique de blessure 0,1240, MCMC en échec, run invalide (résultat
+  négatif, comme le run du 2026-11-11 sur l'ancien périmètre : 0,1028, pente 0,01). Gain dans
+  le bruit, calibration par groupe non satisfaite : pas de promotion. Détail : docs/10.

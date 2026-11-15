@@ -38,3 +38,5 @@ data/*.log
 data/*.sh
 data/warehouse.lock
 .scratch_*/
+data/.pytensor_cache/
+data/.mpl/

@@ -139,6 +139,7 @@ Les détails sont dans les Journaux des fiches.
 | S15 | **Dataset ml v7** : la colonne `team_id` a été ajoutée à `ml_player_match` (requis par l'effet équipe-saison de F22). Nouveau `dataset_version = 7d004d9a146715b139e501738e58620a` (ancien `e8591d01` invalidé). | Les runs M0/M1/M1w publiés en F20/F21 portaient sur l'ancien dataset et ne sont plus comparables ; ils ont été relancés sur v7 en F22 (journal F22). | Toujours reporter le `dataset_version` dans les comparaisons de modèles. |
 | S16 | **Label ML vs incidence attendue** : 1 200 blessures en match détectées (53,9 / 1000 h, dans la bande docs/02), mais seulement 395 au seuil `INJURY_CONF_THRESHOLD = 0,6` (17,7 / 1000 h, soit ~2,4 % par match complet). Les 805 exclues sont surtout des « sorties seules » (0,42 / 0,54 : sortie précoce sans absence ≥ 2 matchs). Le contrôle F16 ne mesurait que la détection. | La cible est des blessures avec arrêt d'au moins 2 matchs, sous-déclarées par construction (doc de recherche § validité de la cible). Le prior M2 (7 %) est au-dessus ; la postérieure s'en écarte (α = −3,73 contre −2,62), donc les courbes M2 réelles (1,2–2,5 %) suivent les données. Ce n'est pas la cause du rejet de M2 (pente de calibration ~0, 1 fold). | Rapport `injury_incidence.md` : 2 sections (détection / label ML) + incidence poolée. Prior M2 inchangé (le recaler sur l'observé serait regarder les données). Toute publication doit dire « blessures avec arrêt ≥ 2 matchs ». |
 | S17 | **Causalité inverse par l'exposition** (F23) : un modèle libre sur `minutes_played` apprend « peu de minutes = blessure » (joueur blessé remplacé, label basé en partie sur la sortie précoce F12). M3 brut : AUC 0,90, h(N) à 80 min = 0. | Toute métrique « trop belle » et toute courbe à minutes fixes deviennent fausses. | **Résolu pour M3** : exposition = offset (M0/M1/M2) ou contrainte monotone croissante imposée (M3, non désactivable, testée). Règle : aucun futur modèle ne reçoit l'exposition du match courant comme feature libre. |
+| S18 | **Les minutes du match ne sont pas une exposition** (2026-11-15). Sur les vraies données : aucune blessure au-delà de 60 min jouées, les 390 blessés sont tous titulaires, un blessé joue 31 min en moyenne contre 53. Cause : le label exige une sortie précoce (`config/injury_rules.yaml`), donc minutes courtes = conséquence de la blessure. | M0, M1, M2 utilisaient `log(minutes/80)` en offset : faux par construction (M0 AUC 0,35, sous le hasard). Le gain de M3 (0,0845) venait de la neutralisation des minutes : un simple taux par poste sans minutes donnait 0,0849. Tous les chiffres antérieurs au 2026-11-15 sont invalides comme mesure de performance. | **Résolu** : `ExperimentConfig.population = starters` et `exposure = per_start` (minutes figées à 80 pour tout modèle, minutes réelles gardées dans `minutes_observed` pour les rapports). Activé dans toutes les configs réelles. Règle : aucune variable du match en cours dans un modèle. Limite assumée : remplaçants et blessures après la 60e hors étude. |
 
 ### Technique et outillage
 
@@ -154,6 +155,7 @@ Les détails sont dans les Journaux des fiches.
 | T9 | La fiche F14 est `done` en ROADMAP mais cases/Journal vides (code de collecte presse hérité F03, jamais relu feature par feature). | État réel flou. | Reprendre la fiche F14 (cocher, journal) ou la rouvrir, décision humaine. |
 | T10 | **Longs jobs détachés** : `subprocess.Popen(start_new_session=True)` lancé depuis l'outil shell a produit des descripteurs invalides chez le processus petit-fils (`Fatal Python error: init_sys_streams`). Faux échec. | Lancer les runs longs (MCMC, `make check`) via `nohup cmd > log 2>&1 </dev/null &`, puis poller le log. | — |
 | T11 | `nutpie`/`llvmlite >= 0.46` : pas de wheel macOS **x86_64** (machine de développement) ; arviz **1.x incompatible avec pymc 5.26** (`ImportError: concat`). | Pas de sampler nutpie ; pin `arviz>=0.22,<1` dans `pyproject.toml`. | Rouvrir si la machine passe en arm64 ou si pymc est monté de version. |
+| T12 | Cache PyTensor `~/.pytensor` et `~/.matplotlib` non accessibles en écriture depuis l'outil shell (2026-11-15) : compilation MCMC en échec. | Fit impossible sans contournement. | Lancer avec `PYTENSOR_FLAGS=base_compiledir=data/.pytensor_cache` et `MPLCONFIGDIR=data/.mpl` (dossiers ignorés par git). |
 | T8 | Les branches sont empilées et il n'y a pas de `main`. | Revue difficile. | Créer `main` depuis F00 et fusionner dans l'ordre, ou ouvrir des PR empilées (décision humaine). |
 
 ### Audit du 2026-11-10
@@ -192,6 +194,32 @@ Constats chiffrés, mesurés dans le dépôt le 2026-11-10. Les valeurs de modè
 4. **Périmètre de publication du front** : local uniquement ou public (Vercel + Supabase). Conditionne le déblocage de l'upsert Supabase réel.
 5. **Rester à 3 saisons ou crawler l'historique** : décision de l'humain (2022-2025 retenu à ce stade, sans ajout).
 6. **F14 (flux presse)** : choix des flux autorisés ; `news` reste `false`.
+
+## Résultats sur le périmètre fiable (2026-11-15)
+
+Périmètre : titularisations seulement, risque par titularisation, sans les minutes du match
+(S18). Test 2024-2025 : 5 155 lignes, 134 blessures, prévalence 2,60 %. dataset_version
+`7d004d9a146715b139e501738e58620a`. Un seul fold.
+
+| Modèle | Log-loss | AUC | Pente de calibration | MCMC |
+|---|---|---|---|---|
+| M0 taux par poste (référence) | 0,1197 | 0,56 | 0,77 | — |
+| M1 hazard cloglog | 0,1199 | 0,62 | 0,56 | — |
+| M3 GBM | 0,1223 | 0,60 | 0,32 | — |
+| M2 hiérarchique avec IPW | 0,1210 | 0,62 | 0,52 | ok |
+| **M2 hiérarchique sans IPW** | **0,1160** | **0,65** | **0,88** | ok |
+| M2 + historique de blessure (avec IPW) | 0,1240 | 0,61 | 0,37 | **échec** (run invalide) |
+
+Lecture :
+- M2 sans IPW est le seul modèle qui bat la référence avec une pente globale dans [0,8 ; 1,2].
+- Le gain est dans le bruit : Brier 0,0249 [0,0221 ; 0,0272] contre 0,0253 [0,0226 ; 0,0277]
+  pour M0. Cinq modèles ont été essayés sur le même test : le meilleur peut l'être par chance.
+- Calibration par groupe de postes : 1 groupe sur 6 dans les bornes (14 à 35 blessures par
+  groupe). Le critère docs/06 §6 n'est donc **pas** satisfait.
+- Enchaînement : pentes de `consecutive_matches` entre -0,09 et -0,16 selon le groupe, tous les
+  intervalles à 90 % incluent 0. Aucun effet établi, ni hausse ni baisse.
+- L'IPW dégrade la prédiction (son modèle de sélection décrit « joue », pas « est titulaire »).
+- Aucune promotion. M2 sans IPW sert au fit final exploratoire et à l'aperçu public.
 
 ## 4. Ce qui reste à faire
 

@@ -39,7 +39,7 @@ export function CurveFigure({ curves }: { curves: readonly PositionCurve[] }) {
       title="Figure 2 — Risque estimé au prochain match selon le nombre de matchs enchaînés"
       legend={
         <>
-          Trait : risque estimé au prochain match pour le poste « {label} », scénario médian, en
+          Trait : risque estimé par titularisation pour le poste « {label} », scénario médian, en
           fonction des matchs consécutifs déjà joués. Bande : intervalle à 90 %. Joueurs de
           support : {support}. Association statistique, non causale.
         </>

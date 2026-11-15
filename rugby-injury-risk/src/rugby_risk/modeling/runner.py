@@ -10,7 +10,7 @@ from collections.abc import Callable
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from pathlib import Path
-from typing import Any, cast
+from typing import Any, Final, cast
 
 import matplotlib
 
@@ -32,6 +32,11 @@ from rugby_risk.modeling.validation import (
     with_label_observability,
 )
 
+POPULATIONS: Final = ("all", "starters")
+EXPOSURES: Final = ("minutes", "per_start")
+OBSERVED_MINUTES: Final = "minutes_observed"
+EXPOSURE_REFERENCE_MINUTES: Final = 80.0
+
 
 @dataclass(frozen=True)
 class ExperimentConfig:
@@ -49,10 +54,21 @@ class ExperimentConfig:
     # Dossier des rapports d'expérience. Les tests doivent pointer vers tmp_path : rien ne
     # doit s'écrire dans le dépôt pendant une suite de tests.
     reports_dir: Path = Path("reports/experiments")
+    # Population d'étude. "starters" : titularisations seulement — le label ne voit que les
+    # titulaires sortis tôt (config/injury_rules.yaml), les remplaçants n'ont jamais y = 1.
+    population: str = "all"
+    # "minutes" : exposition = minutes jouées (offset). "per_start" : exposition constante.
+    # Les minutes du match sont une CONSÉQUENCE de la blessure (sortie précoce), pas une
+    # exposition : sur les vraies données aucune blessure au-delà de 60 min (S18, docs/10).
+    exposure: str = "minutes"
 
     def __post_init__(self) -> None:
         # Accepte str (YAML via cli.py) ou Path ; le dataclass est gelé, d'où object.__setattr__.
         object.__setattr__(self, "reports_dir", Path(self.reports_dir))
+        if self.population not in POPULATIONS:
+            raise ValueError(f"population inconnue : {self.population} ({POPULATIONS})")
+        if self.exposure not in EXPOSURES:
+            raise ValueError(f"exposure inconnue : {self.exposure} ({EXPOSURES})")
 
 
 @dataclass(frozen=True)
@@ -105,11 +121,21 @@ def _played(df: pl.DataFrame, seasons: tuple[str, ...], config: ExperimentConfig
     # Sur les vraies données ces lignes ont toutes y_injury = 0 (0,8 % des jouées).
     # Les lignes à label censuré (suivi insuffisant en fin de saison) aussi : y = 0 y
     # signifie « non observable » (0 blessure sur 677 lignes de phase finale).
-    return (
+    rows = (
         df.filter(pl.col("season_id").is_in(list(seasons)))
         .filter(pl.col("played") & pl.col(LABEL_OBSERVABLE))
         .drop_nulls(subset=[config.target_col, "minutes_played"])
     )
+    if config.population == "starters":
+        rows = rows.filter(pl.col("is_starter"))
+    if config.exposure == "per_start":
+        # Les minutes observées restent disponibles pour les rapports, jamais pour un modèle :
+        # tous lisent `minutes_played`, ici figé à la référence (offset nul).
+        rows = rows.with_columns(
+            pl.col("minutes_played").alias(OBSERVED_MINUTES),
+            pl.lit(EXPOSURE_REFERENCE_MINUTES).alias("minutes_played"),
+        )
+    return rows
 
 
 def _eligible(df: pl.DataFrame, seasons: tuple[str, ...]) -> pl.DataFrame:

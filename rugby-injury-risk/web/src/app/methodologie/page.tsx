@@ -87,6 +87,11 @@ export default function MethodologyPage() {
           <li>Les blessures courtes (moins de 2 matchs d&apos;absence) sont sous-déclarées.</li>
           <li>La validation repose sur un seul découpage temporel.</li>
           <li>
+            Seuls les titulaires sont étudiés : une blessure est détectée par une sortie avant
+            la 60e minute suivie d&apos;une absence, donc les remplaçants et les blessures de
+            fin de match ne sont pas comptés.
+          </li>
+          <li>
             Biais de sélection : les joueurs fatigués peuvent être mis au repos, ce qui fausse les
             comparaisons.
           </li>

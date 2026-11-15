@@ -8,3 +8,7 @@ bootstrap_replications: 200
 seed: 0
 target_col: y_injury
 mlflow_uri: sqlite:///data/mlflow.db
+# Périmètre fiable (S18, docs/10) : titularisations seulement, risque par titularisation.
+# Les minutes du match ne sont pas une exposition (elles sont raccourcies par la blessure).
+population: starters
+exposure: per_start

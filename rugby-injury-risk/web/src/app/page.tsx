@@ -21,6 +21,7 @@ export default function HomePage() {
         <h1 className={styles.title}>Risque de blessure par poste en Top 14</h1>
         <p className={styles.lede}>
           Blessures entraînant au moins 2 matchs d&apos;absence, saisons 2022 à 2025.
+          Joueurs titulaires uniquement : la méthode de détection ne voit pas les remplaçants.
         </p>
       </header>
 

@@ -17,6 +17,8 @@ from rugby_risk.injuries.annotation import (
 from rugby_risk.injuries.exit_report import write_report
 from rugby_risk.warehouse import connect
 
+REFERENCE_MINUTES = 80.0
+
 
 def _experiment_inputs(config_path: Path) -> tuple[Any, Any, Any]:
     """Model registry, ExperimentConfig and the ML export (F18 entry point)."""
@@ -83,6 +85,7 @@ def _fit_final(model_name: str, config_path: Path) -> int:
         seasons=final.seasons,
         dataset_version=final.dataset_version,
         git_sha=final.git_sha,
+        protocol={"population": config.population, "exposure": config.exposure},
     )
     print(f"Artefact : {path} (MCMC {final.model.status}, saisons {', '.join(final.seasons)})")
     return 0 if final.model.status == "ok" else 1
@@ -145,6 +148,12 @@ def _profile(args: Any) -> int:
 
     directory = Path(args.model_dir) if args.model_dir else latest_artifact()
     model, meta = load_hierarchical(directory)
+    per_start = meta.get("protocol", {}).get("exposure") == "per_start"
+    if per_start and args.minutes != REFERENCE_MINUTES:
+        raise SystemExit(
+            "Ce modèle estime un risque par titularisation : --minutes n'a pas de sens"
+            " (les minutes du match sont une conséquence de la blessure)."
+        )
     profile = PositionProfile(
         position_code=args.position.upper(),
         minutes_per_match=args.minutes,

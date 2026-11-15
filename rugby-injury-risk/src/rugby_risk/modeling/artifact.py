@@ -88,6 +88,7 @@ def save_hierarchical(  # noqa: PLR0913 - provenance complète de l'artefact
     seasons: tuple[str, ...],
     dataset_version: str,
     git_sha: str | None,
+    protocol: dict[str, str] | None = None,
     root: Path = MODELS_DIR,
 ) -> Path:
     """Persist a fitted M2; the rebuilt transform must equal the fitted one."""
@@ -114,6 +115,8 @@ def save_hierarchical(  # noqa: PLR0913 - provenance complète de l'artefact
         "dataset_version": dataset_version,
         "git_sha": git_sha,
         "seasons": list(seasons),
+        # population / exposition de l'ajustement : relues par l'export et le simulateur
+        "protocol": dict(protocol or {}),
         "n_train_rows": len(train),
         "ipw": model.ipw,
         "diagnostics": asdict(model.diagnostics_) if model.diagnostics_ else None,

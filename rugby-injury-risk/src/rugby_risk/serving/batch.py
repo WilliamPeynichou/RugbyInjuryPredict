@@ -27,6 +27,8 @@ from scipy import stats
 from rugby_risk.modeling.curves import Scenarios, hazard_curve_draws
 from rugby_risk.serving.guard import make_public
 
+OBSERVED_MINUTES: Final = "minutes_observed"
+
 CI_LEVEL: Final = 0.90
 SUMMARY_SUFFIX: Final = "_summary.json"
 COUNT_BUCKETS: Final = ((10, "<10"), (25, "10-24"), (50, "25-49"))
@@ -129,11 +131,13 @@ def position_seasons(
     computed_at: str,
     target_col: str = "y_injury",
 ) -> pl.DataFrame:
+    # Heures réellement jouées : en exposition par titularisation, `minutes_played` est figé.
+    minutes = OBSERVED_MINUTES if OBSERVED_MINUTES in rows.columns else "minutes_played"
     agg = (
         rows.group_by(["season_id", "position_code"])
         .agg(
             pl.col(target_col).cast(pl.Int64).sum().alias("injuries"),
-            (pl.col("minutes_played").cast(pl.Float64).sum() / 60.0).alias("exposure_hours"),
+            (pl.col(minutes).cast(pl.Float64).sum() / 60.0).alias("exposure_hours"),
             pl.len().alias("n_matches_played"),
             pl.col("player_key").n_unique().alias("n_players_support"),
         )
@@ -256,10 +260,10 @@ def build_public_tables(
     ml_config: Any = None,
     experiments_dir: Path = Path("reports/experiments"),
     evaluation_models: tuple[tuple[str, str], ...] = (
-        ("m2_hierarchical", "principale"),
+        ("m2_hierarchical_noipw", "hiérarchique sans IPW"),
+        ("m2_hierarchical", "hiérarchique avec IPW"),
         ("m0_position", "référence"),
         ("m1_hazard_cloglog", "challenger paramétrique"),
-        ("m1w_hazard_ipw", "challenger IPW"),
         ("m3_gbm", "challenger non paramétrique"),
     ),
 ) -> PublicTables:
@@ -274,7 +278,10 @@ def build_public_tables(
         load_hierarchical,
     )
     from rugby_risk.modeling.profile import NOT_PROMOTED  # noqa: PLC0415
-    from rugby_risk.modeling.runner import estimation_rows  # noqa: PLC0415
+    from rugby_risk.modeling.runner import (  # noqa: PLC0415
+        ExperimentConfig,
+        estimation_rows,
+    )
 
     model, meta = load_hierarchical(artifact_directory)
     if model.status != "ok":
@@ -285,7 +292,9 @@ def build_public_tables(
     promoted = is_promoted(artifact_directory)
     train_seasons = tuple(str(s) for s in meta["seasons"])
 
-    rows = estimation_rows(df, train_seasons, ml_config)
+    protocol = meta.get("protocol") or {}
+    main_name = str(meta.get("model_name", "m2_hierarchical"))
+    rows = estimation_rows(df, train_seasons, ml_config or ExperimentConfig(**protocol))
     if str(rows["dataset_version"][0]) != dataset_version:
         raise PublishError(
             f"Version d'export ML ({rows['dataset_version'][0]}) != version de l'artefact"
@@ -304,7 +313,7 @@ def build_public_tables(
     )
     season = position_seasons(rows, groups, model_version=model_version, computed_at=computed_at)
 
-    evaluation = latest_summary(experiments_dir, "m2_hierarchical", dataset_version)
+    evaluation = latest_summary(experiments_dir, main_name, dataset_version)
     calibration = calibration_rows(evaluation, model_version)
     registry_records = [
         registry_row(
@@ -318,9 +327,14 @@ def build_public_tables(
         )
     ]
     for name, role in evaluation_models:
-        if name == "m2_hierarchical":
+        if name == main_name:
             continue
         other = latest_summary(experiments_dir, name, dataset_version)
+        if other["aggregated"]["n"] != evaluation["aggregated"]["n"]:
+            raise PublishError(
+                f"{name} évalué sur {other['aggregated']['n']} lignes, {main_name} sur"
+                f" {evaluation['aggregated']['n']} : populations différentes, relancer {name}"
+            )
         registry_records.append(
             registry_row(
                 other,

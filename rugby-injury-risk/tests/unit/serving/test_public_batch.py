@@ -186,7 +186,13 @@ def test_public_tables_container() -> None:
 # --- build_public_tables de bout en bout (sans MCMC : faux modèle à tirages) -----------------
 
 _DATASET = "7d004d9a146715b139e501738e58620a"
-_MODELS = ("m2_hierarchical", "m0_position", "m1_hazard_cloglog", "m1w_hazard_ipw", "m3_gbm")
+_MODELS = (
+    "m2_hierarchical",
+    "m2_hierarchical_noipw",
+    "m0_position",
+    "m1_hazard_cloglog",
+    "m3_gbm",
+)
 
 
 def _estimation_frame() -> pl.DataFrame:
