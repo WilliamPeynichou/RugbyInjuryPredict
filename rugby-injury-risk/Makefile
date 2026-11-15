@@ -1,4 +1,4 @@
-.PHONY: setup check test test-slow dagster seeds dbt mlflow api openapi web check-web purge-health
+.PHONY: root-readme setup check test test-slow dagster seeds dbt mlflow api openapi web check-web purge-health
 setup:
 	uv sync --locked
 	cd $$(git rev-parse --show-toplevel) && $(CURDIR)/.venv/bin/pre-commit install --config rugby-injury-risk/.pre-commit-config.yaml
@@ -28,3 +28,5 @@ web check-web:
 	@echo "Disponible après F27"
 purge-health:
 	@echo "Disponible après F16"
+root-readme:
+	python3 scripts/build_root_readme.py
