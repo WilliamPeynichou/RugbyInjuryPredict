@@ -1,5 +1,6 @@
 "use client";
 
+import { niceAxis } from "@/lib/axis";
 import { useId, useMemo, useState } from "react";
 import {
   Bar,
@@ -47,7 +48,7 @@ export function IncidenceFigure({ rows }: { rows: readonly PositionSeason[] }) {
 
   const summaries = useMemo(() => summarizeByPosition(rows, season), [rows, season]);
   const data = useMemo(() => toBarData(summaries), [summaries]);
-  const yMax = Math.max(...summaries.map((s) => s.incidence_high90)) * 1.08;
+  const yAxis = niceAxis(Math.max(...summaries.map((s) => s.incidence_high90)));
   const period = `saisons ${seasons[0]} à ${seasons[seasons.length - 1]}`;
   const scopeLabel =
     season === ALL_SEASONS ? `${period}, moyenne pondérée par heures` : `saison ${season}`;
@@ -116,13 +117,14 @@ export function IncidenceFigure({ rows }: { rows: readonly PositionSeason[] }) {
               tickLine={false}
             />
             <YAxis
-              domain={[0, yMax]}
+              domain={yAxis.domain}
+              ticks={yAxis.ticks}
               tick={{ fill: CHART.stone600, fontSize: 12 }}
               stroke={CHART.stone400}
               tickLine={false}
               width={56}
               label={{
-                value: "Blessures pour 1 000 heures de match",
+                value: "Blessures / 1 000 h",
                 angle: -90,
                 position: "insideLeft",
                 offset: 0,

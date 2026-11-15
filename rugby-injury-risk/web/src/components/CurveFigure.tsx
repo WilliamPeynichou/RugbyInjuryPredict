@@ -1,5 +1,6 @@
 "use client";
 
+import { niceAxis } from "@/lib/axis";
 import { useId, useMemo, useState } from "react";
 import {
   Area,
@@ -30,7 +31,7 @@ export function CurveFigure({ curves }: { curves: readonly PositionCurve[] }) {
     mean: p.p_mean * 100,
     band: [p.p_low90 * 100, p.p_high90 * 100] as [number, number],
   }));
-  const yMax = Math.max(...points.map((p) => p.p_high90 * 100)) * 1.1;
+  const yAxis = niceAxis(Math.max(...points.map((p) => p.p_high90 * 100)));
   const label = positionLabel(position);
   const support = points[0].n_players_support;
 
@@ -96,14 +97,15 @@ export function CurveFigure({ curves }: { curves: readonly PositionCurve[] }) {
               }}
             />
             <YAxis
-              domain={[0, yMax]}
+              domain={yAxis.domain}
+              ticks={yAxis.ticks}
               tick={{ fill: CHART.stone600, fontSize: 12 }}
               stroke={CHART.stone400}
               tickLine={false}
               width={56}
               tickFormatter={(v: number) => formatAxisPercent(v)}
               label={{
-                value: "Risque au prochain match (%)",
+                value: "Risque (%)",
                 angle: -90,
                 position: "insideLeft",
                 offset: 0,
